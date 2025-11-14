@@ -54,7 +54,288 @@ function initForms() {
   );
 }
 
+function formatTimestamp(isoString) {
+  const date = isoString ? new Date(isoString) : new Date();
+  if (Number.isNaN(date.getTime())) {
+    return "Just now";
+  }
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function renderMessages(container, messages) {
+  if (!container) return;
+  container.innerHTML = "";
+  const roleLabels = {
+    visitor: "Visitor",
+    ai: "Autopilot",
+    agent: "Agent",
+  };
+
+  messages.forEach((message) => {
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("chat-message");
+    if (message.role) {
+      wrapper.classList.add(message.role);
+    }
+
+    const meta = document.createElement("span");
+    meta.classList.add("chat-meta");
+    const label = roleLabels[message.role] || "Message";
+    meta.textContent = `${label} · ${formatTimestamp(message.timestamp)}`;
+
+    const body = document.createElement("p");
+    body.textContent = message.content;
+
+    wrapper.append(meta, body);
+    container.appendChild(wrapper);
+  });
+
+  container.scrollTop = container.scrollHeight;
+}
+
+async function fetchJson(url, options) {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    const error = new Error(`Request failed with status ${response.status}`);
+    error.response = response;
+    throw error;
+  }
+  return response.json();
+}
+
+function initVisitorChat() {
+  const chatRoot = document.querySelector("[data-role='visitor-chat']");
+  if (!chatRoot) return;
+
+  const messageContainer = chatRoot.querySelector("[data-chat-messages]");
+  const statusLabel = chatRoot.querySelector("[data-role='visitor-status']");
+  const feedback = chatRoot.querySelector("[data-role='visitor-feedback']");
+  const form = chatRoot.querySelector("[data-role='visitor-form']");
+  const textarea = form?.querySelector("textarea");
+  const submitButton = form?.querySelector("button[type='submit']");
+
+  function updateStatus(autopilot) {
+    if (!statusLabel) return;
+    statusLabel.textContent = autopilot
+      ? "Autopilot is active — our AI helper is ready to answer your questions."
+      : "Live chat is on — leave a message and a team member will reply here.";
+  }
+
+  async function refreshMessages() {
+    try {
+      const data = await fetchJson("/api/chat/messages");
+      renderMessages(messageContainer, data.messages || []);
+      updateStatus(Boolean(data.autopilot));
+    } catch (error) {
+      if (feedback) {
+        feedback.textContent = "We couldn’t refresh the chat just now.";
+        feedback.classList.add("error");
+      }
+    }
+  }
+
+  if (form && textarea && submitButton) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = textarea.value.trim();
+      if (!message) {
+        textarea.focus();
+        return;
+      }
+
+      submitButton.disabled = true;
+      if (feedback) {
+        feedback.textContent = "Sending...";
+        feedback.classList.remove("error");
+      }
+
+      try {
+        const data = await fetchJson("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message }),
+        });
+        textarea.value = "";
+        renderMessages(messageContainer, data.messages || []);
+        updateStatus(Boolean(data.autopilot));
+        if (feedback) {
+          feedback.textContent = data.autopilot
+            ? "Reply sent instantly by Autopilot."
+            : "Message delivered. A team member will reply here soon.";
+        }
+      } catch (error) {
+        if (feedback) {
+          feedback.textContent = "Sorry, we couldn’t send that message. Please try again.";
+          feedback.classList.add("error");
+        }
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+  }
+
+  refreshMessages();
+  setInterval(refreshMessages, 8000);
+}
+
+function initAdminChat() {
+  const adminRoot = document.querySelector("[data-role='admin-chat']");
+  if (!adminRoot) return;
+
+  const messageContainer = adminRoot.querySelector("[data-chat-messages]");
+  const chatHint = adminRoot.querySelector("[data-role='chat-hint']");
+  const modeDescription = adminRoot.querySelector("[data-role='mode-description']");
+  const settingsForm = adminRoot.querySelector("#chat-settings-form");
+  const autopilotToggle = adminRoot.querySelector("#autopilot-toggle");
+  const businessContext = adminRoot.querySelector("#business-context");
+  const settingsFeedback = adminRoot.querySelector("[data-role='settings-feedback']");
+  const replyForm = adminRoot.querySelector("#agent-reply-form");
+  const replyTextarea = adminRoot.querySelector("#agent-message");
+  const replyFeedback = adminRoot.querySelector("[data-role='agent-feedback']");
+  const replyButton = replyForm?.querySelector("button[type='submit']");
+
+  function updateModeDescription(isAutopilot) {
+    if (modeDescription) {
+      modeDescription.textContent = isAutopilot
+        ? "Visitors chat with the AI assistant."
+        : "Visitors will wait for a live reply from you.";
+    }
+    if (chatHint) {
+      chatHint.textContent = isAutopilot
+        ? "Autopilot is active. Disable it to respond manually."
+        : "Live chat is on. New visitor messages will appear here.";
+    }
+    if (replyTextarea) {
+      replyTextarea.disabled = isAutopilot;
+    }
+    if (replyButton) {
+      replyButton.disabled = isAutopilot;
+    }
+  }
+
+  async function loadSettings() {
+    try {
+      const data = await fetchJson("/api/admin/chat-settings");
+      if (autopilotToggle) {
+        autopilotToggle.checked = Boolean(data.autopilot);
+      }
+      if (businessContext) {
+        businessContext.value = data.business_context || "";
+      }
+      updateModeDescription(Boolean(data.autopilot));
+    } catch (error) {
+      if (settingsFeedback) {
+        settingsFeedback.textContent = "Couldn’t load settings. Refresh the page.";
+        settingsFeedback.classList.add("error");
+      }
+    }
+  }
+
+  async function saveSettings(autopilot, context) {
+    const payload = {
+      autopilot,
+      business_context: context,
+    };
+    const data = await fetchJson("/api/admin/chat-settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return data;
+  }
+
+  async function refreshMessages() {
+    try {
+      const data = await fetchJson("/api/chat/messages");
+      renderMessages(messageContainer, data.messages || []);
+      updateModeDescription(Boolean(data.autopilot));
+    } catch (error) {
+      if (replyFeedback && !replyFeedback.textContent) {
+        replyFeedback.textContent = "Unable to refresh messages.";
+        replyFeedback.classList.add("error");
+      }
+    }
+  }
+
+  if (settingsForm && autopilotToggle && businessContext) {
+    settingsForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (settingsFeedback) {
+        settingsFeedback.textContent = "Saving...";
+        settingsFeedback.classList.remove("error");
+      }
+      try {
+        const data = await saveSettings(
+          autopilotToggle.checked,
+          businessContext.value.trim()
+        );
+        updateModeDescription(Boolean(data.autopilot));
+        if (settingsFeedback) {
+          settingsFeedback.textContent = "Settings saved.";
+        }
+      } catch (error) {
+        if (settingsFeedback) {
+          settingsFeedback.textContent = "Couldn’t save settings. Try again.";
+          settingsFeedback.classList.add("error");
+        }
+      }
+    });
+
+    autopilotToggle.addEventListener("change", () => {
+      updateModeDescription(autopilotToggle.checked);
+    });
+  }
+
+  if (replyForm && replyTextarea && replyButton) {
+    replyForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = replyTextarea.value.trim();
+      if (!message) {
+        replyTextarea.focus();
+        return;
+      }
+
+      replyButton.disabled = true;
+      replyTextarea.disabled = true;
+      if (replyFeedback) {
+        replyFeedback.textContent = "Sending...";
+        replyFeedback.classList.remove("error");
+      }
+
+      try {
+        const data = await fetchJson("/api/chat/respond", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message }),
+        });
+        replyTextarea.value = "";
+        renderMessages(messageContainer, data.messages || []);
+        if (replyFeedback) {
+          replyFeedback.textContent = "Reply sent.";
+        }
+      } catch (error) {
+        if (replyFeedback) {
+          replyFeedback.textContent =
+            error?.response?.status === 400
+              ? "Autopilot is enabled. Turn it off to reply manually."
+              : "Couldn’t send reply. Try again.";
+          replyFeedback.classList.add("error");
+        }
+      } finally {
+        replyTextarea.disabled = autopilotToggle?.checked ?? false;
+        replyButton.disabled = autopilotToggle?.checked ?? false;
+      }
+    });
+  }
+
+  loadSettings();
+  refreshMessages();
+  setInterval(refreshMessages, 6000);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initForms();
+  initVisitorChat();
+  initAdminChat();
 });

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Admin | Reliable Walks{% endblock %}
+{% block content %}
+<section class="admin-panel">
+  <div class="container narrow" id="admin-chat" data-role="admin-chat">
+    <header class="admin-header">
+      <h1>Chat Control Centre</h1>
+      <p class="admin-subtitle">
+        Switch between Autopilot and Live Chat, keep the AI briefed on your services,
+        and respond to visitors in real time.
+      </p>
+    </header>
+    <div class="admin-grid">
+      <article class="admin-card">
+        <h2>Chat Mode &amp; Business Context</h2>
+        <form id="chat-settings-form" class="settings-form">
+          <div class="toggle-row">
+            <label class="toggle">
+              <input type="checkbox" id="autopilot-toggle" />
+              <span class="toggle-track" aria-hidden="true"></span>
+              <span class="toggle-label">Autopilot</span>
+            </label>
+            <p class="toggle-description" data-role="mode-description">
+              Visitors chat with the AI assistant.
+            </p>
+          </div>
+          <label class="field-label" for="business-context">Business Knowledge</label>
+          <p class="field-help">
+            Add bullet points, FAQs, pricing, or any notes you want the AI to use in
+            its replies.
+          </p>
+          <textarea
+            id="business-context"
+            rows="8"
+            placeholder="Opening hours, pricing, service areas, booking steps, etc."
+          ></textarea>
+          <div class="form-actions">
+            <button type="submit" class="button primary">Save Settings</button>
+            <p class="form-feedback" data-role="settings-feedback"></p>
+          </div>
+        </form>
+      </article>
+      <article class="admin-card">
+        <h2>Live Conversation</h2>
+        <div class="chat-window" data-chat-messages aria-live="polite"></div>
+        <p class="chat-hint" data-role="chat-hint">
+          Autopilot is active. Disable it to respond manually.
+        </p>
+        <form id="agent-reply-form" class="reply-form">
+          <label class="field-label" for="agent-message">Reply to visitor</label>
+          <textarea
+            id="agent-message"
+            rows="4"
+            placeholder="Type your message to the visitor..."
+            required
+          ></textarea>
+          <div class="form-actions">
+            <button type="submit" class="button secondary">Send Reply</button>
+            <p class="form-feedback" data-role="agent-feedback"></p>
+          </div>
+        </form>
+      </article>
+    </div>
+  </div>
+</section>
+{% endblock %}
