@@ -18,6 +18,58 @@ function initNavigation() {
   });
 }
 
+const ENQUIRY_STORAGE_KEY = "reliableWalksEnquiries";
+
+function loadEnquiries() {
+  try {
+    return JSON.parse(localStorage.getItem(ENQUIRY_STORAGE_KEY)) ?? [];
+  } catch (error) {
+    console.error("Failed to parse enquiries from storage", error);
+    return [];
+  }
+}
+
+function saveEnquiries(enquiries) {
+  try {
+    localStorage.setItem(ENQUIRY_STORAGE_KEY, JSON.stringify(enquiries));
+  } catch (error) {
+    console.error("Failed to save enquiries", error);
+  }
+}
+
+function addEnquiry(enquiry) {
+  const enquiries = loadEnquiries();
+  const entry = {
+    id: Date.now(),
+    ...enquiry,
+    createdAt: new Date().toISOString(),
+    completed: false,
+    isNew: true,
+  };
+  enquiries.push(entry);
+  saveEnquiries(enquiries);
+  window.dispatchEvent(new CustomEvent("enquiries:updated"));
+  return entry;
+}
+
+function formatDateTime(value) {
+  const date = new Date(value);
+  return date.toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+function escapeHtml(value) {
+  if (value === undefined || value === null) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function handleFormSubmission(formId, feedbackSelector, successMessage) {
   const form = document.getElementById(formId);
   const feedback = document.querySelector(feedbackSelector);
@@ -32,6 +84,16 @@ function handleFormSubmission(formId, feedbackSelector, successMessage) {
       feedback.textContent = "Please complete all required fields.";
       feedback.classList.add("error");
       return;
+    }
+
+    if (form.id === "contact-form") {
+      const formData = new FormData(form);
+      addEnquiry({
+        name: formData.get("name"),
+        email: formData.get("email"),
+        phone: formData.get("phone"),
+        message: formData.get("message"),
+      });
     }
 
     feedback.textContent = successMessage;

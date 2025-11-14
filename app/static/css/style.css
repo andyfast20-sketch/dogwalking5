@@ -828,3 +828,228 @@ textarea {
     display: none;
   }
 }
+
+/* Admin dashboard */
+.admin-hero {
+  background: radial-gradient(circle at top right, #153c30, #081a14);
+}
+
+.admin-dashboard {
+  padding: clamp(3rem, 5vw, 4rem) 0;
+}
+
+.admin-dashboard h2 {
+  font-size: 1.6rem;
+  margin-bottom: 2rem;
+}
+
+.task-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.task-card {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 1.75rem;
+  box-shadow: 0 20px 40px rgba(4, 18, 14, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: left;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-card p {
+  color: var(--muted);
+  margin-top: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.task-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  background: rgba(125, 210, 124, 0.1);
+  color: var(--eyebrow);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.task-card__badge--highlight {
+  background: rgba(245, 180, 0, 0.12);
+  color: var(--accent);
+}
+
+.task-card.task-card--action {
+  border: 1px solid rgba(245, 180, 0, 0.25);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  color: inherit;
+}
+
+.task-card.task-card--action:hover,
+.task-card.task-card--action:focus {
+  transform: translateY(-4px);
+  box-shadow: 0 26px 48px rgba(4, 18, 14, 0.45);
+}
+
+.task-card.task-card--action:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.task-card__header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.task-card__total {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.task-card__cta {
+  margin-top: auto;
+  font-weight: 700;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.task-card__cta::after {
+  content: "→";
+  font-size: 1rem;
+}
+
+@keyframes enquiry-flash {
+  0%,
+  100% {
+    box-shadow: 0 22px 44px rgba(245, 180, 0, 0.4);
+    border-color: rgba(245, 180, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 26px 52px rgba(245, 180, 0, 0.75);
+    border-color: rgba(255, 220, 120, 0.9);
+  }
+}
+
+.task-card.is-flashing {
+  animation: enquiry-flash 1.2s ease-in-out infinite;
+}
+
+.enquiry-panel {
+  background: rgba(8, 24, 20, 0.8);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: clamp(3rem, 6vw, 4.5rem) 0;
+}
+
+.enquiry-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.enquiry-panel__header .button.secondary {
+  align-self: flex-start;
+}
+
+.button.secondary {
+  background: rgba(17, 50, 40, 0.9);
+  color: var(--muted);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.button.secondary:hover,
+.button.secondary:focus {
+  background: rgba(25, 76, 60, 0.95);
+  color: var(--text);
+}
+
+.enquiry-empty {
+  background: rgba(16, 40, 33, 0.9);
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+}
+
+.enquiry-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.enquiry-item {
+  background: rgba(16, 40, 33, 0.9);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: grid;
+  gap: 1rem;
+}
+
+.enquiry-item__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.enquiry-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.status-badge {
+  align-self: flex-start;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: rgba(245, 180, 0, 0.15);
+  color: var(--accent);
+}
+
+.status-badge.status-complete {
+  background: rgba(125, 210, 124, 0.2);
+  color: var(--eyebrow);
+}
+
+.enquiry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.enquiry-actions .button {
+  padding: 0.6rem 1.4rem;
+  font-size: 0.9rem;
+}
+
+@media (min-width: 720px) {
+  .enquiry-panel__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .enquiry-item__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+}
