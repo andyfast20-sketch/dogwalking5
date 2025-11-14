@@ -2,242 +2,337 @@
 {% block title %}Admin | Reliable Walks{% endblock %}
 {% block content %}
 <section class="admin-panel">
-  <div class="container narrow" id="admin-chat" data-role="admin-chat">
-    <div class="admin-grid">
-      <article class="admin-card visitor-card" data-role="visitor-insights">
-        <header class="card-heading">
-          <span class="eyebrow">Visitor Intelligence</span>
-          <h2>Website Visitors</h2>
-          <p class="card-subtitle">
-            Monitor real-time traffic, highlight returning fans, and keep control in a single glance.
-          </p>
-        </header>
-        <div class="visitor-toolbar">
-          <div class="visitor-stat">
-            <span class="stat-label">Total visitors</span>
-            <span class="stat-value" data-role="visitor-total">0</span>
+  <div class="container admin-container" id="admin-chat" data-role="admin-chat">
+    <div class="admin-grid" data-role="admin-grid">
+      <article class="admin-card visitor-card" data-card data-role="visitor-insights">
+        <div
+          class="card-preview"
+          data-card-toggle
+          role="button"
+          tabindex="0"
+          aria-expanded="false"
+          aria-controls="visitor-card-body"
+        >
+          <div class="card-preview__header">
+            <span class="eyebrow">Visitor Intelligence</span>
+            <h2>Website Visitors</h2>
+            <p class="card-subtitle">
+              Monitor real-time traffic, spotlight returning fans, and keep control in a single glance.
+            </p>
           </div>
-          <div class="visitor-stat">
-            <span class="stat-label">Returning</span>
-            <span class="stat-value" data-role="visitor-returning">0</span>
-          </div>
-          <div class="visitor-stat">
-            <span class="stat-label">Visits logged</span>
-            <span class="stat-value" data-role="visitor-total-visits">0</span>
-          </div>
-          <button type="button" class="button ghost" data-role="visitor-refresh">
-            Refresh
-          </button>
-        </div>
-        <div class="visitor-table" role="table">
-          <div class="visitor-table__head" role="row">
-            <span role="columnheader">Visitor</span>
-            <span role="columnheader">Insights</span>
-            <span role="columnheader">Timeline</span>
-            <span role="columnheader" class="actions-header">Actions</span>
-          </div>
-          <div class="visitor-table__body" data-role="visitor-table-body"></div>
-          <p class="visitor-empty" data-role="visitor-empty">
-            Visitor activity will appear here the moment someone lands on the site.
-          </p>
-        </div>
-        <p class="form-feedback" data-role="visitor-feedback"></p>
-      </article>
-      <article class="admin-card schedule-card" data-role="schedule-manager">
-        <header class="card-heading">
-          <span class="eyebrow">Scheduling Studio</span>
-          <h2>Booking Slots</h2>
-          <p>
-            Publish shimmering availability, track reservations, and confirm walks with a single tap.
-          </p>
-        </header>
-        <form id="slot-form" class="slot-form" data-role="slot-form" novalidate>
-          <div class="slot-form-grid">
-            <label>
-              Date
-              <input type="date" name="date" required />
-            </label>
-            <label>
-              Time
-              <select name="time" required>
-                <option value="" disabled selected>Pick a start time</option>
-                <option value="07:00">07:00</option>
-                <option value="08:00">08:00</option>
-                <option value="09:00">09:00</option>
-                <option value="10:00">10:00</option>
-                <option value="11:00">11:00</option>
-                <option value="12:00">12:00</option>
-                <option value="13:00">13:00</option>
-                <option value="14:00">14:00</option>
-                <option value="15:00">15:00</option>
-                <option value="16:00">16:00</option>
-                <option value="17:00">17:00</option>
-              </select>
-            </label>
-            <label>
-              Walk length
-              <select name="duration_minutes" required>
-                <option value="30">30 minutes</option>
-                <option value="45">45 minutes</option>
-                <option value="60">60 minutes</option>
-                <option value="90">90 minutes</option>
-              </select>
-            </label>
-            <label>
-              Price (£)
-              <input type="number" name="price" min="0" step="0.5" placeholder="20" required />
-            </label>
-          </div>
-          <label class="slot-notes">
-            Highlight (optional)
-            <input type="text" name="notes" placeholder="Sunset stroll, riverside route, etc." />
-          </label>
-          <div class="form-actions">
-            <button type="submit" class="button secondary">Add slot</button>
-            <p class="form-feedback" data-role="schedule-feedback"></p>
-          </div>
-        </form>
-        <div class="schedule-columns">
-          <section class="schedule-column">
-            <div class="schedule-heading">
-              <h3>Upcoming availability</h3>
-              <span class="schedule-count" data-role="admin-slot-count">0</span>
+          <dl class="card-glance">
+            <div class="card-glance__item">
+              <dt>Total visitors</dt>
+              <dd class="card-glance__value" data-role="visitor-total">0</dd>
             </div>
-            <div class="schedule-list" data-role="admin-slot-list" aria-live="polite"></div>
-            <p class="schedule-empty" data-role="admin-slot-empty">
-              No open slots yet. Use the form above to publish your first glowing time slot.
-            </p>
-          </section>
-          <section class="schedule-column">
-            <div class="schedule-heading">
-              <h3>Bookings</h3>
-              <span class="schedule-count" data-role="admin-booking-count">0</span>
+            <div class="card-glance__item">
+              <dt>Returning</dt>
+              <dd class="card-glance__value" data-role="visitor-returning">0</dd>
             </div>
-            <div class="schedule-list" data-role="admin-booking-list" aria-live="polite"></div>
-            <p class="schedule-empty" data-role="admin-booking-empty">
-              Once a client reserves a walk, their details appear here for easy confirmations.
+            <div class="card-glance__item">
+              <dt>Visits logged</dt>
+              <dd class="card-glance__value" data-role="visitor-total-visits">0</dd>
+            </div>
+          </dl>
+          <span class="card-toggle-hint" aria-hidden="true">Expand insights</span>
+        </div>
+        <div class="card-body" id="visitor-card-body" data-card-body hidden>
+          <div class="card-body__toolbar">
+            <button type="button" class="button ghost" data-role="visitor-refresh">
+              Refresh
+            </button>
+            <p class="form-feedback" data-role="visitor-feedback"></p>
+          </div>
+          <div class="visitor-table" role="table">
+            <div class="visitor-table__head" role="row">
+              <span role="columnheader">Visitor</span>
+              <span role="columnheader">Insights</span>
+              <span role="columnheader">Timeline</span>
+              <span role="columnheader" class="actions-header">Actions</span>
+            </div>
+            <div class="visitor-table__body" data-role="visitor-table-body"></div>
+            <p class="visitor-empty" data-role="visitor-empty">
+              Visitor activity will appear here the moment someone lands on the site.
             </p>
-          </section>
+          </div>
         </div>
       </article>
-      <article class="admin-card">
-        <h2>Chat Mode &amp; Business Context</h2>
-        <form id="chat-settings-form" class="settings-form">
-          <div class="toggle-row">
-            <label class="toggle">
-              <input type="checkbox" id="autopilot-toggle" />
-              <span class="toggle-track" aria-hidden="true"></span>
-              <span class="toggle-label">Autopilot</span>
-            </label>
-            <p class="toggle-description" data-role="mode-description">
-              Visitors chat with the AI assistant.
+      <article class="admin-card schedule-card" data-card data-role="schedule-manager">
+        <div
+          class="card-preview"
+          data-card-toggle
+          role="button"
+          tabindex="0"
+          aria-expanded="false"
+          aria-controls="schedule-card-body"
+        >
+          <div class="card-preview__header">
+            <span class="eyebrow">Scheduling Studio</span>
+            <h2>Booking Slots</h2>
+            <p class="card-subtitle">
+              Publish shimmering availability, track reservations, and confirm walks with a single tap.
             </p>
           </div>
-          <label class="field-label" for="business-context">Business Knowledge</label>
-          <p class="field-help">
-            Add bullet points, FAQs, pricing, or any notes you want the AI to use in
-            its replies.
-          </p>
-          <textarea
-            id="business-context"
-            rows="8"
-            placeholder="Opening hours, pricing, service areas, booking steps, etc."
-          ></textarea>
-          <div class="form-actions">
-            <button type="submit" class="button primary">Save Settings</button>
-            <p class="form-feedback" data-role="settings-feedback"></p>
-          </div>
-        </form>
-      </article>
-      <article class="admin-card">
-        <h2>Live Conversations</h2>
-        <div class="conversation-layout">
-          <aside
-            class="visitor-list"
-            data-role="visitor-list"
-            aria-label="Visitor conversations"
-          ></aside>
-          <div class="conversation-panel">
-            <header class="chat-header">
-              <div>
-                <h3 class="visitor-heading" data-role="visitor-heading">
-                  No active visitors
-                </h3>
-                <span class="visitor-status-tag" data-role="visitor-status"></span>
+          <dl class="card-glance">
+            <div class="card-glance__item">
+              <dt>Open slots</dt>
+              <dd class="card-glance__value" data-role="admin-slot-count">0</dd>
+            </div>
+            <div class="card-glance__item">
+              <dt>Bookings</dt>
+              <dd class="card-glance__value" data-role="admin-booking-count">0</dd>
+            </div>
+          </dl>
+          <span class="card-toggle-hint" aria-hidden="true">Manage availability</span>
+        </div>
+        <div class="card-body" id="schedule-card-body" data-card-body hidden>
+          <form id="slot-form" class="slot-form" data-role="slot-form" novalidate>
+            <div class="slot-form-grid">
+              <label>
+                Date
+                <input type="date" name="date" required />
+              </label>
+              <label>
+                Time
+                <select name="time" required>
+                  <option value="" disabled selected>Pick a start time</option>
+                  <option value="07:00">07:00</option>
+                  <option value="08:00">08:00</option>
+                  <option value="09:00">09:00</option>
+                  <option value="10:00">10:00</option>
+                  <option value="11:00">11:00</option>
+                  <option value="12:00">12:00</option>
+                  <option value="13:00">13:00</option>
+                  <option value="14:00">14:00</option>
+                  <option value="15:00">15:00</option>
+                  <option value="16:00">16:00</option>
+                  <option value="17:00">17:00</option>
+                </select>
+              </label>
+              <label>
+                Walk length
+                <select name="duration_minutes" required>
+                  <option value="30">30 minutes</option>
+                  <option value="45">45 minutes</option>
+                  <option value="60">60 minutes</option>
+                  <option value="90">90 minutes</option>
+                </select>
+              </label>
+              <label>
+                Price (£)
+                <input type="number" name="price" min="0" step="0.5" placeholder="20" required />
+              </label>
+            </div>
+            <label class="slot-notes">
+              Highlight (optional)
+              <input type="text" name="notes" placeholder="Sunset stroll, riverside route, etc." />
+            </label>
+            <div class="form-actions">
+              <button type="submit" class="button secondary">Add slot</button>
+              <p class="form-feedback" data-role="schedule-feedback"></p>
+            </div>
+          </form>
+          <div class="schedule-columns">
+            <section class="schedule-column">
+              <div class="schedule-heading">
+                <h3>Upcoming availability</h3>
+                <span class="schedule-count" data-role="admin-slot-count">0</span>
               </div>
-            </header>
-            <div class="chat-window" data-chat-messages aria-live="polite"></div>
-            <p class="chat-hint" data-role="chat-hint">
-              Autopilot is active. Disable it to respond manually.
+              <div class="schedule-list" data-role="admin-slot-list" aria-live="polite"></div>
+              <p class="schedule-empty" data-role="admin-slot-empty">
+                No open slots yet. Use the form above to publish your first glowing time slot.
+              </p>
+            </section>
+            <section class="schedule-column">
+              <div class="schedule-heading">
+                <h3>Bookings</h3>
+                <span class="schedule-count" data-role="admin-booking-count">0</span>
+              </div>
+              <div class="schedule-list" data-role="admin-booking-list" aria-live="polite"></div>
+              <p class="schedule-empty" data-role="admin-booking-empty">
+                Once a client reserves a walk, their details appear here for easy confirmations.
+              </p>
+            </section>
+          </div>
+        </div>
+      </article>
+      <article class="admin-card settings-card" data-card>
+        <div
+          class="card-preview"
+          data-card-toggle
+          role="button"
+          tabindex="0"
+          aria-expanded="false"
+          aria-controls="settings-card-body"
+        >
+          <div class="card-preview__header">
+            <span class="eyebrow">Chat Mode</span>
+            <h2>Chat Mode &amp; Business Context</h2>
+            <p class="card-subtitle">
+              Shape Autopilot behaviour and share knowledge for instant, on-brand replies.
             </p>
-            <form id="agent-reply-form" class="reply-form">
-              <label class="field-label" for="agent-message">Reply to visitor</label>
-              <textarea
-                id="agent-message"
-                rows="4"
-                placeholder="Type your message to the visitor..."
+          </div>
+          <p class="card-summary-line" data-role="mode-description">
+            Visitors chat with the AI assistant.
+          </p>
+          <span class="card-toggle-hint" aria-hidden="true">Update assistant</span>
+        </div>
+        <div class="card-body" id="settings-card-body" data-card-body hidden>
+          <form id="chat-settings-form" class="settings-form">
+            <div class="toggle-row">
+              <label class="toggle">
+                <input type="checkbox" id="autopilot-toggle" />
+                <span class="toggle-track" aria-hidden="true"></span>
+                <span class="toggle-label">Autopilot</span>
+              </label>
+              <p class="toggle-description" data-role="mode-description">
+                Visitors chat with the AI assistant.
+              </p>
+            </div>
+            <label class="field-label" for="business-context">Business Knowledge</label>
+            <p class="field-help">
+              Add bullet points, FAQs, pricing, or any notes you want the AI to use in its replies.
+            </p>
+            <textarea
+              id="business-context"
+              rows="8"
+              placeholder="Opening hours, pricing, service areas, booking steps, etc."
+            ></textarea>
+            <div class="form-actions">
+              <button type="submit" class="button primary">Save Settings</button>
+              <p class="form-feedback" data-role="settings-feedback"></p>
+            </div>
+          </form>
+        </div>
+      </article>
+      <article class="admin-card conversation-card" data-card>
+        <div
+          class="card-preview"
+          data-card-toggle
+          role="button"
+          tabindex="0"
+          aria-expanded="false"
+          aria-controls="conversation-card-body"
+        >
+          <div class="card-preview__header">
+            <span class="eyebrow">Live Support</span>
+            <h2>Live Conversations</h2>
+            <p class="card-subtitle">
+              Keep Autopilot in check, watch waiting visitors, and jump into chats instantly.
+            </p>
+          </div>
+          <p class="card-summary-line" data-role="conversation-summary">
+            No active visitors right now.
+          </p>
+          <span class="card-toggle-hint" aria-hidden="true">Open inbox</span>
+        </div>
+        <div class="card-body" id="conversation-card-body" data-card-body hidden>
+          <div class="conversation-layout">
+            <aside
+              class="visitor-list"
+              data-role="visitor-list"
+              aria-label="Visitor conversations"
+            ></aside>
+            <div class="conversation-panel">
+              <header class="chat-header">
+                <div>
+                  <h3 class="visitor-heading" data-role="visitor-heading">
+                    No active visitors
+                  </h3>
+                  <span class="visitor-status-tag" data-role="visitor-status"></span>
+                </div>
+              </header>
+              <div class="chat-window" data-chat-messages aria-live="polite"></div>
+              <p class="chat-hint" data-role="chat-hint">
+                Autopilot is active. Disable it to respond manually.
+              </p>
+              <form id="agent-reply-form" class="reply-form">
+                <label class="field-label" for="agent-message">Reply to visitor</label>
+                <textarea
+                  id="agent-message"
+                  rows="4"
+                  placeholder="Type your message to the visitor..."
+                  required
+                ></textarea>
+                <div class="form-actions">
+                  <button type="submit" class="button secondary">Send Reply</button>
+                  <p class="form-feedback" data-role="agent-feedback"></p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </article>
+      <article class="admin-card access-card" data-card data-role="ban-manager">
+        <div
+          class="card-preview"
+          data-card-toggle
+          role="button"
+          tabindex="0"
+          aria-expanded="false"
+          aria-controls="access-card-body"
+        >
+          <div class="card-preview__header">
+            <span class="eyebrow">Access Control</span>
+            <h2>Visitor Access Control</h2>
+            <p class="card-subtitle">
+              Instantly block disruptive visitors, track every restriction, and restore access whenever you’re ready.
+            </p>
+          </div>
+          <dl class="card-glance">
+            <div class="card-glance__item">
+              <dt>Active bans</dt>
+              <dd class="card-glance__value" data-role="ban-count">0</dd>
+            </div>
+          </dl>
+          <span class="card-toggle-hint" aria-hidden="true">Manage access</span>
+        </div>
+        <div class="card-body" id="access-card-body" data-card-body hidden>
+          <form id="ban-visitor-form" class="ban-form">
+            <div class="ban-form-grid">
+              <label class="field-label" for="ban-identifier">Visitor identifier</label>
+              <input
+                id="ban-identifier"
+                name="identifier"
+                type="text"
+                placeholder="IP address, email, or reference"
+                autocomplete="off"
                 required
-              ></textarea>
-              <div class="form-actions">
-                <button type="submit" class="button secondary">Send Reply</button>
-                <p class="form-feedback" data-role="agent-feedback"></p>
-              </div>
-            </form>
-          </div>
-        </div>
-      </article>
-      <article class="admin-card access-card" data-role="ban-manager">
-        <div class="card-heading">
-          <h2>Visitor Access Control</h2>
-          <p>
-            Instantly block disruptive visitors, keep tabs on every restriction, and
-            restore access whenever you’re ready.
-          </p>
-        </div>
-        <form id="ban-visitor-form" class="ban-form">
-          <div class="ban-form-grid">
-            <label class="field-label" for="ban-identifier">Visitor identifier</label>
-            <input
-              id="ban-identifier"
-              name="identifier"
-              type="text"
-              placeholder="IP address, email, or reference"
-              autocomplete="off"
-              required
-            />
-            <label class="field-label" for="ban-reason">Reason (optional)</label>
-            <input
-              id="ban-reason"
-              name="reason"
-              type="text"
-              placeholder="Spam messages, abusive language, etc."
-              autocomplete="off"
-            />
-            <button type="submit" class="button danger">Ban visitor</button>
-          </div>
-          <p class="form-feedback" data-role="ban-feedback"></p>
-        </form>
-        <div class="ban-list">
-          <div class="ban-list-header">
-            <h3>Restricted visitors</h3>
-            <span class="status-pill" data-role="ban-count">0</span>
-          </div>
-          <p class="ban-empty" data-role="ban-empty">
-            No visitors are currently banned.
-          </p>
-          <div class="table-wrapper">
-            <table class="ban-table" data-role="ban-table">
-              <thead>
-                <tr>
-                  <th scope="col">Visitor</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Reason</th>
-                  <th scope="col">Added</th>
-                  <th scope="col" class="actions">Actions</th>
-                </tr>
-              </thead>
-              <tbody data-role="ban-table-body"></tbody>
-            </table>
+              />
+              <label class="field-label" for="ban-reason">Reason (optional)</label>
+              <input
+                id="ban-reason"
+                name="reason"
+                type="text"
+                placeholder="Spam messages, abusive language, etc."
+                autocomplete="off"
+              />
+              <button type="submit" class="button danger">Ban visitor</button>
+            </div>
+            <p class="form-feedback" data-role="ban-feedback"></p>
+          </form>
+          <div class="ban-list">
+            <div class="ban-list-header">
+              <h3>Restricted visitors</h3>
+              <span class="status-pill" data-role="ban-count">0</span>
+            </div>
+            <p class="ban-empty" data-role="ban-empty">
+              No visitors are currently banned.
+            </p>
+            <div class="table-wrapper">
+              <table class="ban-table" data-role="ban-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Visitor</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Reason</th>
+                    <th scope="col">Added</th>
+                    <th scope="col" class="actions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody data-role="ban-table-body"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </article>
