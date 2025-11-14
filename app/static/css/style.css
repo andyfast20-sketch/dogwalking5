@@ -136,7 +136,12 @@ main {
 
 .hero {
   padding: 4.5rem 0 4rem;
-  background: radial-gradient(circle at top right, #1a4738, var(--bg));
+  background: radial-gradient(
+      circle at 5% 10%,
+      rgba(255, 210, 96, 0.22) 0%,
+      rgba(255, 210, 96, 0) 45%
+    ),
+    linear-gradient(160deg, #0d382c 0%, #051d16 100%);
 }
 
 .hero-grid {
@@ -209,6 +214,20 @@ main {
 .hero-copy h1 {
   font-size: clamp(2.5rem, 4vw, 3.4rem);
   margin-bottom: 1rem;
+}
+
+.hero-headline {
+  display: inline-block;
+  color: #f5f9f7;
+  background: linear-gradient(90deg, #fff4d4 0%, #ffe187 45%, #65d96a 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-headline-emphasis {
+  color: #49dc65;
+  -webkit-text-fill-color: #49dc65;
 }
 
 .hero-copy p {
