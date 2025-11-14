@@ -820,27 +820,39 @@ main {
 }
 
 .chat-section {
-  padding: clamp(2.5rem, 6vw, 4rem) 0 clamp(3rem, 6vw, 4.5rem);
+  padding: clamp(3.5rem, 8vw, 5rem) 0 clamp(4rem, 9vw, 6rem);
 }
 
 .chat-card {
-  background: rgba(9, 31, 24, 0.92);
+  background: var(--card);
   border-radius: 28px;
-  padding: clamp(1.75rem, 4vw, 2.5rem);
+  padding: clamp(1.75rem, 4vw, 2.75rem);
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 0 28px 44px rgba(0, 0, 0, 0.35);
   display: grid;
   gap: 1.5rem;
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .chat-card-header {
-  display: grid;
-  gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.chat-card-header h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.8vw, 2rem);
+}
+
+.chat-card-header p {
+  margin: 0;
+  color: var(--muted);
 }
 
 .chat-status {
   margin: 0;
-  color: rgba(244, 248, 246, 0.75);
+  color: var(--muted);
 }
 
 .two-column {
@@ -1175,13 +1187,15 @@ textarea {
   }
 }
 
+
 .chat-section {
-  padding: 4rem 0 5rem;
+  padding: clamp(3.5rem, 8vw, 5rem) 0 clamp(4rem, 9vw, 6rem);
 }
 
 .chat-section .container {
   display: flex;
   justify-content: center;
+  align-items: stretch;
 }
 
 .chat-card {
@@ -1195,9 +1209,10 @@ textarea {
 }
 
 .chat-section .chat-card {
-  width: min(340px, 100%);
-  padding: 1.5rem;
-  gap: 1.25rem;
+  width: min(760px, 100%);
+  padding: clamp(1.75rem, 4vw, 2.75rem);
+  gap: clamp(1.25rem, 3vw, 1.75rem);
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .chat-status {
@@ -1214,13 +1229,22 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-height: 360px;
+  max-height: clamp(320px, 55vh, 520px);
   overflow-y: auto;
 }
 
 .chat-section .chat-window {
-  padding: 1rem;
-  max-height: 260px;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  height: clamp(320px, 45vh, 460px);
+  max-height: none;
+  min-height: 0;
+}
+
+.conversation-panel .chat-window {
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  padding: clamp(1.1rem, 2.4vw, 1.6rem);
 }
 
 .chat-message {
@@ -1263,18 +1287,88 @@ textarea {
   color: rgba(245, 249, 247, 0.7);
 }
 
+.chat-form {
+  display: grid;
+  gap: 1rem;
+}
+
 .chat-form textarea {
   min-height: 120px;
 }
 
 .chat-section .chat-form textarea {
-  min-height: 80px;
+  min-height: 96px;
+}
+
+.chat-form textarea {
+  border-radius: 18px;
+  background: rgba(7, 26, 21, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.1rem 1.25rem;
+  color: inherit;
+  resize: vertical;
+}
+
+.chat-form textarea:focus {
+  outline: none;
+  border-color: rgba(125, 210, 124, 0.55);
+  box-shadow: 0 18px 28px rgba(7, 22, 19, 0.35);
+}
+
+.chat-form .form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.chat-form .form-feedback {
+  margin: 0;
+  flex: 1 1 200px;
+  text-align: right;
+  color: var(--muted);
 }
 
 .chat-hint {
   margin: 0;
   color: var(--muted);
   font-weight: 600;
+}
+
+.reply-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.reply-form textarea {
+  border-radius: 18px;
+  background: rgba(7, 26, 21, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.1rem 1.25rem;
+  color: inherit;
+  resize: vertical;
+}
+
+.reply-form textarea:focus {
+  outline: none;
+  border-color: rgba(125, 210, 124, 0.55);
+  box-shadow: 0 18px 28px rgba(7, 22, 19, 0.35);
+}
+
+.reply-form .form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.reply-form .form-feedback {
+  margin: 0;
+  min-width: 180px;
+  text-align: right;
+  color: var(--muted);
 }
 
 .admin-panel {
@@ -1646,6 +1740,11 @@ textarea {
 
   .conversation-layout {
     grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .visitor-list {
+    max-height: 260px;
   }
 }
 
@@ -1661,6 +1760,17 @@ textarea {
   .card-body__toolbar .form-feedback {
     text-align: left;
   }
+
+  .chat-form .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chat-form .form-feedback,
+  .reply-form .form-feedback {
+    text-align: left;
+    min-width: 0;
+  }
 }
 
 @keyframes card-fade-in {
@@ -1675,16 +1785,25 @@ textarea {
   }
 }
 
+
 .conversation-layout {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(180px, 0.8fr) 1.9fr;
-  align-items: start;
+  gap: 1.25rem;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.35fr);
+  align-items: stretch;
+  min-height: clamp(520px, 72vh, 720px);
 }
 
 .conversation-panel {
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  padding: clamp(1.15rem, 2.4vw, 1.6rem);
+  background: rgba(7, 24, 20, 0.72);
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 28px 44px rgba(2, 11, 9, 0.35);
 }
 
 .chat-header {
@@ -1721,11 +1840,15 @@ textarea {
   background: rgba(7, 22, 19, 0.55);
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 0.75rem;
+  padding: 1rem;
   display: grid;
-  gap: 0.6rem;
-  max-height: 420px;
+  gap: 0.75rem;
+  max-height: none;
   overflow-y: auto;
+  height: 100%;
+  min-height: 0;
+  align-content: flex-start;
+  box-shadow: 0 24px 38px rgba(2, 11, 9, 0.32);
 }
 
 .visitor-list-empty {
