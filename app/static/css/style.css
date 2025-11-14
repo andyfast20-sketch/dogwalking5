@@ -1381,13 +1381,13 @@ textarea {
 .live-chat-button::before {
   left: 6px;
   transform-origin: 50% 90%;
-  animation: none;
+  animation: earWiggleLeft 4.8s ease-in-out infinite;
 }
 
 .live-chat-button::after {
   right: 6px;
   transform-origin: 50% 90%;
-  animation: none;
+  animation: earWiggleRight 4.8s ease-in-out infinite;
 }
 
 .live-chat-button .live-chat-emoji {
