@@ -15,7 +15,17 @@
   <body>
     <header class="site-header">
       <div class="container">
-        <a class="logo" href="{{ url_for('main.index') }}">🐾 Reliable Walks</a>
+        <div class="brand-cluster">
+          <img
+            class="brand-avatar"
+            src="{{ url_for('static', filename='img/owner-portrait.svg') }}"
+            alt="Portrait of the Happy Paws walker"
+          />
+          <a class="logo" href="{{ url_for('main.index') }}">
+            <span class="logo-icon" aria-hidden="true">🐾</span>
+            <span class="logo-text">Happy Paws</span>
+          </a>
+        </div>
         <nav class="nav" aria-label="Main navigation">
           <button class="nav-toggle" aria-expanded="false" aria-controls="nav-menu">
             <span class="sr-only">Menu</span>
@@ -23,11 +33,11 @@
           </button>
           <ul id="nav-menu">
             <li><a href="{{ url_for('main.index') }}">Home</a></li>
-            <li><a href="{{ url_for('main.services') }}">Services</a></li>
             <li><a href="{{ url_for('main.about') }}">About</a></li>
-            <li><a href="{{ url_for('main.booking') }}">Book</a></li>
-            <li><a href="{{ url_for('main.admin') }}">Admin</a></li>
+            <li><a href="{{ url_for('main.services') }}">Services</a></li>
             <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+            <li><a href="{{ url_for('main.admin') }}">Admin</a></li>
+            <li class="cta"><a href="{{ url_for('main.booking') }}">Book a Walk</a></li>
           </ul>
         </nav>
       </div>
@@ -41,7 +51,7 @@
             <li><a href="{{ url_for('main.index') }}">Home</a></li>
             <li><a href="{{ url_for('main.services') }}">Services</a></li>
             <li><a href="{{ url_for('main.about') }}">About</a></li>
-            <li><a href="{{ url_for('main.booking') }}">Book</a></li>
+            <li><a href="{{ url_for('main.booking') }}">Book a Walk</a></li>
             <li><a href="{{ url_for('main.admin') }}">Admin</a></li>
             <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
           </ul>
