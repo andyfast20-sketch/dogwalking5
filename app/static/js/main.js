@@ -353,40 +353,6 @@ function initChatSurprise() {
   window.setInterval(maybeHighlight, 10000);
 }
 
-const ENQUIRY_STORAGE_KEY = "reliableWalksEnquiries";
-
-function loadEnquiries() {
-  try {
-    return JSON.parse(localStorage.getItem(ENQUIRY_STORAGE_KEY)) ?? [];
-  } catch (error) {
-    console.error("Failed to parse enquiries from storage", error);
-    return [];
-  }
-}
-
-function saveEnquiries(enquiries) {
-  try {
-    localStorage.setItem(ENQUIRY_STORAGE_KEY, JSON.stringify(enquiries));
-  } catch (error) {
-    console.error("Failed to save enquiries", error);
-  }
-}
-
-function addEnquiry(enquiry) {
-  const enquiries = loadEnquiries();
-  const entry = {
-    id: Date.now(),
-    ...enquiry,
-    createdAt: new Date().toISOString(),
-    completed: false,
-    isNew: true,
-  };
-  enquiries.push(entry);
-  saveEnquiries(enquiries);
-  window.dispatchEvent(new CustomEvent("enquiries:updated"));
-  return entry;
-}
-
 function formatDateTime(value) {
   const date = new Date(value);
   return date.toLocaleString(undefined, {
@@ -491,13 +457,15 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function handleFormSubmission(formId, feedbackSelector, successMessage) {
+function handleFormSubmission(formId, feedbackSelector, successMessage, onSubmit) {
   const form = document.getElementById(formId);
   const feedback = document.querySelector(feedbackSelector);
 
   if (!form || !feedback) return;
 
-  form.addEventListener("submit", (event) => {
+  const submitButton = form.querySelector("button[type='submit']");
+
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     if (!form.checkValidity()) {
@@ -507,19 +475,32 @@ function handleFormSubmission(formId, feedbackSelector, successMessage) {
       return;
     }
 
-    if (form.id === "contact-form") {
-      const formData = new FormData(form);
-      addEnquiry({
-        name: formData.get("name"),
-        email: formData.get("email"),
-        phone: formData.get("phone"),
-        message: formData.get("message"),
-      });
+    if (submitButton) {
+      submitButton.disabled = true;
     }
-
-    feedback.textContent = successMessage;
+    feedback.textContent = "Sending...";
     feedback.classList.remove("error");
-    form.reset();
+
+    try {
+      const formData = new FormData(form);
+      if (typeof onSubmit === "function") {
+        await onSubmit(formData);
+      }
+      feedback.textContent = successMessage;
+      feedback.classList.remove("error");
+      form.reset();
+    } catch (error) {
+      const message = await resolveErrorMessage(
+        error,
+        "We couldn’t submit the form right now. Please try again."
+      );
+      feedback.textContent = message;
+      feedback.classList.add("error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
+    }
   });
 }
 
@@ -527,7 +508,28 @@ function initForms() {
   handleFormSubmission(
     "contact-form",
     "[data-role='contact-feedback']",
-    "Thank you — we’ll be in touch soon!"
+    "Thank you — we’ll be in touch soon!",
+    async (formData) => {
+      const getValue = (key) => {
+        const value = formData.get(key);
+        return value ? value.toString().trim() : "";
+      };
+
+      const payload = {
+        name: getValue("name"),
+        email: getValue("email"),
+        phone: getValue("phone"),
+        message: getValue("message"),
+      };
+
+      await fetchJson("/api/enquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      window.dispatchEvent(new CustomEvent("enquiries:updated"));
+    }
   );
 }
 
@@ -1262,6 +1264,254 @@ function initAdminSchedule() {
 
   loadSchedule();
   setInterval(loadSchedule, 20000);
+}
+
+function initAdminEnquiries() {
+  const root = document.querySelector("[data-role='enquiry-manager']");
+  if (!root) return;
+
+  const list = root.querySelector("[data-role='enquiry-list']");
+  const emptyState = root.querySelector("[data-role='enquiry-empty']");
+  const feedback = root.querySelector("[data-role='enquiry-feedback']");
+  const refreshButton = root.querySelector("[data-role='enquiry-refresh']");
+  const openCountLabels = root.querySelectorAll("[data-role='enquiry-open-count']");
+  const totalCountLabels = root.querySelectorAll("[data-role='enquiry-total-count']");
+  const summaryLabel = root.querySelector("[data-role='enquiry-summary']");
+  const cardToggle = root.querySelector("[data-card-toggle]");
+
+  let enquiries = [];
+  let isLoading = false;
+  let feedbackTimeoutId = null;
+
+  function clearFeedbackLater() {
+    if (feedbackTimeoutId) {
+      window.clearTimeout(feedbackTimeoutId);
+    }
+    if (feedback && feedback.textContent) {
+      feedbackTimeoutId = window.setTimeout(() => {
+        if (feedback) {
+          feedback.textContent = "";
+          feedback.classList.remove("error");
+        }
+      }, 4000);
+    }
+  }
+
+  function setFeedback(message, isError = false) {
+    if (!feedback) return;
+    if (feedbackTimeoutId) {
+      window.clearTimeout(feedbackTimeoutId);
+      feedbackTimeoutId = null;
+    }
+    feedback.textContent = message;
+    feedback.classList.toggle("error", Boolean(isError));
+    if (message) {
+      clearFeedbackLater();
+    }
+  }
+
+  function updateCounts(counts) {
+    const openCount = Number(counts?.open ?? enquiries.filter((item) => !item.completed).length);
+    const totalCount = Number(counts?.total ?? enquiries.length);
+
+    openCountLabels.forEach((element) => {
+      element.textContent = String(openCount);
+    });
+    totalCountLabels.forEach((element) => {
+      element.textContent = String(totalCount);
+    });
+
+    if (summaryLabel) {
+      if (totalCount === 0) {
+        summaryLabel.textContent = "No enquiries yet.";
+      } else if (openCount === 0) {
+        summaryLabel.textContent = "All enquiries handled.";
+      } else {
+        const label = openCount === 1 ? "enquiry" : "enquiries";
+        summaryLabel.textContent = `${openCount} open ${label}`;
+      }
+    }
+  }
+
+  function renderList(counts) {
+    if (!list || !emptyState) return;
+
+    updateCounts(counts);
+    list.innerHTML = "";
+
+    if (!enquiries.length) {
+      list.hidden = true;
+      emptyState.hidden = false;
+      return;
+    }
+
+    list.hidden = false;
+    emptyState.hidden = true;
+
+    enquiries.forEach((enquiry) => {
+      const item = document.createElement("li");
+      item.classList.add("enquiry-item");
+      if (enquiry.completed) {
+        item.classList.add("is-complete");
+      }
+
+      const header = document.createElement("div");
+      header.classList.add("enquiry-item__header");
+
+      const title = document.createElement("h4");
+      title.textContent = enquiry.name || "Enquiry";
+      header.appendChild(title);
+
+      const statusBadge = document.createElement("span");
+      statusBadge.classList.add("status-badge");
+      if (enquiry.completed) {
+        statusBadge.classList.add("status-complete");
+        statusBadge.textContent = "Dealt with";
+      } else {
+        statusBadge.textContent = "Open";
+      }
+      header.appendChild(statusBadge);
+
+      const meta = document.createElement("div");
+      meta.classList.add("enquiry-item__meta");
+      const receivedLabel = document.createElement("span");
+      receivedLabel.textContent = `Received ${formatDateTime(enquiry.created_at || enquiry.createdAt)}`;
+      meta.appendChild(receivedLabel);
+
+      if (enquiry.email) {
+        const emailLink = document.createElement("a");
+        emailLink.href = `mailto:${enquiry.email}`;
+        emailLink.textContent = enquiry.email;
+        emailLink.classList.add("enquiry-contact");
+        meta.appendChild(emailLink);
+      }
+
+      if (enquiry.phone) {
+        const phoneLink = document.createElement("a");
+        phoneLink.href = `tel:${enquiry.phone}`;
+        phoneLink.textContent = enquiry.phone;
+        phoneLink.classList.add("enquiry-contact");
+        meta.appendChild(phoneLink);
+      }
+
+      if (enquiry.completed && enquiry.completed_at) {
+        const completedLabel = document.createElement("span");
+        completedLabel.textContent = `Completed ${formatDateTime(enquiry.completed_at)}`;
+        meta.appendChild(completedLabel);
+      }
+
+      const message = document.createElement("p");
+      message.classList.add("enquiry-item__message");
+      message.textContent = enquiry.message || "No message provided.";
+
+      const actions = document.createElement("div");
+      actions.classList.add("enquiry-actions");
+      const toggleButton = document.createElement("button");
+      toggleButton.type = "button";
+      toggleButton.classList.add("button", enquiry.completed ? "ghost" : "secondary");
+      toggleButton.dataset.action = "toggle-enquiry";
+      toggleButton.dataset.id = enquiry.id;
+      toggleButton.dataset.completed = enquiry.completed ? "false" : "true";
+      toggleButton.textContent = enquiry.completed ? "Mark as open" : "Mark as dealt";
+      actions.appendChild(toggleButton);
+
+      if (enquiry.email) {
+        const replyLink = document.createElement("a");
+        replyLink.classList.add("button", "ghost");
+        replyLink.href = `mailto:${enquiry.email}`;
+        replyLink.textContent = "Email reply";
+        replyLink.setAttribute("role", "button");
+        actions.appendChild(replyLink);
+      }
+
+      item.append(header, meta, message, actions);
+      list.appendChild(item);
+    });
+  }
+
+  async function loadEnquiries(showLoading = false) {
+    if (isLoading) return;
+    isLoading = true;
+
+    if (showLoading) {
+      setFeedback("Refreshing enquiries...");
+    }
+    if (refreshButton && showLoading) {
+      refreshButton.disabled = true;
+    }
+
+    try {
+      const data = await fetchJson("/api/admin/enquiries");
+      enquiries = Array.isArray(data.enquiries) ? data.enquiries : [];
+      renderList(data.counts);
+      if (showLoading) {
+        setFeedback("Enquiries updated.");
+      } else {
+        setFeedback("");
+      }
+    } catch (error) {
+      setFeedback("We couldn’t load enquiries right now.", true);
+    } finally {
+      if (refreshButton) {
+        refreshButton.disabled = false;
+      }
+      isLoading = false;
+    }
+  }
+
+  async function toggleEnquiry(enquiryId, completed) {
+    if (!enquiryId) return;
+    try {
+      const data = await fetchJson(`/api/admin/enquiries/${encodeURIComponent(enquiryId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed }),
+      });
+      enquiries = Array.isArray(data.enquiries) ? data.enquiries : enquiries;
+      renderList(data.counts);
+      setFeedback(completed ? "Enquiry marked as dealt with." : "Enquiry reopened.");
+    } catch (error) {
+      const message = await resolveErrorMessage(
+        error,
+        "We couldn’t update that enquiry just now."
+      );
+      setFeedback(message, true);
+    }
+  }
+
+  if (refreshButton) {
+    refreshButton.addEventListener("click", () => {
+      loadEnquiries(true);
+    });
+  }
+
+  if (list) {
+    list.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-action='toggle-enquiry']");
+      if (!button) return;
+      const { id, completed } = button.dataset;
+      toggleEnquiry(id, completed === "true");
+    });
+  }
+
+  window.addEventListener("enquiries:updated", () => {
+    loadEnquiries();
+  });
+
+  if (cardToggle) {
+    cardToggle.addEventListener("click", () => {
+      if (root.classList.contains("is-expanded")) {
+        loadEnquiries(true);
+      }
+    });
+  }
+
+  loadEnquiries(true);
+  setInterval(() => {
+    if (!document.hidden) {
+      loadEnquiries();
+    }
+  }, 20000);
 }
 
 function initVisitorInsights() {
@@ -2167,6 +2417,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initBookingSchedule();
   initVisitorChat();
   initAdminSchedule();
+  initAdminEnquiries();
   initVisitorInsights();
   initAdminChat();
   initBanManager();

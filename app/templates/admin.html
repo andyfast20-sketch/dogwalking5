@@ -13,6 +13,46 @@
       A visitor is waiting for a live reply.
     </a>
     <div class="admin-grid" data-role="admin-grid">
+      <article class="admin-card enquiries-card" data-card data-role="enquiry-manager">
+        <div
+          class="card-preview"
+          data-card-toggle
+          role="button"
+          tabindex="0"
+          aria-expanded="false"
+          aria-controls="enquiry-card-body"
+        >
+          <div class="card-preview__header">
+            <span class="eyebrow">Inbox</span>
+            <h2>Client Enquiries</h2>
+            <p class="card-subtitle">Log contact requests and track follow-ups at a glance.</p>
+          </div>
+          <p class="card-summary-line" data-role="enquiry-summary">No enquiries yet.</p>
+          <dl class="card-glance">
+            <div class="card-glance__item">
+              <dt>Open</dt>
+              <dd class="card-glance__value" data-role="enquiry-open-count">0</dd>
+            </div>
+            <div class="card-glance__item">
+              <dt>Total</dt>
+              <dd class="card-glance__value" data-role="enquiry-total-count">0</dd>
+            </div>
+          </dl>
+          <span class="card-toggle-hint" aria-hidden="true">Review enquiries</span>
+        </div>
+        <div class="card-body" id="enquiry-card-body" data-card-body hidden>
+          <div class="card-body__toolbar">
+            <button type="button" class="button ghost" data-role="enquiry-refresh">
+              Refresh
+            </button>
+            <p class="form-feedback" data-role="enquiry-feedback"></p>
+          </div>
+          <ul class="enquiry-list" data-role="enquiry-list"></ul>
+          <p class="enquiry-empty" data-role="enquiry-empty">
+            No enquiries yet. Messages from the contact form will appear here automatically.
+          </p>
+        </div>
+      </article>
       <article class="admin-card visitor-card" data-card data-role="visitor-insights">
         <div
           class="card-preview"
@@ -25,9 +65,7 @@
           <div class="card-preview__header">
             <span class="eyebrow">Visitor Intelligence</span>
             <h2>Website Visitors</h2>
-            <p class="card-subtitle">
-              Monitor real-time traffic, spotlight returning fans, and keep control in a single glance.
-            </p>
+            <p class="card-subtitle">Monitor real-time traffic and see who’s waiting.</p>
           </div>
           <dl class="card-glance">
             <div class="card-glance__item">
@@ -78,9 +116,7 @@
           <div class="card-preview__header">
             <span class="eyebrow">Scheduling Studio</span>
             <h2>Booking Slots</h2>
-            <p class="card-subtitle">
-              Publish shimmering availability, track reservations, and confirm walks with a single tap.
-            </p>
+            <p class="card-subtitle">Publish availability, track reservations, and confirm walks.</p>
           </div>
           <dl class="card-glance">
             <div class="card-glance__item">
@@ -177,9 +213,7 @@
           <div class="card-preview__header">
             <span class="eyebrow">Chat Mode</span>
             <h2>Chat Mode &amp; Business Context</h2>
-            <p class="card-subtitle">
-              Shape Autopilot behaviour and share knowledge for instant, on-brand replies.
-            </p>
+            <p class="card-subtitle">Toggle Autopilot and keep your business details current.</p>
           </div>
           <p class="card-summary-line" data-role="mode-description">
             Visitors chat with the AI assistant.
@@ -226,9 +260,7 @@
           <div class="card-preview__header">
             <span class="eyebrow">Live Support</span>
             <h2>Live Conversations</h2>
-            <p class="card-subtitle">
-              Keep Autopilot in check, watch waiting visitors, and jump into chats instantly.
-            </p>
+            <p class="card-subtitle">Keep tabs on waiting visitors and jump into chats instantly.</p>
           </div>
           <p class="card-summary-line" data-role="conversation-summary">
             No active visitors right now.
@@ -284,9 +316,7 @@
           <div class="card-preview__header">
             <span class="eyebrow">Access Control</span>
             <h2>Visitor Access Control</h2>
-            <p class="card-subtitle">
-              Instantly block disruptive visitors, track every restriction, and restore access whenever you’re ready.
-            </p>
+            <p class="card-subtitle">Block disruptive visitors or reinstate access in seconds.</p>
           </div>
           <dl class="card-glance">
             <div class="card-glance__item">
