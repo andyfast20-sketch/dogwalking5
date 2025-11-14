@@ -30,6 +30,30 @@
           <span class="card-toggle-hint" aria-hidden="true">Open inbox</span>
         </div>
         <div class="card-body" id="conversation-card-body" data-card-body hidden>
+          <div class="conversation-overview" data-role="conversation-overview">
+            <div class="overview-primary">
+              <span class="overview-badge" data-role="autopilot-indicator">Autopilot enabled</span>
+              <h3 class="overview-heading">Stay on top of every live exchange</h3>
+              <p class="overview-description">
+                Track incoming conversations, monitor agent responses, and spotlight chats that
+                need your attention instantly.
+              </p>
+            </div>
+            <dl class="overview-stats">
+              <div class="overview-stat">
+                <dt>Visitors waiting</dt>
+                <dd data-role="waiting-count">0</dd>
+              </div>
+              <div class="overview-stat">
+                <dt>Live conversations</dt>
+                <dd data-role="active-chat-count">0</dd>
+              </div>
+              <div class="overview-stat">
+                <dt>Average reply time</dt>
+                <dd data-role="reply-speed">&mdash;</dd>
+              </div>
+            </dl>
+          </div>
           <div class="conversation-layout">
             <aside
               class="visitor-list"
@@ -43,6 +67,12 @@
                     No active visitors
                   </h3>
                   <span class="visitor-status-tag" data-role="visitor-status"></span>
+                </div>
+                <div class="chat-toolbar">
+                  <span class="chat-toolbar__status" data-role="chat-mode">Autopilot</span>
+                  <span class="chat-toolbar__target">
+                    Response target <strong data-role="response-target">under 2m</strong>
+                  </span>
                 </div>
               </header>
               <div class="chat-window" data-chat-messages aria-live="polite"></div>
@@ -63,6 +93,26 @@
                 </div>
               </form>
             </div>
+            <aside class="conversation-insights" data-role="conversation-insights" aria-label="Conversation insights">
+              <div class="insight-card">
+                <h4 class="insight-card__title">Live timeline</h4>
+                <p class="insight-card__hint" data-role="insight-hint">
+                  The moment a visitor sends a message, the updates will appear here.
+                </p>
+                <ol class="insight-activity" data-role="conversation-activity"></ol>
+              </div>
+              <div class="insight-card">
+                <h4 class="insight-card__title">Quick notes</h4>
+                <p class="insight-card__hint">
+                  Capture talking points or reminders for your team while you chat.
+                </p>
+                <textarea
+                  class="insight-notepad"
+                  rows="6"
+                  placeholder="Type notes to share with other admins..."
+                ></textarea>
+              </div>
+            </aside>
           </div>
         </div>
       </article>
