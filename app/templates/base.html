@@ -62,7 +62,11 @@
       class="live-chat-button"
       href="{{ url_for('main.contact') }}#visitor-chat"
       aria-label="Open live chat"
-    >🐶</a>
+      data-role="live-chat-button"
+    >
+      🐶
+      <span class="waiting-count" data-role="waiting-count" aria-hidden="true"></span>
+    </a>
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
   </body>
 </html>
