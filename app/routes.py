@@ -1,43 +1,34 @@
 from datetime import datetime
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, render_template
 
 main_bp = Blueprint("main", __name__)
 
-DOG_WALKS = [
-    {
-        "id": 1,
-        "walker": "Alex",
-        "dog": "Buddy",
-        "time": "09:00",
-        "duration": 30,
-    },
-    {
-        "id": 2,
-        "walker": "Sam",
-        "dog": "Luna",
-        "time": "11:30",
-        "duration": 45,
-    },
-]
+
+@main_bp.app_context_processor
+def inject_globals():
+    return {"current_year": datetime.now().year}
 
 
 @main_bp.get("/")
 def index():
-    return render_template("index.html", walks=DOG_WALKS)
+    return render_template("index.html")
 
 
-@main_bp.post("/api/schedule")
-def add_walk():
-    data = request.get_json(force=True)
-    new_id = max((walk["id"] for walk in DOG_WALKS), default=0) + 1
+@main_bp.get("/services")
+def services():
+    return render_template("services.html")
 
-    walk = {
-        "id": new_id,
-        "walker": data.get("walker", "Unknown"),
-        "dog": data.get("dog", "Unknown"),
-        "time": data.get("time", datetime.now().strftime("%H:%M")),
-        "duration": int(data.get("duration", 30)),
-    }
 
-    DOG_WALKS.append(walk)
-    return jsonify(walk), 201
+@main_bp.get("/about")
+def about():
+    return render_template("about.html")
+
+
+@main_bp.get("/contact")
+def contact():
+    return render_template("contact.html")
+
+
+@main_bp.get("/book")
+def booking():
+    return render_template("booking.html")

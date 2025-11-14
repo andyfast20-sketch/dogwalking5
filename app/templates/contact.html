@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Contact | Reliable Walks{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container narrow">
+    <h1>Contact Us</h1>
+    <p>We’d love to hear about your dog and how we can help.</p>
+  </div>
+</section>
+
+<section class="contact-section">
+  <div class="container two-column">
+    <div>
+      <h2>Get in Touch</h2>
+      <p>Phone: <a href="tel:+441234567890">+44 1234 567890</a></p>
+      <p>Email: <a href="mailto:hello@reliablewalks.co.uk">hello@reliablewalks.co.uk</a></p>
+      <h3>Areas Covered</h3>
+      <ul class="area-list">
+        <li>Brighton &amp; Hove</li>
+        <li>Shoreham-by-Sea</li>
+        <li>Portslade</li>
+        <li>BN1, BN2, BN3</li>
+      </ul>
+    </div>
+    <div>
+      <form id="contact-form" novalidate>
+        <h2>Send a Message</h2>
+        <label>
+          Name
+          <input type="text" name="name" required />
+        </label>
+        <label>
+          Email
+          <input type="email" name="email" required />
+        </label>
+        <label>
+          Phone
+          <input type="tel" name="phone" required />
+        </label>
+        <label>
+          Message
+          <textarea name="message" rows="4" required></textarea>
+        </label>
+        <button class="button primary" type="submit">Send Message</button>
+        <p class="form-feedback" data-role="contact-feedback" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
