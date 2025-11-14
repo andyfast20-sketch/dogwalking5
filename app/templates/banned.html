@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Access Restricted | Reliable Walks{% endblock %}
+{% block content %}
+<section class="banned-hero">
+  <div class="container narrow">
+    <div class="banned-card">
+      <span class="banned-icon" aria-hidden="true">🚫</span>
+      <h1>Access restricted</h1>
+      <p>
+        This visitor profile has been banned by our admin team. If you believe this was
+        done in error, please reach out using a different contact method so we can
+        review your access.
+      </p>
+      <dl class="banned-meta">
+        <div>
+          <dt>Visitor ID</dt>
+          <dd>{{ visitor_id }}</dd>
+        </div>
+        {% if visitor.reason %}
+        <div>
+          <dt>Reason</dt>
+          <dd>{{ visitor.reason }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+      <p class="banned-support">
+        Need help? Email <a href="mailto:hello@reliablewalks.co.uk">hello@reliablewalks.co.uk</a>
+        and we’ll be glad to assist.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -644,159 +644,212 @@ function initAdminChat() {
   setInterval(refreshMessages, 6000);
 }
 
-function initVisitorInsights() {
-  const insightsRoot = document.querySelector("[data-role='visitor-insights']");
-  if (!insightsRoot) return;
+function initBanManager() {
+  const root = document.querySelector("[data-role='ban-manager']");
+  if (!root) return;
 
-  const tableBody = insightsRoot.querySelector("[data-role='visitor-table-body']");
-  const emptyState = insightsRoot.querySelector("[data-role='visitor-empty']");
-  const feedback = insightsRoot.querySelector("[data-role='visitor-feedback']");
-  const totalVisitors = insightsRoot.querySelector("[data-role='visitor-total']");
-  const returningVisitors = insightsRoot.querySelector("[data-role='visitor-returning']");
-  const totalVisits = insightsRoot.querySelector("[data-role='visitor-total-visits']");
-  const refreshButton = insightsRoot.querySelector("[data-role='visitor-refresh']");
-  let loading = false;
+  const form = root.querySelector("#ban-visitor-form");
+  const identifierInput = root.querySelector("#ban-identifier");
+  const reasonInput = root.querySelector("#ban-reason");
+  const feedback = root.querySelector("[data-role='ban-feedback']");
+  const tableBody = root.querySelector("[data-role='ban-table-body']");
+  const emptyState = root.querySelector("[data-role='ban-empty']");
+  const table = root.querySelector("[data-role='ban-table']");
+  const countPill = root.querySelector("[data-role='ban-count']");
 
-  function setFeedback(message = "", isError = false) {
+  let visitors = [];
+
+  function setFeedback(message, isError = false) {
     if (!feedback) return;
     feedback.textContent = message;
-    if (message) {
-      feedback.classList.toggle("error", Boolean(isError));
-    } else {
-      feedback.classList.remove("error");
-    }
+    feedback.classList.toggle("error", Boolean(isError));
   }
 
-  function renderSummary(summary = {}) {
-    if (totalVisitors) {
-      totalVisitors.textContent = String(summary.total ?? 0);
-    }
-    if (returningVisitors) {
-      returningVisitors.textContent = String(summary.returning ?? 0);
-    }
-    if (totalVisits) {
-      totalVisits.textContent = String(summary.total_visits ?? 0);
-    }
-  }
-
-  function renderVisitors(visitors = []) {
-    if (!tableBody) return;
-    tableBody.innerHTML = "";
-
-    if (!visitors.length) {
-      if (emptyState) {
-        emptyState.hidden = false;
-      }
-      return;
-    }
-
-    if (emptyState) {
-      emptyState.hidden = true;
-    }
-
-    visitors.forEach((visitor) => {
-      const row = document.createElement("div");
-      row.classList.add("visitor-row");
-      row.setAttribute("role", "row");
-      row.dataset.visitorId = visitor.id || "";
-
-      const shortId = ((visitor.id || "").slice(-6) || "guest").toUpperCase();
-      const avatarText = shortId.slice(-2) || "RW";
-      const ipAddress = visitor.ip_address || "Unknown IP";
-      const visitCount = Number(visitor.visit_count) || 0;
-      const visitLabel = `${visitCount} visit${visitCount === 1 ? "" : "s"}`;
-      const returning = Boolean(visitor.returning);
-      const lastSeen = visitor.last_seen ? formatDateTime(visitor.last_seen) : "Just now";
-      const firstSeen = visitor.first_seen ? formatDateTime(visitor.first_seen) : "Just now";
-      const lastPath = visitor.last_path || "/";
-
-      row.innerHTML = `
-        <span class="visitor-cell visitor-cell--identity" role="cell">
-          <span class="visitor-avatar">${escapeHtml(avatarText)}</span>
-          <span class="visitor-identity">
-            <strong>${escapeHtml(ipAddress)}</strong>
-            <small>Visitor ${escapeHtml(shortId)}</small>
-          </span>
-        </span>
-        <span class="visitor-cell visitor-cell--status" role="cell">
-          <span class="badge ${returning ? "badge--returning" : "badge--new"}">${
-            returning ? "Returning" : "New"
-          }</span>
-          <span class="visitor-count">${escapeHtml(visitLabel)}</span>
-          <span class="visitor-trail">Last page • ${escapeHtml(lastPath)}</span>
-        </span>
-        <span class="visitor-cell visitor-cell--timeline" role="cell">
-          <span>Last seen</span>
-          <strong>${escapeHtml(lastSeen)}</strong>
-          <span>First seen • ${escapeHtml(firstSeen)}</span>
-        </span>
-        <span class="visitor-cell visitor-cell--actions" role="cell">
-          <button type="button" class="button ghost" data-role="delete-visitor">Remove</button>
-        </span>
-      `;
-
-      tableBody.appendChild(row);
+  function setFormDisabled(isDisabled) {
+    if (!form) return;
+    const elements = form.querySelectorAll("input, button");
+    elements.forEach((element) => {
+      element.disabled = isDisabled;
     });
   }
 
-  async function loadVisitors(showStatus = false) {
-    if (loading) return;
-    loading = true;
-    if (showStatus) {
-      setFeedback("Refreshing...", false);
-    }
-
-    try {
-      const data = await fetchJson("/api/admin/visitors");
-      renderSummary(data.summary || {});
-      renderVisitors(data.visitors || []);
-      setFeedback(showStatus ? "Visitor insights refreshed." : "", false);
-    } catch (error) {
-      setFeedback("We couldn’t fetch visitor insights right now.", true);
-    } finally {
-      loading = false;
+  function updateCount() {
+    if (!countPill) return;
+    const activeCount = visitors.filter((visitor) => visitor.active).length;
+    countPill.textContent = activeCount;
+    if (activeCount === 0) {
+      countPill.dataset.state = "empty";
+    } else {
+      delete countPill.dataset.state;
     }
   }
 
-  if (refreshButton) {
-    refreshButton.addEventListener("click", () => {
-      loadVisitors(true);
+  function renderVisitors() {
+    if (!tableBody || !emptyState || !table) return;
+
+    tableBody.innerHTML = "";
+
+    if (!visitors.length) {
+      emptyState.hidden = false;
+      table.hidden = true;
+      updateCount();
+      return;
+    }
+
+    emptyState.hidden = true;
+    table.hidden = false;
+
+    visitors.forEach((visitor) => {
+      const row = document.createElement("tr");
+      row.dataset.id = visitor.id;
+
+      const visitorCell = document.createElement("td");
+      visitorCell.textContent = visitor.id;
+
+      const statusCell = document.createElement("td");
+      const statusBadge = document.createElement("span");
+      statusBadge.classList.add("ban-status");
+      statusBadge.classList.add(visitor.active ? "active" : "inactive");
+      statusBadge.textContent = visitor.active ? "Active ban" : "Inactive";
+      statusCell.appendChild(statusBadge);
+
+      const reasonCell = document.createElement("td");
+      reasonCell.textContent = visitor.reason || "—";
+
+      const createdCell = document.createElement("td");
+      createdCell.textContent = formatDateTime(visitor.created_at || visitor.updated_at);
+
+      const actionsCell = document.createElement("td");
+      actionsCell.classList.add("actions-cell");
+      const actionsWrapper = document.createElement("div");
+      actionsWrapper.classList.add("ban-actions");
+
+      const toggleButton = document.createElement("button");
+      toggleButton.type = "button";
+      toggleButton.classList.add("ban-action", visitor.active ? "unban" : "reinstate");
+      toggleButton.dataset.action = visitor.active ? "unban" : "reinstate";
+      toggleButton.dataset.id = visitor.id;
+      toggleButton.textContent = visitor.active ? "Unban" : "Reinstate";
+      toggleButton.setAttribute(
+        "aria-label",
+        visitor.active
+          ? `Unban visitor ${visitor.id}`
+          : `Reinstate ban for visitor ${visitor.id}`
+      );
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.classList.add("ban-action", "delete");
+      deleteButton.dataset.action = "delete";
+      deleteButton.dataset.id = visitor.id;
+      deleteButton.textContent = "Delete";
+      deleteButton.setAttribute("aria-label", `Delete record for visitor ${visitor.id}`);
+
+      actionsWrapper.append(toggleButton, deleteButton);
+      actionsCell.appendChild(actionsWrapper);
+
+      row.append(visitorCell, statusCell, reasonCell, createdCell, actionsCell);
+      tableBody.appendChild(row);
+    });
+
+    updateCount();
+  }
+
+  async function loadVisitors() {
+    try {
+      const data = await fetchJson("/api/admin/banned-visitors");
+      visitors = data.visitors ?? [];
+      renderVisitors();
+      if (!visitors.length) {
+        setFeedback("No banned visitors at the moment.");
+      } else {
+        setFeedback("");
+      }
+    } catch (error) {
+      setFeedback("Couldn’t load the banned visitors list.", true);
+    }
+  }
+
+  if (form && identifierInput) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const identifier = identifierInput.value.trim();
+      const reason = reasonInput?.value.trim() ?? "";
+      if (!identifier) {
+        identifierInput.focus();
+        return;
+      }
+
+      setFormDisabled(true);
+      setFeedback("Saving restriction...");
+
+      try {
+        const payload = { identifier, reason };
+        const data = await fetchJson("/api/admin/banned-visitors", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        visitors = data.visitors ?? visitors;
+        renderVisitors();
+        form.reset();
+        setFeedback("Visitor has been banned.");
+      } catch (error) {
+        if (error?.response?.status === 400) {
+          setFeedback("Please provide a visitor identifier to ban.", true);
+        } else {
+          setFeedback("We couldn’t save that ban. Try again.", true);
+        }
+      } finally {
+        setFormDisabled(false);
+      }
     });
   }
 
   if (tableBody) {
     tableBody.addEventListener("click", async (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) return;
-      const button = target.closest("[data-role='delete-visitor']");
-      if (!(button instanceof HTMLButtonElement)) return;
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
 
-      const row = button.closest(".visitor-row");
-      const visitorId = row?.dataset.visitorId;
-      if (!visitorId) return;
+      const { action, id } = button.dataset;
+      if (!id) return;
 
-      const originalText = button.textContent;
       button.disabled = true;
-      button.textContent = "Removing...";
+
       try {
-        await fetchJson(`/api/admin/visitors/${encodeURIComponent(visitorId)}`, {
-          method: "DELETE",
-        });
-        await loadVisitors();
-        setFeedback("Visitor removed.", false);
+        if (action === "unban") {
+          const data = await fetchJson(`/api/admin/banned-visitors/${encodeURIComponent(id)}/unban`, {
+            method: "POST",
+          });
+          visitors = data.visitors ?? visitors;
+          setFeedback(`Visitor ${id} has been unbanned.`);
+        } else if (action === "reinstate") {
+          const visitor = visitors.find((item) => item.id === id);
+          const reason = visitor?.reason ?? "";
+          const data = await fetchJson("/api/admin/banned-visitors", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ identifier: id, reason }),
+          });
+          visitors = data.visitors ?? visitors;
+          setFeedback(`Ban reinstated for ${id}.`);
+        } else if (action === "delete") {
+          const data = await fetchJson(`/api/admin/banned-visitors/${encodeURIComponent(id)}`, {
+            method: "DELETE",
+          });
+          visitors = data.visitors ?? visitors.filter((item) => item.id !== id);
+          setFeedback(`Removed ${id} from the list.`);
+        }
+        renderVisitors();
       } catch (error) {
-        setFeedback("Couldn’t remove that visitor. Try again.", true);
+        setFeedback("That action could not be completed.", true);
       } finally {
         button.disabled = false;
-        button.textContent = originalText || "Remove";
       }
     });
   }
 
   loadVisitors();
-  setInterval(() => {
-    loadVisitors();
-  }, 12000);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -805,5 +858,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initLiveChatIndicator();
   initVisitorChat();
   initAdminChat();
-  initVisitorInsights();
+  initBanManager();
 });
