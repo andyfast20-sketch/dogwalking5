@@ -18,8 +18,8 @@
         <div class="brand-cluster">
           <img
             class="brand-avatar"
-            src="{{ url_for('static', filename='img/owner-portrait.svg') }}"
-            alt="Portrait of the Happy Paws walker"
+            src="https://files.catbox.moe/986gie.jpg"
+            alt="Portrait of Andy, your dog walker"
           />
           <a class="logo" href="{{ url_for('main.index') }}">
             <span class="logo-icon" aria-hidden="true">🐾</span>
@@ -74,7 +74,10 @@
       aria-label="Open live chat"
       data-role="live-chat-button"
     >
-      🐶
+      <span class="live-chat-emoji" aria-hidden="true">🐶</span>
+      <span class="chat-prompt" data-role="chat-prompt" aria-hidden="true">
+        Woof Wanna chat?
+      </span>
       <span class="waiting-count" data-role="waiting-count" aria-hidden="true"></span>
     </a>
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
