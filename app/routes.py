@@ -21,7 +21,11 @@ chat_state: Dict[str, Any] = {
 }
 
 
+EnquiryRecord = Dict[str, Any]
+
+
 banned_visitors: Dict[str, Dict[str, Any]] = {}
+contact_enquiries: Dict[str, EnquiryRecord] = {}
 
 SlotRecord = Dict[str, Any]
 BookingRecord = Dict[str, Any]
@@ -173,6 +177,31 @@ def _sorted_bookings() -> List[BookingRecord]:
         return (start, record.get("created_at", ""))
 
     return [_serialize_booking(booking) for booking in sorted(booking_records.values(), key=sort_key)]
+
+
+def _serialize_enquiry(enquiry: EnquiryRecord) -> EnquiryRecord:
+    data = dict(enquiry)
+    return data
+
+
+def _sorted_enquiries() -> List[EnquiryRecord]:
+    return [
+        _serialize_enquiry(enquiry)
+        for enquiry in sorted(
+            contact_enquiries.values(),
+            key=lambda item: item.get("created_at", ""),
+            reverse=True,
+        )
+    ]
+
+
+def _enquiry_summary(enquiries_list: List[EnquiryRecord] | None = None) -> Dict[str, Any]:
+    enquiries_data = enquiries_list if enquiries_list is not None else _sorted_enquiries()
+    open_count = sum(1 for item in enquiries_data if not item.get("completed"))
+    return {
+        "enquiries": enquiries_data,
+        "counts": {"open": open_count, "total": len(enquiries_data)},
+    }
 
 
 def _generate_ai_reply(user_message: str) -> str:
@@ -555,6 +584,66 @@ def create_booking():
         }),
         201,
     )
+
+
+@main_bp.post("/api/enquiries")
+def submit_enquiry():
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").strip()
+    phone = (data.get("phone") or "").strip()
+    message = (data.get("message") or "").strip()
+
+    if not name or not email or not phone or not message:
+        return jsonify({"error": "Please complete all contact details before submitting."}), 400
+
+    enquiry_id = uuid.uuid4().hex
+    now_iso = _iso_now()
+    record: EnquiryRecord = {
+        "id": enquiry_id,
+        "name": name,
+        "email": email,
+        "phone": phone,
+        "message": message,
+        "created_at": now_iso,
+        "updated_at": now_iso,
+        "completed": False,
+        "completed_at": None,
+    }
+    contact_enquiries[enquiry_id] = record
+
+    return jsonify({"enquiry": _serialize_enquiry(record)}), 201
+
+
+@main_bp.get("/api/admin/enquiries")
+def list_enquiries():
+    enquiries_data = _sorted_enquiries()
+    return jsonify(_enquiry_summary(enquiries_data))
+
+
+@main_bp.patch("/api/admin/enquiries/<enquiry_id>")
+def update_enquiry(enquiry_id: str):
+    enquiry = contact_enquiries.get(enquiry_id)
+    if not enquiry:
+        return jsonify({"error": "Enquiry not found."}), 404
+
+    data = request.get_json(silent=True) or {}
+    updated = False
+
+    if "completed" in data:
+        completed = bool(data.get("completed"))
+        enquiry["completed"] = completed
+        enquiry["updated_at"] = _iso_now()
+        enquiry["completed_at"] = enquiry["updated_at"] if completed else None
+        updated = True
+
+    if not updated:
+        return jsonify({"error": "No changes supplied."}), 400
+
+    enquiries_data = _sorted_enquiries()
+    response = _enquiry_summary(enquiries_data)
+    response["enquiry"] = _serialize_enquiry(enquiry)
+    return jsonify(response)
 
 
 @main_bp.get("/api/admin/bookings")

@@ -68,18 +68,84 @@
       </div>
       <p class="copyright">© {{ current_year }} Reliable Walks. All rights reserved.</p>
     </footer>
-    <a
-      class="live-chat-button"
-      href="{{ url_for('main.contact') }}#visitor-chat"
-      aria-label="Open live chat"
-      data-role="live-chat-button"
-    >
-      <span class="live-chat-emoji" aria-hidden="true">🐶</span>
-      <span class="chat-prompt" data-role="chat-prompt" aria-hidden="true">
-        Woof Wanna chat?
-      </span>
-      <span class="waiting-count" data-role="waiting-count" aria-hidden="true"></span>
-    </a>
+    {% if request.endpoint != 'main.contact' %}
+    <div class="live-chat-widget" data-role="live-chat-widget">
+      <section
+        class="live-chat-panel"
+        id="live-chat-panel"
+        role="dialog"
+        aria-modal="false"
+        aria-label="Live chat with Happy Paws"
+        aria-hidden="true"
+        tabindex="-1"
+        data-role="live-chat-panel"
+      >
+        <header class="live-chat-panel__header">
+          <div class="live-chat-panel__brand">
+            <span class="live-chat-panel__avatar" aria-hidden="true">🐾</span>
+            <div>
+              <p class="live-chat-panel__title">Happy Paws Concierge</p>
+              <p class="live-chat-panel__status" data-role="chat-status">We're online right now</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="live-chat-panel__close"
+            aria-label="Close live chat window"
+            data-role="chat-close"
+          >
+            ✕
+          </button>
+        </header>
+        <div class="live-chat-panel__intro">
+          <p>Hi there! I'm Lila and I'd love to help plan your pup's next adventure.</p>
+        </div>
+        <ul class="live-chat-thread" data-role="chat-thread" role="log" aria-live="polite">
+          <li class="live-chat-message live-chat-message--agent">
+            <span class="live-chat-meta">Lila · Live concierge</span>
+            <p>Need weekday walks, puppy visits, or a weekend hike? Ask away!</p>
+          </li>
+          <li class="live-chat-message live-chat-message--agent live-chat-message--glow">
+            <span class="live-chat-meta">Popular question</span>
+            <p>“Can you collect my dog from home?” Absolutely — doorstep pickups are our speciality.</p>
+          </li>
+        </ul>
+        <form class="live-chat-form" data-role="chat-form">
+          <label class="sr-only" for="live-chat-input">Send a message</label>
+          <div class="live-chat-input-group">
+            <textarea
+              id="live-chat-input"
+              class="live-chat-input"
+              name="message"
+              rows="1"
+              placeholder="Type a message..."
+              autocomplete="off"
+              data-role="chat-input"
+              required
+            ></textarea>
+            <button type="submit" class="live-chat-send" aria-label="Send message">
+              <span aria-hidden="true">➤</span>
+            </button>
+          </div>
+        </form>
+      </section>
+      <button
+        type="button"
+        class="live-chat-button"
+        aria-haspopup="dialog"
+        aria-expanded="false"
+        aria-controls="live-chat-panel"
+        aria-label="Open live chat"
+        data-role="live-chat-button"
+      >
+        <span class="live-chat-emoji" aria-hidden="true">🐶</span>
+        <span class="chat-prompt" data-role="chat-prompt" aria-hidden="true">
+          Woof Wanna chat?
+        </span>
+        <span class="waiting-count" data-role="waiting-count" aria-hidden="true"></span>
+      </button>
+    </div>
+    {% endif %}
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
   </body>
 </html>
