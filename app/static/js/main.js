@@ -327,7 +327,7 @@ function initChatSurprise() {
   const button = document.querySelector("[data-role='live-chat-button']");
   if (!button) return;
 
-  const highlightClass = "is-barking";
+  const highlightClass = "is-flickering";
   const highlightDuration = 5000;
   let highlightTimeoutId = null;
 
