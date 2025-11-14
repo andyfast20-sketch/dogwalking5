@@ -1623,7 +1623,7 @@ textarea {
 .chat-section .chat-window {
   padding: clamp(1.25rem, 3vw, 1.75rem);
   height: auto;
-  max-height: clamp(200px, 32vh, 280px);
+  max-height: clamp(160px, 28vh, 220px);
   min-height: 0;
 }
 
@@ -2168,6 +2168,11 @@ textarea {
     grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.2fr);
   }
 
+  .conversation-empty {
+    grid-column: 1 / -1;
+    min-height: clamp(320px, 48vh, 420px);
+  }
+
   .conversation-insights {
     grid-column: 1 / -1;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -2191,6 +2196,10 @@ textarea {
   .conversation-layout {
     grid-template-columns: 1fr;
     min-height: auto;
+  }
+
+  .conversation-empty {
+    min-height: clamp(260px, 50vh, 360px);
   }
 
   .conversation-insights {
@@ -2382,6 +2391,42 @@ textarea {
   align-items: stretch;
   min-height: clamp(520px, 68vh, 720px);
   width: 100%;
+}
+
+.conversation-empty {
+  grid-column: 2 / span 2;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  background: rgba(7, 24, 20, 0.5);
+  border-radius: 22px;
+  border: 1px dashed rgba(125, 210, 124, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  text-align: center;
+  color: rgba(245, 249, 247, 0.8);
+}
+
+.conversation-empty__inner {
+  max-width: 420px;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.conversation-empty__inner h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #ffffff;
+}
+
+.conversation-empty__inner p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.conversation-empty[hidden] {
+  display: none;
 }
 
 .conversation-panel {

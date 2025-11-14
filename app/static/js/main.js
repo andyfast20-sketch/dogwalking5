@@ -1743,6 +1743,9 @@ function initAdminChat() {
   const conversationToggle = adminRoot.querySelector(
     "[data-card-toggle][aria-controls='conversation-card-body']"
   );
+  const conversationPanel = adminRoot.querySelector("[data-role='conversation-panel']");
+  const conversationInsights = adminRoot.querySelector("[data-role='conversation-insights']");
+  const conversationEmpty = adminRoot.querySelector("[data-role='conversation-empty']");
 
   let autopilotEnabled = false;
   let selectedVisitorId = "";
@@ -1866,6 +1869,19 @@ function initAdminChat() {
     });
   }
 
+  function updateConversationVisibility() {
+    const hasSelection = Boolean(selectedVisitorId);
+    if (conversationPanel) {
+      conversationPanel.hidden = !hasSelection;
+    }
+    if (conversationInsights) {
+      conversationInsights.hidden = !hasSelection;
+    }
+    if (conversationEmpty) {
+      conversationEmpty.hidden = hasSelection;
+    }
+  }
+
   function updateReplyAvailability() {
     const disableInput = autopilotEnabled || !selectedVisitorId;
     if (replyTextarea) {
@@ -1874,6 +1890,7 @@ function initAdminChat() {
     if (replyButton) {
       replyButton.disabled = disableInput;
     }
+    updateConversationVisibility();
   }
 
   function updateConversationSummary() {
@@ -2030,6 +2047,8 @@ function initAdminChat() {
           return;
         }
         selectedVisitorId = summary.visitor_id;
+        updateConversationVisibility();
+        acknowledgeWaitingAlert();
         renderVisitorList(visitorSummaries);
         refreshMessages();
       });
@@ -2045,6 +2064,8 @@ function initAdminChat() {
     if (conversationToggle?.getAttribute("aria-expanded") !== "true") {
       conversationToggle?.click();
     }
+    updateConversationVisibility();
+    acknowledgeWaitingAlert();
     renderVisitorList(visitorSummaries);
     refreshMessages();
   });
@@ -2093,11 +2114,6 @@ function initAdminChat() {
 
       if (selectedVisitorId && !visitorSummaries.some((v) => v.visitor_id === selectedVisitorId)) {
         selectedVisitorId = "";
-      }
-
-      if (!selectedVisitorId && visitorSummaries.length) {
-        const waitingVisitor = visitorSummaries.find((visitor) => visitor.waiting);
-        selectedVisitorId = (waitingVisitor || visitorSummaries[0]).visitor_id;
       }
 
       renderVisitorList(visitorSummaries);

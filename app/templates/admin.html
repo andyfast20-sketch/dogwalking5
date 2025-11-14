@@ -60,7 +60,16 @@
               data-role="visitor-list"
               aria-label="Visitor conversations"
             ></aside>
-            <div class="conversation-panel">
+            <div class="conversation-empty" data-role="conversation-empty">
+              <div class="conversation-empty__inner">
+                <h3>Open a live chat</h3>
+                <p>
+                  Pick a visitor from the inbox to preview their messages and start chatting
+                  with them here.
+                </p>
+              </div>
+            </div>
+            <div class="conversation-panel" data-role="conversation-panel" hidden>
               <header class="chat-header">
                 <div>
                   <h3 class="visitor-heading" data-role="visitor-heading">
@@ -93,7 +102,12 @@
                 </div>
               </form>
             </div>
-            <aside class="conversation-insights" data-role="conversation-insights" aria-label="Conversation insights">
+            <aside
+              class="conversation-insights"
+              data-role="conversation-insights"
+              aria-label="Conversation insights"
+              hidden
+            >
               <div class="insight-card">
                 <h4 class="insight-card__title">Live timeline</h4>
                 <p class="insight-card__hint" data-role="insight-hint">
