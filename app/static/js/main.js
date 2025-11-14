@@ -155,6 +155,46 @@ function updateLiveChatIndicator(waitingCount) {
   }
 }
 
+function initChatSurprise() {
+  const button = document.querySelector("[data-role='live-chat-button']");
+  if (!button) return;
+
+  const highlightClass = "is-barking";
+  const highlightDuration = 5000;
+  let highlightTimeoutId = null;
+
+  const clearHighlight = () => {
+    if (highlightTimeoutId) {
+      window.clearTimeout(highlightTimeoutId);
+      highlightTimeoutId = null;
+    }
+    button.classList.remove(highlightClass);
+  };
+
+  const activateHighlight = () => {
+    button.classList.add(highlightClass);
+    if (highlightTimeoutId) {
+      window.clearTimeout(highlightTimeoutId);
+    }
+    highlightTimeoutId = window.setTimeout(() => {
+      button.classList.remove(highlightClass);
+      highlightTimeoutId = null;
+    }, highlightDuration);
+  };
+
+  const maybeHighlight = () => {
+    const roll = Math.floor(Math.random() * 5) + 1;
+    if (roll === 3) {
+      activateHighlight();
+    } else if (!highlightTimeoutId) {
+      clearHighlight();
+    }
+  };
+
+  window.setTimeout(maybeHighlight, 1200);
+  window.setInterval(maybeHighlight, 10000);
+}
+
 const ENQUIRY_STORAGE_KEY = "reliableWalksEnquiries";
 
 function loadEnquiries() {
@@ -1628,6 +1668,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initAdminCards();
   initForms();
   initLiveChatIndicator();
+  initChatSurprise();
   initBookingSchedule();
   initVisitorChat();
   initAdminSchedule();
