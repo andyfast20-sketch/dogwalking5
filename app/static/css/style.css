@@ -1567,7 +1567,7 @@ textarea {
 
 .chat-section .chat-window {
   padding: clamp(1.25rem, 3vw, 1.75rem);
-  height: clamp(320px, 45vh, 460px);
+  height: clamp(240px, 38vh, 360px);
   max-height: none;
   min-height: 0;
 }
