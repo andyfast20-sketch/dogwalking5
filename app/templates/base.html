@@ -58,6 +58,11 @@
       </div>
       <p class="copyright">© {{ current_year }} Reliable Walks. All rights reserved.</p>
     </footer>
+    <a
+      class="live-chat-button"
+      href="{{ url_for('main.contact') }}#visitor-chat"
+      aria-label="Open live chat"
+    >🐶</a>
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
   </body>
 </html>
