@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Admin | Reliable Walks{% endblock %}
+{% block content %}
+<section class="page-hero admin-hero">
+  <div class="container narrow">
+    <h1>Agent Control Centre</h1>
+    <p>Everything you need to keep Reliable Walks running smoothly.</p>
+  </div>
+</section>
+
+<section class="container admin-dashboard">
+  <h2>Quick actions</h2>
+  <div class="task-grid">
+    <article class="task-card">
+      <h3>Daily Schedule</h3>
+      <p>Review upcoming walks, assign walkers, and confirm meeting points.</p>
+      <span class="task-card__badge">3 routes awaiting confirmation</span>
+    </article>
+    <article class="task-card">
+      <h3>Team Updates</h3>
+      <p>Share announcements with walkers and review availability changes.</p>
+      <span class="task-card__badge">Next briefing: Friday 9:00</span>
+    </article>
+    <button class="task-card task-card--action" type="button" data-role="enquiry-card">
+      <div class="task-card__header">
+        <h3>Enquiries inbox</h3>
+        <span class="task-card__total" data-role="enquiry-total">0 enquiries</span>
+      </div>
+      <p>Follow up on new client messages and keep conversations moving.</p>
+      <span class="task-card__badge task-card__badge--highlight" data-role="new-badge" hidden>
+        <strong data-role="new-count">0</strong> new awaiting review
+      </span>
+      <span class="task-card__cta">Open enquiries</span>
+    </button>
+  </div>
+</section>
+
+<section class="enquiry-panel" data-role="enquiry-panel" hidden>
+  <div class="container">
+    <div class="enquiry-panel__header">
+      <div>
+        <h2>Enquiries inbox</h2>
+        <p>Track each enquiry and mark it complete once it has been handled.</p>
+      </div>
+      <button class="button secondary" type="button" data-role="close-panel">Back to dashboard</button>
+    </div>
+    <div class="enquiry-empty" data-role="enquiry-empty" hidden>
+      <p>No enquiries yet. New messages will appear here automatically.</p>
+    </div>
+    <ul class="enquiry-list" data-role="enquiry-list"></ul>
+  </div>
+</section>
+{% endblock %}

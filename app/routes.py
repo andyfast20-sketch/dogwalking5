@@ -32,3 +32,8 @@ def contact():
 @main_bp.get("/book")
 def booking():
     return render_template("booking.html")
+
+
+@main_bp.get("/admin")
+def admin_dashboard():
+    return render_template("admin.html")
