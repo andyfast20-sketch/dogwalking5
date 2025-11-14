@@ -1086,13 +1086,14 @@ textarea {
 
 .live-chat-panel {
   width: min(360px, calc(100vw - 3rem));
+  max-height: 480px;
   border-radius: 24px;
   background:
     linear-gradient(165deg, rgba(20, 68, 54, 0.95), rgba(6, 28, 21, 0.92)),
     radial-gradient(circle at top, rgba(125, 210, 124, 0.2), transparent 55%);
   border: 1px solid rgba(125, 210, 124, 0.35);
   box-shadow: 0 28px 60px rgba(3, 20, 15, 0.55), 0 18px 40px rgba(10, 64, 46, 0.45);
-  padding: 1.25rem 1.25rem 1.1rem;
+  padding: 1rem 1.1rem 0.9rem;
   color: #effff7;
   transform-origin: 90% 100%;
   transform: translateY(10px) scale(0.96);
@@ -1170,13 +1171,13 @@ textarea {
 }
 
 .live-chat-thread {
-  margin: 1.1rem 0 1.2rem;
+  margin: 0.9rem 0 1rem;
   padding: 0;
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  max-height: 260px;
+  gap: 0.7rem;
+  max-height: 220px;
   overflow-y: auto;
   padding-right: 0.3rem;
   scrollbar-width: thin;
@@ -1193,12 +1194,12 @@ textarea {
 }
 
 .live-chat-message {
-  padding: 0.85rem 1rem;
+  padding: 0.7rem 0.9rem;
   border-radius: 18px 18px 18px 8px;
   background: rgba(6, 28, 21, 0.65);
   border: 1px solid rgba(125, 210, 124, 0.25);
   box-shadow: 0 10px 24px rgba(5, 20, 15, 0.35);
-  line-height: 1.5;
+  line-height: 1.45;
   position: relative;
   max-width: 90%;
 }
@@ -1221,7 +1222,8 @@ textarea {
   background: linear-gradient(140deg, #ffe27d, #f5b400 65%, #ffdf8d 100%);
   color: #2c2107;
   border-color: rgba(255, 255, 255, 0.55);
-  box-shadow: 0 16px 32px rgba(245, 180, 0, 0.32);
+  box-shadow: 0 14px 28px rgba(245, 180, 0, 0.28);
+  padding: 0.6rem 0.85rem;
 }
 
 .live-chat-meta {
