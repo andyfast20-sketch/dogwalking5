@@ -18,6 +18,57 @@ function initNavigation() {
   });
 }
 
+const VISITOR_ID_STORAGE_KEY = "reliableWalksVisitorId";
+
+function getOrCreateVisitorId() {
+  try {
+    const storage = window.localStorage;
+    if (!storage) return "";
+
+    let visitorId = storage.getItem(VISITOR_ID_STORAGE_KEY);
+    if (!visitorId) {
+      const generateId = () => {
+        if (window.crypto?.randomUUID) {
+          return window.crypto.randomUUID();
+        }
+        const random = Math.floor(Math.random() * 1e9);
+        return `visitor-${Date.now()}-${random}`;
+      };
+      visitorId = generateId();
+      storage.setItem(VISITOR_ID_STORAGE_KEY, visitorId);
+    }
+    return visitorId;
+  } catch (error) {
+    console.warn("Unable to access localStorage for visitor ID", error);
+    return "";
+  }
+}
+
+function updateLiveChatIndicator(waitingCount) {
+  const button = document.querySelector("[data-role='live-chat-button']");
+  const badge = document.querySelector("[data-role='waiting-count']");
+  if (!button || !badge) return;
+
+  const count = Number(waitingCount) || 0;
+  const originalLabel =
+    button.dataset.originalLabel || button.getAttribute("aria-label") || "Open live chat";
+
+  if (!button.dataset.originalLabel) {
+    button.dataset.originalLabel = originalLabel;
+  }
+
+  if (count > 0) {
+    badge.textContent = String(count);
+    button.classList.add("has-waiting");
+    const label = `${count} visitor${count === 1 ? "" : "s"} waiting to chat`;
+    button.setAttribute("aria-label", label);
+  } else {
+    badge.textContent = "";
+    button.classList.remove("has-waiting");
+    button.setAttribute("aria-label", originalLabel);
+  }
+}
+
 const ENQUIRY_STORAGE_KEY = "reliableWalksEnquiries";
 
 function loadEnquiries() {
@@ -165,6 +216,28 @@ async function fetchJson(url, options) {
   return response.json();
 }
 
+function initLiveChatIndicator() {
+  const button = document.querySelector("[data-role='live-chat-button']");
+  const badge = document.querySelector("[data-role='waiting-count']");
+  if (!button || !badge) return;
+
+  if (!button.dataset.originalLabel) {
+    button.dataset.originalLabel = button.getAttribute("aria-label") || "Open live chat";
+  }
+
+  async function refreshStatus() {
+    try {
+      const data = await fetchJson("/api/chat/status");
+      updateLiveChatIndicator(data.waiting_count || 0);
+    } catch (error) {
+      // Ignore background refresh errors
+    }
+  }
+
+  refreshStatus();
+  setInterval(refreshStatus, 7000);
+}
+
 function initVisitorChat() {
   const chatRoot = document.querySelector("[data-role='visitor-chat']");
   if (!chatRoot) return;
@@ -175,6 +248,7 @@ function initVisitorChat() {
   const form = chatRoot.querySelector("[data-role='visitor-form']");
   const textarea = form?.querySelector("textarea");
   const submitButton = form?.querySelector("button[type='submit']");
+  const visitorId = getOrCreateVisitorId();
 
   function updateStatus(autopilot) {
     if (!statusLabel) return;
@@ -184,10 +258,14 @@ function initVisitorChat() {
   }
 
   async function refreshMessages() {
+    if (!visitorId) return;
     try {
-      const data = await fetchJson("/api/chat/messages");
+      const data = await fetchJson(
+        `/api/chat/messages?visitor_id=${encodeURIComponent(visitorId)}`
+      );
       renderMessages(messageContainer, data.messages || []);
       updateStatus(Boolean(data.autopilot));
+      updateLiveChatIndicator(data.waiting_count || 0);
     } catch (error) {
       if (feedback) {
         feedback.textContent = "We couldn’t refresh the chat just now.";
@@ -215,11 +293,12 @@ function initVisitorChat() {
         const data = await fetchJson("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message }),
+          body: JSON.stringify({ message, visitor_id: visitorId }),
         });
         textarea.value = "";
         renderMessages(messageContainer, data.messages || []);
         updateStatus(Boolean(data.autopilot));
+        updateLiveChatIndicator(data.waiting_count || 0);
         if (feedback) {
           feedback.textContent = data.autopilot
             ? "Reply sent instantly by Autopilot."
@@ -255,24 +334,73 @@ function initAdminChat() {
   const replyTextarea = adminRoot.querySelector("#agent-message");
   const replyFeedback = adminRoot.querySelector("[data-role='agent-feedback']");
   const replyButton = replyForm?.querySelector("button[type='submit']");
+  const visitorList = adminRoot.querySelector("[data-role='visitor-list']");
+  const visitorHeading = adminRoot.querySelector("[data-role='visitor-heading']");
+  const visitorStatus = adminRoot.querySelector("[data-role='visitor-status']");
+
+  let autopilotEnabled = false;
+  let selectedVisitorId = "";
+  let visitorSummaries = [];
+
+  function updateReplyAvailability() {
+    const disableInput = autopilotEnabled || !selectedVisitorId;
+    if (replyTextarea) {
+      replyTextarea.disabled = disableInput;
+    }
+    if (replyButton) {
+      replyButton.disabled = disableInput;
+    }
+  }
 
   function updateModeDescription(isAutopilot) {
+    autopilotEnabled = Boolean(isAutopilot);
     if (modeDescription) {
-      modeDescription.textContent = isAutopilot
+      modeDescription.textContent = autopilotEnabled
         ? "Visitors chat with the AI assistant."
         : "Visitors will wait for a live reply from you.";
     }
-    if (chatHint) {
-      chatHint.textContent = isAutopilot
+    if (!selectedVisitorId && chatHint) {
+      chatHint.textContent = autopilotEnabled
         ? "Autopilot is active. Disable it to respond manually."
-        : "Live chat is on. New visitor messages will appear here.";
+        : "Select a visitor to view their messages and reply.";
     }
-    if (replyTextarea) {
-      replyTextarea.disabled = isAutopilot;
+    updateReplyAvailability();
+  }
+
+  function updateVisitorStatusTag(isReturning) {
+    if (!visitorStatus) return;
+    if (!selectedVisitorId) {
+      visitorStatus.textContent = "";
+      visitorStatus.classList.remove("returning");
+      return;
     }
-    if (replyButton) {
-      replyButton.disabled = isAutopilot;
+    visitorStatus.textContent = isReturning ? "Returning visitor" : "New visitor";
+    visitorStatus.classList.toggle("returning", Boolean(isReturning));
+  }
+
+  function setVisitorHeading(label) {
+    if (!visitorHeading) return;
+    if (!selectedVisitorId) {
+      visitorHeading.textContent = "No active visitors";
+      return;
     }
+    const fallback = selectedVisitorId.slice(-6).toUpperCase();
+    const headingLabel = label || fallback;
+    visitorHeading.textContent = `Visitor ${headingLabel}`;
+  }
+
+  function clearConversation() {
+    if (messageContainer) {
+      renderMessages(messageContainer, []);
+    }
+    setVisitorHeading("");
+    updateVisitorStatusTag(false);
+    if (chatHint) {
+      chatHint.textContent = autopilotEnabled
+        ? "Autopilot is active. Disable it to respond manually."
+        : "No visitors are waiting right now.";
+    }
+    updateReplyAvailability();
   }
 
   async function loadSettings() {
@@ -298,23 +426,134 @@ function initAdminChat() {
       autopilot,
       business_context: context,
     };
-    const data = await fetchJson("/api/admin/chat-settings", {
+    return fetchJson("/api/admin/chat-settings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    return data;
+  }
+
+  function renderVisitorList(summaries) {
+    if (!visitorList) return;
+    visitorList.innerHTML = "";
+
+    if (!summaries.length) {
+      const empty = document.createElement("p");
+      empty.classList.add("visitor-list-empty");
+      empty.textContent = "No visitors yet.";
+      visitorList.appendChild(empty);
+      return;
+    }
+
+    summaries.forEach((summary, index) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.classList.add("visitor-item");
+      if (summary.visitor_id === selectedVisitorId) {
+        item.classList.add("active");
+      }
+      if (summary.waiting) {
+        item.classList.add("waiting");
+      }
+
+      const badge = document.createElement("span");
+      badge.classList.add("visitor-badge");
+      badge.textContent = summary.label || `V${String(index + 1).padStart(2, "0")}`;
+
+      const info = document.createElement("div");
+      info.classList.add("visitor-info");
+
+      const meta = document.createElement("p");
+      meta.classList.add("visitor-meta");
+      const parts = [];
+      parts.push(summary.is_returning ? "Returning" : "New");
+      if (summary.waiting) {
+        parts.push("Waiting");
+      }
+      meta.textContent = parts.join(" · ");
+
+      const preview = document.createElement("p");
+      preview.classList.add("visitor-preview");
+      const previewSource = summary.last_message?.content || "No messages yet.";
+      preview.textContent =
+        previewSource.length > 80 ? `${previewSource.slice(0, 77)}…` : previewSource;
+
+      info.append(meta, preview);
+      item.append(badge, info);
+
+      item.addEventListener("click", () => {
+        if (summary.visitor_id === selectedVisitorId) {
+          return;
+        }
+        selectedVisitorId = summary.visitor_id;
+        renderVisitorList(visitorSummaries);
+        refreshMessages();
+      });
+
+      visitorList.appendChild(item);
+    });
   }
 
   async function refreshMessages() {
+    if (!selectedVisitorId) {
+      clearConversation();
+      return;
+    }
     try {
-      const data = await fetchJson("/api/chat/messages");
+      const data = await fetchJson(
+        `/api/chat/messages?visitor_id=${encodeURIComponent(selectedVisitorId)}`
+      );
       renderMessages(messageContainer, data.messages || []);
-      updateModeDescription(Boolean(data.autopilot));
+      setVisitorHeading(data.label || "");
+      updateVisitorStatusTag(Boolean(data.is_returning));
+      updateLiveChatIndicator(data.waiting_count || 0);
+      if (chatHint) {
+        if (!data.messages || data.messages.length === 0) {
+          chatHint.textContent = autopilotEnabled
+            ? "Autopilot is active. Disable it to respond manually."
+            : "No messages from this visitor yet.";
+        } else {
+          chatHint.textContent = autopilotEnabled
+            ? "Autopilot is active. Disable it to respond manually."
+            : "Live chat is on. New visitor messages will appear here.";
+        }
+      }
+      updateReplyAvailability();
     } catch (error) {
       if (replyFeedback && !replyFeedback.textContent) {
         replyFeedback.textContent = "Unable to refresh messages.";
         replyFeedback.classList.add("error");
+      }
+    }
+  }
+
+  async function refreshConversations() {
+    try {
+      const data = await fetchJson("/api/admin/conversations");
+      updateModeDescription(Boolean(data.autopilot));
+      updateLiveChatIndicator(data.waiting_count || 0);
+      visitorSummaries = data.visitors || [];
+
+      if (selectedVisitorId && !visitorSummaries.some((v) => v.visitor_id === selectedVisitorId)) {
+        selectedVisitorId = "";
+      }
+
+      if (!selectedVisitorId && visitorSummaries.length) {
+        const waitingVisitor = visitorSummaries.find((visitor) => visitor.waiting);
+        selectedVisitorId = (waitingVisitor || visitorSummaries[0]).visitor_id;
+      }
+
+      renderVisitorList(visitorSummaries);
+
+      if (selectedVisitorId) {
+        await refreshMessages();
+      } else {
+        clearConversation();
+      }
+    } catch (error) {
+      if (settingsFeedback && !settingsFeedback.textContent) {
+        settingsFeedback.textContent = "Couldn’t load conversations. Refresh the page.";
+        settingsFeedback.classList.add("error");
       }
     }
   }
@@ -356,6 +595,13 @@ function initAdminChat() {
         replyTextarea.focus();
         return;
       }
+      if (!selectedVisitorId) {
+        if (replyFeedback) {
+          replyFeedback.textContent = "Select a visitor to reply to.";
+          replyFeedback.classList.add("error");
+        }
+        return;
+      }
 
       replyButton.disabled = true;
       replyTextarea.disabled = true;
@@ -368,13 +614,16 @@ function initAdminChat() {
         const data = await fetchJson("/api/chat/respond", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message }),
+          body: JSON.stringify({ message, visitor_id: selectedVisitorId }),
         });
         replyTextarea.value = "";
         renderMessages(messageContainer, data.messages || []);
+        updateVisitorStatusTag(Boolean(data.is_returning));
+        updateLiveChatIndicator(data.waiting_count || 0);
         if (replyFeedback) {
           replyFeedback.textContent = "Reply sent.";
         }
+        await refreshConversations();
       } catch (error) {
         if (replyFeedback) {
           replyFeedback.textContent =
@@ -384,14 +633,14 @@ function initAdminChat() {
           replyFeedback.classList.add("error");
         }
       } finally {
-        replyTextarea.disabled = autopilotToggle?.checked ?? false;
-        replyButton.disabled = autopilotToggle?.checked ?? false;
+        updateReplyAvailability();
       }
     });
   }
 
   loadSettings();
-  refreshMessages();
+  refreshConversations();
+  setInterval(refreshConversations, 7000);
   setInterval(refreshMessages, 6000);
 }
 
@@ -606,6 +855,7 @@ function initBanManager() {
 document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initForms();
+  initLiveChatIndicator();
   initVisitorChat();
   initAdminChat();
   initBanManager();
