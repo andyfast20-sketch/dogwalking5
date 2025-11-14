@@ -20,10 +20,14 @@
         <img
           src="https://files.catbox.moe/ybpug8.png"
           alt="Dog walking scene with lush greenery"
+          fetchpriority="high"
+          decoding="async"
         />
         <img
           src="https://files.catbox.moe/dm2dc8.png"
           alt="Dog walker playing with an excited pup"
+          loading="lazy"
+          decoding="async"
         />
       </div>
     </div>
@@ -53,6 +57,8 @@
       <img
         src="https://files.catbox.moe/986gie.jpg"
         alt="Portrait of Andy, a friendly dog walker"
+        loading="lazy"
+        decoding="async"
       />
       <div class="walker-cta">
         <p class="walker-trust">Friendly, Reliable, Local</p>
@@ -135,6 +141,12 @@
         <figcaption>— Priya &amp; Ollie</figcaption>
       </figure>
     </div>
+  </div>
+</section>
+
+<section class="page-credit" aria-label="Site credit">
+  <div class="container">
+    <p>Andrew Roberts</p>
   </div>
 </section>
 {% endblock %}
