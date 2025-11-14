@@ -1396,6 +1396,8 @@ function initAdminChat() {
         ? "A visitor is waiting for a live reply."
         : `${currentWaitingCount} visitors are waiting for a live reply.`;
     waitingAlert.textContent = message;
+    waitingAlert.setAttribute("aria-label", `${message} Open live conversations.`);
+    waitingAlert.setAttribute("title", "Open live conversations");
     waitingAlert.hidden = false;
 
     if (waitingAlertAcknowledged) {
@@ -1417,6 +1419,33 @@ function initAdminChat() {
     waitingAlert.classList.add("is-paused");
     waitingAlert.classList.remove("is-active");
     stopBeep();
+  }
+
+  if (waitingAlert) {
+    waitingAlert.addEventListener("click", (event) => {
+      event.preventDefault();
+      acknowledgeWaitingAlert();
+
+      const waitingVisitor = visitorSummaries.find((visitor) => visitor.waiting);
+      const targetVisitorId = waitingVisitor?.visitor_id || visitorSummaries[0]?.visitor_id;
+
+      if (targetVisitorId) {
+        document.dispatchEvent(
+          new CustomEvent("admin:select-visitor", {
+            detail: { visitorId: targetVisitorId },
+          })
+        );
+      } else if (conversationToggle?.getAttribute("aria-expanded") !== "true") {
+        conversationToggle?.click();
+      }
+
+      const conversationCard = document.getElementById("live-conversations");
+      if (conversationCard) {
+        window.requestAnimationFrame(() => {
+          conversationCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+    });
   }
 
   function updateReplyAvailability() {

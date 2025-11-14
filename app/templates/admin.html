@@ -3,9 +3,15 @@
 {% block content %}
 <section class="admin-panel">
   <div class="container admin-container" id="admin-chat" data-role="admin-chat">
-    <div class="admin-alert" data-role="waiting-alert" aria-live="assertive" hidden>
+    <a
+      class="admin-alert"
+      data-role="waiting-alert"
+      aria-live="assertive"
+      href="#live-conversations"
+      hidden
+    >
       A visitor is waiting for a live reply.
-    </div>
+    </a>
     <div class="admin-grid" data-role="admin-grid">
       <article class="admin-card visitor-card" data-card data-role="visitor-insights">
         <div
@@ -208,7 +214,7 @@
           </form>
         </div>
       </article>
-      <article class="admin-card conversation-card" data-card>
+      <article class="admin-card conversation-card" data-card id="live-conversations">
         <div
           class="card-preview"
           data-card-toggle
