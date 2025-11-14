@@ -86,12 +86,36 @@ img {
   font-weight: 600;
   font-size: 0.95rem;
   color: var(--muted);
-  transition: color 0.2s ease;
+  transition: color 0.3s ease, transform 0.3s ease;
+  position: relative;
+  padding: 0.35rem 0;
 }
 
-.nav a:hover,
-.nav a:focus {
+.nav li:not(:last-child) a::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 0;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #7dd27c, var(--accent));
+  transform: translateX(-50%);
+  transition: width 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  box-shadow: 0 8px 16px rgba(125, 210, 124, 0.4);
+}
+
+.nav li:not(:last-child) a:hover,
+.nav li:not(:last-child) a:focus {
   color: var(--text);
+  transform: translateY(-2px);
+}
+
+.nav li:not(:last-child) a:hover::after,
+.nav li:not(:last-child) a:focus::after {
+  width: 110%;
+  opacity: 1;
 }
 
 .nav li:last-child a {
@@ -299,12 +323,15 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .walker-photo img {
-  width: 100%;
+  width: 82%;
+  max-width: 320px;
   border-radius: 28px;
-  box-shadow: 0 25px 45px rgba(15, 23, 42, 0.45);
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.38);
   aspect-ratio: 4 / 5;
   object-fit: cover;
 }
@@ -312,7 +339,10 @@ main {
 .walker-cta {
   display: grid;
   gap: 0.75rem;
-  margin-top: 1.75rem;
+  margin-top: 0.25rem;
+  width: 100%;
+  text-align: center;
+  justify-items: center;
 }
 
 .walker-trust {
