@@ -198,7 +198,7 @@ main {
   padding-top: 2.5rem;
 }
 
-.hero {
+.hero { 
   padding: 4.5rem 0 4rem;
   background: radial-gradient(
       circle at 5% 10%,
@@ -206,6 +206,91 @@ main {
       rgba(255, 210, 96, 0) 45%
     ),
     linear-gradient(160deg, #0d382c 0%, #051d16 100%);
+}
+
+.trust-ribbon {
+  position: relative;
+  padding: clamp(2.5rem, 5vw, 3.5rem) 0;
+  background: linear-gradient(135deg, rgba(14, 69, 50, 0.92), rgba(6, 29, 22, 0.95));
+  overflow: hidden;
+}
+
+.trust-ribbon::before,
+.trust-ribbon::after {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(127, 221, 124, 0.32), rgba(7, 22, 19, 0));
+  filter: blur(0.5px);
+  z-index: 0;
+}
+
+.trust-ribbon::before {
+  top: -260px;
+  left: -160px;
+}
+
+.trust-ribbon::after {
+  bottom: -260px;
+  right: -120px;
+}
+
+.trust-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(1rem, 3vw, 1.5rem);
+}
+
+.trust-card {
+  position: relative;
+  padding: 1.75rem;
+  border-radius: 28px;
+  background: rgba(12, 40, 31, 0.9);
+  box-shadow: 0 26px 48px rgba(5, 18, 14, 0.45);
+  overflow: hidden;
+  border: 1px solid rgba(125, 210, 124, 0.25);
+}
+
+.trust-card::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 26px;
+  padding: 1px;
+  background: linear-gradient(140deg, rgba(125, 210, 124, 0.75), rgba(245, 180, 0, 0.55));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.trust-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  background: radial-gradient(circle at top right, rgba(245, 180, 0, 0.28), transparent 55%);
+  opacity: 0.6;
+}
+
+.trust-card-title {
+  position: relative;
+  margin: 0 0 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-size: 1.05rem;
+  color: #7de782;
+  text-transform: uppercase;
+}
+
+.trust-card-copy {
+  position: relative;
+  margin: 0;
+  color: rgba(240, 250, 245, 0.75);
+  font-size: 0.98rem;
 }
 
 .hero-grid {
