@@ -646,6 +646,11 @@ textarea {
   padding: 4rem 0 5rem;
 }
 
+.chat-section .container {
+  display: flex;
+  justify-content: center;
+}
+
 .chat-card {
   background: var(--card);
   padding: 2.5rem;
@@ -654,6 +659,12 @@ textarea {
   border: 1px solid rgba(255, 255, 255, 0.05);
   display: grid;
   gap: 1.5rem;
+}
+
+.chat-section .chat-card {
+  width: min(340px, 100%);
+  padding: 1.5rem;
+  gap: 1.25rem;
 }
 
 .chat-status {
@@ -672,6 +683,11 @@ textarea {
   gap: 1rem;
   max-height: 360px;
   overflow-y: auto;
+}
+
+.chat-section .chat-window {
+  padding: 1rem;
+  max-height: 260px;
 }
 
 .chat-message {
@@ -716,6 +732,10 @@ textarea {
 
 .chat-form textarea {
   min-height: 120px;
+}
+
+.chat-section .chat-form textarea {
+  min-height: 80px;
 }
 
 .chat-hint {
