@@ -1,60 +1,105 @@
 {% extends "base.html" %}
 {% block title %}Contact | Reliable Walks{% endblock %}
 {% block content %}
-<section class="page-hero">
-  <div class="container narrow">
-    <h1>Contact Us</h1>
-    <p>We’d love to hear about your dog and how we can help.</p>
+<section class="contact-hero">
+  <div class="container contact-hero-grid">
+    <div class="contact-hero-copy">
+      <p class="eyebrow">Let’s plan extraordinary walks</p>
+      <h1>Contact Reliable Walks</h1>
+      <p class="lede">
+        Share a little about your four-legged legend and we’ll craft a tailor-made adventure
+        that fits your schedule, your neighbourhood, and their boundless energy.
+      </p>
+      <div class="contact-pills">
+        <span class="contact-pill">Average response &lt; 2 hours</span>
+        <span class="contact-pill">Fully insured &amp; DBS checked</span>
+      </div>
+      <div class="contact-card">
+        <h2>Speak with the team</h2>
+        <ul class="contact-links">
+          <li>
+            <span>Call</span>
+            <a href="tel:+441234567890">+44 1234 567890</a>
+          </li>
+          <li>
+            <span>Email</span>
+            <a href="mailto:hello@reliablewalks.co.uk">hello@reliablewalks.co.uk</a>
+          </li>
+        </ul>
+        <div class="contact-areas">
+          <h3>Brighton &amp; Coastal Sussex</h3>
+          <p>Brighton &amp; Hove · Shoreham-by-Sea · Portslade · BN1 · BN2 · BN3</p>
+        </div>
+      </div>
+    </div>
+    <div class="contact-hero-visual" aria-hidden="true">
+      <div class="hero-photo"></div>
+      <div class="hero-quote">
+        <p>“Every outing feels like a seaside holiday for our pup.”</p>
+        <span>— Delighted client, Hove</span>
+      </div>
+    </div>
   </div>
 </section>
 
 <section class="contact-section">
-  <div class="container two-column">
-    <div>
-      <h2>Get in Touch</h2>
-      <p>Phone: <a href="tel:+441234567890">+44 1234 567890</a></p>
-      <p>Email: <a href="mailto:hello@reliablewalks.co.uk">hello@reliablewalks.co.uk</a></p>
-      <h3>Areas Covered</h3>
-      <ul class="area-list">
-        <li>Brighton &amp; Hove</li>
-        <li>Shoreham-by-Sea</li>
-        <li>Portslade</li>
-        <li>BN1, BN2, BN3</li>
-      </ul>
-    </div>
-    <div>
-      <form id="contact-form" novalidate>
-        <h2>Send a Message</h2>
-        <label>
-          Name
-          <input type="text" name="name" required />
-        </label>
-        <label>
-          Email
-          <input type="email" name="email" required />
-        </label>
-        <label>
-          Phone
-          <input type="tel" name="phone" required />
-        </label>
+  <div class="container contact-panels">
+    <div class="contact-highlight">
+      <h2>Tell us about your dog</h2>
+      <p>
+        Drop us a quick note and we’ll reply with a bespoke walking plan, pricing, and our next
+        available slots. We’re here to make every stroll sensational.
+      </p>
+      <form id="contact-form" class="contact-form" novalidate>
+        <div class="form-grid">
+          <label>
+            Name
+            <input type="text" name="name" placeholder="Your name" required />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            Phone
+            <input type="tel" name="phone" placeholder="Mobile number" required />
+          </label>
+        </div>
         <label>
           Message
-          <textarea name="message" rows="4" required></textarea>
+          <textarea name="message" rows="4" placeholder="Tell us about your dog, schedule, and goals" required></textarea>
         </label>
         <button class="button primary" type="submit">Send Message</button>
         <p class="form-feedback" data-role="contact-feedback" aria-live="polite"></p>
       </form>
     </div>
+    <aside class="contact-side">
+      <div class="side-card">
+        <h3>Why walkers choose us</h3>
+        <ul>
+          <li>Small group adventures tailored to temperament</li>
+          <li>GPS-tracked walks with photo updates every outing</li>
+          <li>Emergency cover and vet-trained handlers on call</li>
+        </ul>
+      </div>
+      <div class="side-card availability">
+        <h3>Availability</h3>
+        <p>Weekdays 7am – 7pm · Weekends by request</p>
+        <p class="badge">Priority slots open this week</p>
+      </div>
+    </aside>
   </div>
 </section>
 
 <section class="chat-section">
   <div class="container narrow">
     <div class="chat-card" id="visitor-chat" data-role="visitor-chat">
-      <h2>Chat with Reliable Walks</h2>
-      <p class="chat-status" data-role="visitor-status" aria-live="polite">
-        Autopilot is active — our AI helper is ready to answer your questions.
-      </p>
+      <div class="chat-card-header">
+        <h2>Chat with Reliable Walks</h2>
+        <p class="chat-status" data-role="visitor-status" aria-live="polite">
+          Autopilot is active — our AI helper is ready to answer your questions.
+        </p>
+      </div>
       <div class="chat-window" data-chat-messages></div>
       <form class="chat-form" data-role="visitor-form">
         <label class="sr-only" for="visitor-message">Your message</label>
