@@ -43,6 +43,83 @@
         </div>
         <p class="form-feedback" data-role="visitor-feedback"></p>
       </article>
+      <article class="admin-card schedule-card" data-role="schedule-manager">
+        <header class="card-heading">
+          <span class="eyebrow">Scheduling Studio</span>
+          <h2>Booking Slots</h2>
+          <p>
+            Publish shimmering availability, track reservations, and confirm walks with a single tap.
+          </p>
+        </header>
+        <form id="slot-form" class="slot-form" data-role="slot-form" novalidate>
+          <div class="slot-form-grid">
+            <label>
+              Date
+              <input type="date" name="date" required />
+            </label>
+            <label>
+              Time
+              <select name="time" required>
+                <option value="" disabled selected>Pick a start time</option>
+                <option value="07:00">07:00</option>
+                <option value="08:00">08:00</option>
+                <option value="09:00">09:00</option>
+                <option value="10:00">10:00</option>
+                <option value="11:00">11:00</option>
+                <option value="12:00">12:00</option>
+                <option value="13:00">13:00</option>
+                <option value="14:00">14:00</option>
+                <option value="15:00">15:00</option>
+                <option value="16:00">16:00</option>
+                <option value="17:00">17:00</option>
+              </select>
+            </label>
+            <label>
+              Walk length
+              <select name="duration_minutes" required>
+                <option value="30">30 minutes</option>
+                <option value="45">45 minutes</option>
+                <option value="60">60 minutes</option>
+                <option value="90">90 minutes</option>
+              </select>
+            </label>
+            <label>
+              Price (£)
+              <input type="number" name="price" min="0" step="0.5" placeholder="20" required />
+            </label>
+          </div>
+          <label class="slot-notes">
+            Highlight (optional)
+            <input type="text" name="notes" placeholder="Sunset stroll, riverside route, etc." />
+          </label>
+          <div class="form-actions">
+            <button type="submit" class="button secondary">Add slot</button>
+            <p class="form-feedback" data-role="schedule-feedback"></p>
+          </div>
+        </form>
+        <div class="schedule-columns">
+          <section class="schedule-column">
+            <div class="schedule-heading">
+              <h3>Upcoming availability</h3>
+              <span class="schedule-count" data-role="admin-slot-count">0</span>
+            </div>
+            <div class="schedule-list" data-role="admin-slot-list" aria-live="polite"></div>
+            <p class="schedule-empty" data-role="admin-slot-empty">
+              No open slots yet. Use the form above to publish your first glowing time slot.
+            </p>
+          </section>
+          <section class="schedule-column">
+            <div class="schedule-heading">
+              <h3>Bookings</h3>
+              <span class="schedule-count" data-role="admin-booking-count">0</span>
+            </div>
+            <div class="schedule-list" data-role="admin-booking-list" aria-live="polite"></div>
+            <p class="schedule-empty" data-role="admin-booking-empty">
+              Once a client reserves a walk, their details appear here for easy confirmations.
+            </p>
+          </section>
+        </div>
+      </article>
       <article class="admin-card">
         <h2>Chat Mode &amp; Business Context</h2>
         <form id="chat-settings-form" class="settings-form">

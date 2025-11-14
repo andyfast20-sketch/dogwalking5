@@ -111,6 +111,92 @@ function formatDateTime(value) {
   });
 }
 
+const slotDateFormatter = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+});
+
+const slotTimeFormatter = new Intl.DateTimeFormat(undefined, {
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const currencyFormatter = new Intl.NumberFormat(undefined, {
+  style: "currency",
+  currency: "GBP",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+
+function parseSlotStart(slot) {
+  if (!slot) return null;
+  if (slot.start_iso) {
+    const parsed = new Date(slot.start_iso);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  if (slot.date && slot.time) {
+    const parsed = new Date(`${slot.date}T${slot.time}`);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
+function computeSlotEnd(slot) {
+  const start = parseSlotStart(slot);
+  if (!start) return null;
+  const minutes = Number(slot?.duration_minutes) || 0;
+  return new Date(start.getTime() + minutes * 60000);
+}
+
+function formatSlotDateLabel(slot) {
+  const start = parseSlotStart(slot);
+  if (!start) {
+    return slot?.date || "";
+  }
+  return slotDateFormatter.format(start);
+}
+
+function formatSlotTimeRange(slot) {
+  const start = parseSlotStart(slot);
+  const end = computeSlotEnd(slot);
+  if (!start || !end) {
+    return slot?.time || "";
+  }
+  return `${slotTimeFormatter.format(start)} – ${slotTimeFormatter.format(end)}`;
+}
+
+function formatSlotDuration(slot) {
+  const minutes = Number(slot?.duration_minutes) || 0;
+  if (minutes < 60) {
+    return `${minutes} min`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const hourLabel = `${hours} hour${hours === 1 ? "" : "s"}`;
+  return mins ? `${hourLabel} ${mins} min` : hourLabel;
+}
+
+function formatPrice(value) {
+  return currencyFormatter.format(Number(value) || 0);
+}
+
+function describeSlot(slot) {
+  return [
+    formatSlotDateLabel(slot),
+    formatSlotTimeRange(slot),
+    `${formatSlotDuration(slot)} walk`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 function escapeHtml(value) {
   if (value === undefined || value === null) return "";
   return String(value)
@@ -158,12 +244,6 @@ function initForms() {
     "contact-form",
     "[data-role='contact-feedback']",
     "Thank you — we’ll be in touch soon!"
-  );
-
-  handleFormSubmission(
-    "booking-form",
-    "[data-role='booking-feedback']",
-    "Thank you — we’ll confirm shortly."
   );
 }
 
@@ -214,6 +294,23 @@ async function fetchJson(url, options) {
     throw error;
   }
   return response.json();
+}
+
+async function resolveErrorMessage(error, fallbackMessage) {
+  if (!error?.response) {
+    return fallbackMessage;
+  }
+
+  try {
+    const data = await error.response.json();
+    if (data?.error) {
+      return data.error;
+    }
+  } catch (parseError) {
+    // Ignore JSON parsing issues and fall back to the provided message.
+  }
+
+  return fallbackMessage;
 }
 
 function initLiveChatIndicator() {
@@ -317,6 +414,570 @@ function initVisitorChat() {
 
   refreshMessages();
   setInterval(refreshMessages, 8000);
+}
+
+function initBookingSchedule() {
+  const scheduleRoot = document.querySelector("[data-role='booking-schedule']");
+  if (!scheduleRoot) return;
+
+  const slotList = scheduleRoot.querySelector("[data-role='slot-list']");
+  const emptyState = scheduleRoot.querySelector("[data-role='slot-empty']");
+  const countLabel = scheduleRoot.querySelector("[data-role='slot-count']");
+  const filterInput = scheduleRoot.querySelector("[data-role='date-filter']");
+  const clearButton = scheduleRoot.querySelector("[data-action='clear-date']");
+
+  const modal = document.querySelector("[data-role='booking-modal']");
+  const modalForm = modal?.querySelector("[data-role='slot-booking-form']");
+  const modalFeedback = modal?.querySelector("[data-role='modal-feedback']");
+  const modalSummary = modal?.querySelector("[data-role='modal-slot-summary']");
+  const hiddenSlotId = modalForm?.querySelector("[name='slot_id']");
+  const firstInput = modalForm?.querySelector("input[name='name']");
+  const submitButton = modalForm?.querySelector("button[type='submit']");
+
+  let slots = [];
+  let selectedSlot = null;
+
+  function updateCount(value) {
+    if (!countLabel) return;
+    if (!value) {
+      countLabel.textContent = "No slots";
+      return;
+    }
+    countLabel.textContent = value === 1 ? "1 slot" : `${value} slots`;
+  }
+
+  function setModalVisibility(isOpen) {
+    if (!modal) return;
+    modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
+    document.body.classList.toggle("modal-open", isOpen);
+    if (!isOpen && modalFeedback) {
+      modalFeedback.textContent = "";
+      modalFeedback.classList.remove("error");
+    }
+  }
+
+  function closeModal() {
+    selectedSlot = null;
+    if (hiddenSlotId) {
+      hiddenSlotId.value = "";
+    }
+    if (modalForm) {
+      modalForm.reset();
+    }
+    setModalVisibility(false);
+  }
+
+  function openModal(slot) {
+    if (!slot) return;
+    selectedSlot = slot;
+    if (hiddenSlotId) {
+      hiddenSlotId.value = slot.id;
+    }
+    if (modalSummary) {
+      modalSummary.textContent = `${describeSlot(slot)} — ${formatPrice(slot.price)}`;
+    }
+    setModalVisibility(true);
+    if (firstInput) {
+      setTimeout(() => firstInput.focus(), 150);
+    }
+  }
+
+  function renderSlots() {
+    if (!slotList || !emptyState) return;
+    slotList.innerHTML = "";
+    const filterValue = filterInput?.value?.trim() || "";
+    const filtered = filterValue
+      ? slots.filter((slot) => slot.date === filterValue)
+      : [...slots];
+
+    updateCount(filtered.length);
+
+    if (!filtered.length) {
+      slotList.hidden = true;
+      emptyState.hidden = false;
+      return;
+    }
+
+    slotList.hidden = false;
+    emptyState.hidden = true;
+
+    filtered.forEach((slot) => {
+      const card = document.createElement("article");
+      card.classList.add("slot-card");
+
+      const header = document.createElement("header");
+      const title = document.createElement("h4");
+      title.textContent = formatSlotDateLabel(slot);
+      const priceBadge = document.createElement("span");
+      priceBadge.classList.add("slot-pill");
+      priceBadge.textContent = formatPrice(slot.price);
+      header.append(title, priceBadge);
+
+      const meta = document.createElement("div");
+      meta.classList.add("slot-meta");
+      const timeSpan = document.createElement("span");
+      timeSpan.textContent = formatSlotTimeRange(slot);
+      const durationSpan = document.createElement("span");
+      durationSpan.textContent = formatSlotDuration(slot);
+      meta.append(timeSpan, durationSpan);
+
+      const action = document.createElement("div");
+      action.classList.add("slot-action");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.classList.add("button", "primary");
+      button.textContent = "Book this walk";
+      button.addEventListener("click", () => openModal(slot));
+      action.appendChild(button);
+
+      card.append(header, meta);
+      if (slot.notes) {
+        const note = document.createElement("p");
+        note.classList.add("slot-notes");
+        note.textContent = slot.notes;
+        card.appendChild(note);
+      }
+      card.appendChild(action);
+
+      slotList.appendChild(card);
+    });
+  }
+
+  async function loadSlots() {
+    try {
+      const data = await fetchJson("/api/slots");
+      slots = data.slots ?? [];
+      renderSlots();
+    } catch (error) {
+      const message = await resolveErrorMessage(
+        error,
+        "We couldn’t load availability right now."
+      );
+      if (emptyState) {
+        emptyState.textContent = message;
+        emptyState.hidden = false;
+      }
+      if (slotList) {
+        slotList.innerHTML = "";
+        slotList.hidden = true;
+      }
+      updateCount(0);
+    }
+  }
+
+  if (filterInput) {
+    filterInput.addEventListener("change", renderSlots);
+  }
+
+  if (clearButton) {
+    clearButton.addEventListener("click", () => {
+      if (filterInput) {
+        filterInput.value = "";
+      }
+      renderSlots();
+    });
+  }
+
+  if (modal) {
+    modal.addEventListener("click", (event) => {
+      const target = event.target.closest("[data-action='close-modal']");
+      if (target) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && modal.getAttribute("aria-hidden") === "false") {
+        event.preventDefault();
+        closeModal();
+      }
+    });
+  }
+
+  if (modalForm && submitButton) {
+    modalForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!modalForm.checkValidity()) {
+        modalForm.reportValidity();
+        if (modalFeedback) {
+          modalFeedback.textContent = "Please complete all required fields.";
+          modalFeedback.classList.add("error");
+        }
+        return;
+      }
+
+      const formData = new FormData(modalForm);
+      const payload = {
+        slot_id: formData.get("slot_id"),
+        name: formData.get("name"),
+        email: formData.get("email"),
+        phone: formData.get("phone"),
+        dog_name: formData.get("dog_name"),
+        notes: formData.get("notes"),
+      };
+
+      if (!payload.slot_id) {
+        if (modalFeedback) {
+          modalFeedback.textContent = "Please pick an available slot before booking.";
+          modalFeedback.classList.add("error");
+        }
+        return;
+      }
+
+      submitButton.disabled = true;
+      if (modalFeedback) {
+        modalFeedback.textContent = "Sending your booking...";
+        modalFeedback.classList.remove("error");
+      }
+
+      try {
+        const data = await fetchJson("/api/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        slots = data.slots ?? slots.filter((slot) => slot.id !== payload.slot_id);
+        renderSlots();
+        if (modalFeedback) {
+          modalFeedback.textContent = "Thank you! We’ll confirm shortly.";
+        }
+        setTimeout(() => {
+          closeModal();
+        }, 1300);
+      } catch (error) {
+        const message = await resolveErrorMessage(
+          error,
+          "We couldn’t save this booking. Please try another slot."
+        );
+        if (modalFeedback) {
+          modalFeedback.textContent = message;
+          modalFeedback.classList.add("error");
+        }
+        await loadSlots();
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+  }
+
+  loadSlots();
+}
+
+function initAdminSchedule() {
+  const root = document.querySelector("[data-role='schedule-manager']");
+  if (!root) return;
+
+  const slotForm = root.querySelector("[data-role='slot-form']");
+  const feedback = root.querySelector("[data-role='schedule-feedback']");
+  const slotList = root.querySelector("[data-role='admin-slot-list']");
+  const slotEmpty = root.querySelector("[data-role='admin-slot-empty']");
+  const slotCount = root.querySelector("[data-role='admin-slot-count']");
+  const bookingList = root.querySelector("[data-role='admin-booking-list']");
+  const bookingEmpty = root.querySelector("[data-role='admin-booking-empty']");
+  const bookingCount = root.querySelector("[data-role='admin-booking-count']");
+
+  let slots = [];
+  let bookings = [];
+
+  function setFeedback(message, isError = false) {
+    if (!feedback) return;
+    feedback.textContent = message;
+    feedback.classList.toggle("error", Boolean(isError));
+  }
+
+  function availableSlots() {
+    return slots.filter((slot) => !slot.is_booked);
+  }
+
+  function updateCounts() {
+    if (slotCount) {
+      const count = availableSlots().length;
+      slotCount.textContent = count;
+    }
+    if (bookingCount) {
+      bookingCount.textContent = bookings.length;
+    }
+  }
+
+  function renderSlotList() {
+    if (!slotList || !slotEmpty) return;
+
+    const available = availableSlots();
+    slotList.innerHTML = "";
+
+    if (!available.length) {
+      slotList.hidden = true;
+      slotEmpty.hidden = false;
+      updateCounts();
+      return;
+    }
+
+    slotList.hidden = false;
+    slotEmpty.hidden = true;
+
+    available.forEach((slot) => {
+      const item = document.createElement("article");
+      item.classList.add("schedule-item");
+      item.dataset.id = slot.id;
+
+      const header = document.createElement("header");
+      const title = document.createElement("h4");
+      title.textContent = formatSlotDateLabel(slot);
+      const badges = document.createElement("div");
+      badges.classList.add("schedule-badges");
+      const priceBadge = document.createElement("span");
+      priceBadge.classList.add("schedule-badge");
+      priceBadge.textContent = formatPrice(slot.price);
+      badges.appendChild(priceBadge);
+      header.append(title, badges);
+
+      const details = document.createElement("div");
+      details.classList.add("schedule-details");
+      const timeLine = document.createElement("p");
+      timeLine.textContent = formatSlotTimeRange(slot);
+      const durationLine = document.createElement("p");
+      durationLine.textContent = `${formatSlotDuration(slot)} walk`;
+      details.append(timeLine, durationLine);
+      if (slot.notes) {
+        const noteLine = document.createElement("p");
+        noteLine.textContent = slot.notes;
+        details.appendChild(noteLine);
+      }
+
+      const actions = document.createElement("div");
+      actions.classList.add("schedule-actions");
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.classList.add("button", "danger");
+      deleteButton.dataset.action = "delete-slot";
+      deleteButton.dataset.id = slot.id;
+      deleteButton.textContent = "Remove slot";
+      actions.appendChild(deleteButton);
+
+      item.append(header, details, actions);
+      slotList.appendChild(item);
+    });
+
+    updateCounts();
+  }
+
+  function renderBookingList() {
+    if (!bookingList || !bookingEmpty) return;
+
+    bookingList.innerHTML = "";
+
+    if (!bookings.length) {
+      bookingList.hidden = true;
+      bookingEmpty.hidden = false;
+      updateCounts();
+      return;
+    }
+
+    bookingList.hidden = false;
+    bookingEmpty.hidden = true;
+
+    bookings.forEach((booking) => {
+      const slot = booking.slot || slots.find((item) => item.id === booking.slot_id);
+      const item = document.createElement("article");
+      item.classList.add("schedule-item");
+      item.dataset.id = booking.id;
+
+      const header = document.createElement("header");
+      const title = document.createElement("h4");
+      const dogName = booking.dog_name ? `${booking.dog_name}` : "Booking";
+      title.textContent = `${dogName} · ${booking.client_name}`;
+      const badges = document.createElement("div");
+      badges.classList.add("schedule-badges");
+      const statusBadge = document.createElement("span");
+      statusBadge.classList.add("schedule-badge");
+      if (!booking.confirmed) {
+        statusBadge.classList.add("pending");
+        statusBadge.textContent = "Awaiting confirmation";
+      } else {
+        statusBadge.textContent = "Confirmed";
+      }
+      badges.appendChild(statusBadge);
+      if (slot) {
+        const priceBadge = document.createElement("span");
+        priceBadge.classList.add("schedule-badge");
+        priceBadge.textContent = formatPrice(slot.price);
+        badges.appendChild(priceBadge);
+      }
+      header.append(title, badges);
+
+      const details = document.createElement("div");
+      details.classList.add("schedule-details");
+      if (slot) {
+        const timeLine = document.createElement("p");
+        timeLine.textContent = `${formatSlotDateLabel(slot)} · ${formatSlotTimeRange(slot)}`;
+        const durationLine = document.createElement("p");
+        durationLine.textContent = `${formatSlotDuration(slot)} walk`;
+        details.append(timeLine, durationLine);
+      }
+
+      const contactLine = document.createElement("p");
+      const emailLink = document.createElement("a");
+      emailLink.href = `mailto:${booking.email}`;
+      emailLink.textContent = booking.email;
+      contactLine.textContent = "Contact: ";
+      contactLine.appendChild(emailLink);
+      contactLine.append(` · ${booking.phone}`);
+      details.appendChild(contactLine);
+
+      if (booking.notes) {
+        const notesLine = document.createElement("p");
+        notesLine.textContent = `Notes: ${booking.notes}`;
+        details.appendChild(notesLine);
+      }
+
+      const actions = document.createElement("div");
+      actions.classList.add("schedule-actions");
+      const toggleButton = document.createElement("button");
+      toggleButton.type = "button";
+      toggleButton.classList.add("button", booking.confirmed ? "ghost" : "primary");
+      toggleButton.dataset.action = "toggle-confirm";
+      toggleButton.dataset.id = booking.id;
+      toggleButton.dataset.confirmed = booking.confirmed ? "true" : "false";
+      toggleButton.textContent = booking.confirmed
+        ? "Mark as pending"
+        : "Mark as confirmed";
+      actions.appendChild(toggleButton);
+
+      item.append(header, details, actions);
+      bookingList.appendChild(item);
+    });
+
+    updateCounts();
+  }
+
+  async function loadSchedule() {
+    try {
+      const data = await fetchJson("/api/admin/schedule");
+      slots = data.slots ?? [];
+      bookings = data.bookings ?? [];
+      renderSlotList();
+      renderBookingList();
+      setFeedback("");
+    } catch (error) {
+      const message = await resolveErrorMessage(
+        error,
+        "Unable to load the current schedule."
+      );
+      setFeedback(message, true);
+    }
+  }
+
+  if (slotForm) {
+    const submitButton = slotForm.querySelector("button[type='submit']");
+    slotForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!slotForm.checkValidity()) {
+        slotForm.reportValidity();
+        setFeedback("Please complete each required field before saving.", true);
+        return;
+      }
+
+      const formData = new FormData(slotForm);
+      const payload = {
+        date: formData.get("date"),
+        time: formData.get("time"),
+        duration_minutes: Number(formData.get("duration_minutes")),
+        price: formData.get("price"),
+        notes: formData.get("notes"),
+      };
+
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+      setFeedback("Publishing slot...");
+
+      try {
+        const data = await fetchJson("/api/admin/slots", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        slots = data.slots ?? slots;
+        renderSlotList();
+        setFeedback("Slot added to your availability.");
+        slotForm.reset();
+      } catch (error) {
+        const message = await resolveErrorMessage(
+          error,
+          "We couldn’t add that slot."
+        );
+        setFeedback(message, true);
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  }
+
+  if (slotList) {
+    slotList.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-action='delete-slot']");
+      if (!button) return;
+      const { id } = button.dataset;
+      if (!id) return;
+
+      button.disabled = true;
+      setFeedback("Removing slot...");
+
+      try {
+        const data = await fetchJson(`/api/admin/slots/${encodeURIComponent(id)}`, {
+          method: "DELETE",
+        });
+        slots = data.slots ?? slots.filter((slot) => slot.id !== id);
+        renderSlotList();
+        setFeedback("Slot removed.");
+      } catch (error) {
+        const message = await resolveErrorMessage(
+          error,
+          "Unable to remove this slot."
+        );
+        setFeedback(message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+
+  if (bookingList) {
+    bookingList.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-action='toggle-confirm']");
+      if (!button) return;
+      const { id } = button.dataset;
+      if (!id) return;
+
+      const currentState = button.dataset.confirmed === "true";
+      button.disabled = true;
+      setFeedback("Updating booking...");
+
+      try {
+        const data = await fetchJson(`/api/admin/bookings/${encodeURIComponent(id)}/status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ confirmed: !currentState }),
+        });
+        bookings = data.bookings ?? bookings;
+        renderBookingList();
+        setFeedback(!currentState ? "Booking marked as confirmed." : "Booking set to pending.");
+      } catch (error) {
+        const message = await resolveErrorMessage(
+          error,
+          "We couldn’t update that booking."
+        );
+        setFeedback(message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+
+  loadSchedule();
+  setInterval(loadSchedule, 20000);
 }
 
 function initAdminChat() {
@@ -856,7 +1517,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initForms();
   initLiveChatIndicator();
+  initBookingSchedule();
   initVisitorChat();
+  initAdminSchedule();
   initAdminChat();
   initBanManager();
 });
