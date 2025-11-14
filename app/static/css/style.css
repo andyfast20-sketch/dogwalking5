@@ -1527,7 +1527,7 @@ textarea {
 .chat-section .container {
   display: flex;
   justify-content: center;
-  align-items: stretch;
+  align-items: flex-start;
 }
 
 .chat-card {
@@ -1544,7 +1544,8 @@ textarea {
   width: min(760px, 100%);
   padding: clamp(1.75rem, 4vw, 2.75rem);
   gap: clamp(1.25rem, 3vw, 1.75rem);
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
+  align-content: flex-start;
 }
 
 .chat-status {
@@ -1567,8 +1568,8 @@ textarea {
 
 .chat-section .chat-window {
   padding: clamp(1.25rem, 3vw, 1.75rem);
-  height: clamp(240px, 38vh, 360px);
-  max-height: none;
+  height: auto;
+  max-height: clamp(200px, 32vh, 280px);
   min-height: 0;
 }
 
@@ -1630,7 +1631,7 @@ textarea {
 }
 
 .chat-section .chat-form textarea {
-  min-height: 96px;
+  min-height: 72px;
 }
 
 .chat-form textarea {

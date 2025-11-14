@@ -688,6 +688,21 @@ def get_chat_messages():
     )
 
 
+@main_bp.get("/api/chat/status")
+def get_chat_status():
+    visitors = list(_visitors().values())
+    active_conversations = sum(1 for visitor in visitors if visitor.get("messages"))
+
+    return jsonify(
+        {
+            "autopilot": chat_state["autopilot"],
+            "waiting_count": _waiting_count(),
+            "active_conversations": active_conversations,
+            "visitor_count": len(visitors),
+        }
+    )
+
+
 @main_bp.post("/api/chat")
 def post_chat_message():
     data = request.get_json(silent=True) or {}
