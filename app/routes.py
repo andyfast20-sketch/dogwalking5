@@ -24,11 +24,19 @@ chat_state: Dict[str, Any] = {
 banned_visitors: Dict[str, Dict[str, Any]] = {}
 
 
+VISITOR_COOKIE_NAME = "dogwalking_visitor_id"
+
+
 def _iso_now() -> str:
     return datetime.utcnow().isoformat() + "Z"
 
 
-def _append_message(role: str, content: str) -> None:
+def _visitors() -> Dict[str, Dict[str, Any]]:
+    visitors = chat_state.setdefault("visitors", {})
+    return visitors
+
+
+def _append_message(visitor: Dict[str, Any], role: str, content: str) -> None:
     message: ChatMessage = {
         "role": role,
         "content": content,
@@ -50,6 +58,26 @@ def _visitor_is_waiting(visitor: Dict[str, Any]) -> bool:
 
 def _waiting_count() -> int:
     return sum(1 for visitor in _visitors().values() if _visitor_is_waiting(visitor))
+
+
+def _get_or_create_visitor(visitor_id: str) -> Dict[str, Any]:
+    visitors = _visitors()
+    visitor = visitors.get(visitor_id)
+    now_iso = _iso_now()
+    if not visitor:
+        visitor = {
+            "id": visitor_id,
+            "messages": [],
+            "first_seen": now_iso,
+            "last_seen": now_iso,
+        }
+        visitors[visitor_id] = visitor
+    else:
+        visitor.setdefault("messages", [])
+        visitor.setdefault("first_seen", now_iso)
+        visitor.setdefault("label", None)
+    visitor["last_seen"] = now_iso
+    return visitor
 
 
 def _generate_ai_reply(user_message: str) -> str:
@@ -133,13 +161,14 @@ def track_visitors() -> None:
     if not _should_track_request():
         return
 
-    now_iso = datetime.utcnow().isoformat() + "Z"
+    now_iso = _iso_now()
     visitor_id = request.cookies.get(VISITOR_COOKIE_NAME)
-    is_new_visitor = visitor_id not in visitor_state if visitor_id else True
+    visitors = _visitors()
+    is_new_visitor = visitor_id not in visitors if visitor_id else True
 
     if not visitor_id or is_new_visitor:
         visitor_id = visitor_id or uuid.uuid4().hex
-        visitor_state[visitor_id] = {
+        visitors[visitor_id] = {
             "id": visitor_id,
             "first_seen": now_iso,
             "last_seen": now_iso,
@@ -148,7 +177,7 @@ def track_visitors() -> None:
             "last_path": request.path,
             "visits": [],
         }
-    entry = visitor_state[visitor_id]
+    entry = visitors[visitor_id]
 
     entry["visit_count"] += 1
     entry["last_seen"] = now_iso
@@ -159,12 +188,12 @@ def track_visitors() -> None:
     if len(entry_visits) > 10:
         del entry_visits[:-10]
 
-    if is_new_visitor and len(visitor_state) > 500:
+    if is_new_visitor and len(visitors) > 500:
         oldest_id = min(
-            visitor_state.items(), key=lambda item: item[1].get("first_seen", "")
+            visitors.items(), key=lambda item: item[1].get("first_seen", "")
         )[0]
         if oldest_id != visitor_id:
-            visitor_state.pop(oldest_id, None)
+            visitors.pop(oldest_id, None)
 
     g.visitor_cookie_id = visitor_id
 
