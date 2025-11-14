@@ -91,6 +91,12 @@ function initAdminCards() {
     });
   });
 
+  const defaultCard = document.querySelector("[data-card][data-card-default]");
+  if (defaultCard) {
+    expandCard(defaultCard);
+    expandedCard = defaultCard;
+  }
+
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && expandedCard) {
       const currentCard = expandedCard;
