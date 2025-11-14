@@ -4,6 +4,45 @@
 <section class="admin-panel">
   <div class="container narrow" id="admin-chat" data-role="admin-chat">
     <div class="admin-grid">
+      <article class="admin-card visitor-card" data-role="visitor-insights">
+        <header class="card-heading">
+          <span class="eyebrow">Visitor Intelligence</span>
+          <h2>Website Visitors</h2>
+          <p class="card-subtitle">
+            Monitor real-time traffic, highlight returning fans, and keep control in a single glance.
+          </p>
+        </header>
+        <div class="visitor-toolbar">
+          <div class="visitor-stat">
+            <span class="stat-label">Total visitors</span>
+            <span class="stat-value" data-role="visitor-total">0</span>
+          </div>
+          <div class="visitor-stat">
+            <span class="stat-label">Returning</span>
+            <span class="stat-value" data-role="visitor-returning">0</span>
+          </div>
+          <div class="visitor-stat">
+            <span class="stat-label">Visits logged</span>
+            <span class="stat-value" data-role="visitor-total-visits">0</span>
+          </div>
+          <button type="button" class="button ghost" data-role="visitor-refresh">
+            Refresh
+          </button>
+        </div>
+        <div class="visitor-table" role="table">
+          <div class="visitor-table__head" role="row">
+            <span role="columnheader">Visitor</span>
+            <span role="columnheader">Insights</span>
+            <span role="columnheader">Timeline</span>
+            <span role="columnheader" class="actions-header">Actions</span>
+          </div>
+          <div class="visitor-table__body" data-role="visitor-table-body"></div>
+          <p class="visitor-empty" data-role="visitor-empty">
+            Visitor activity will appear here the moment someone lands on the site.
+          </p>
+        </div>
+        <p class="form-feedback" data-role="visitor-feedback"></p>
+      </article>
       <article class="admin-card">
         <h2>Chat Mode &amp; Business Context</h2>
         <form id="chat-settings-form" class="settings-form">
