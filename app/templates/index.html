@@ -1,59 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dog Walking Schedule</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
-  </head>
-  <body>
-    <header>
-      <h1>Dog Walking Schedule</h1>
-      <p class="subtitle">Track upcoming walks and add new appointments.</p>
-    </header>
+{% extends "base.html" %}
+{% block title %}Home | Reliable Walks{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">Reliable Dog Walking</p>
+      <h1>Happy walks for every wagging tail.</h1>
+      <p>
+        Friendly, insured dog walking tailored to your pet's routine. From quick
+        puppy visits to energetic group adventures, we keep paws moving and tails
+        wagging.
+      </p>
+      <a class="button primary" href="{{ url_for('main.booking') }}">Book Now</a>
+    </div>
+    <div class="hero-image" role="presentation">
+      <img
+        src="https://images.unsplash.com/photo-1507146426996-ef05306b995a?auto=format&fit=crop&w=1000&q=80"
+        alt="Person walking two happy dogs"
+      />
+    </div>
+  </div>
+</section>
 
-    <main>
-      <section class="walks">
-        <h2>Upcoming Walks</h2>
-        <ul id="walk-list">
-          {% for walk in walks %}
-          <li data-id="{{ walk.id }}">
-            <span class="dog">🐕 {{ walk.dog }}</span>
-            <span class="walker">Walker: {{ walk.walker }}</span>
-            <span class="time">Time: {{ walk.time }}</span>
-            <span class="duration">Duration: {{ walk.duration }} min</span>
-          </li>
-          {% else %}
-          <li class="empty">No walks scheduled yet.</li>
-          {% endfor %}
-        </ul>
-      </section>
+<section class="highlight-section">
+  <div class="container">
+    <h2>Why walkers trust Reliable Walks</h2>
+    <div class="card-grid">
+      <article class="info-card">
+        <h3>Flexible Scheduling</h3>
+        <p>Morning, midday, or evening walks that suit your dog's routine.</p>
+      </article>
+      <article class="info-card">
+        <h3>Insured &amp; First Aid Trained</h3>
+        <p>Certified care with full insurance for your peace of mind.</p>
+      </article>
+      <article class="info-card">
+        <h3>Photo Updates</h3>
+        <p>Receive a cheerful update after every outing.</p>
+      </article>
+      <article class="info-card">
+        <h3>Local Expertise</h3>
+        <p>We know the best parks and safe routes around town.</p>
+      </article>
+    </div>
+  </div>
+</section>
 
-      <section class="form-section">
-        <h2>Schedule a New Walk</h2>
-        <form id="walk-form">
-          <label>
-            Walker Name
-            <input type="text" id="walker" name="walker" required />
-          </label>
-          <label>
-            Dog Name
-            <input type="text" id="dog" name="dog" required />
-          </label>
-          <label>
-            Start Time
-            <input type="time" id="time" name="time" required />
-          </label>
-          <label>
-            Duration (minutes)
-            <input type="number" id="duration" name="duration" min="5" max="120" required />
-          </label>
-          <button type="submit">Add Walk</button>
-        </form>
-        <p id="form-message" role="status" aria-live="polite"></p>
-      </section>
-    </main>
-
-    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
-  </body>
-</html>
+<section class="testimonial-section">
+  <div class="container">
+    <h2>What our pack parents say</h2>
+    <div class="testimonial-grid">
+      <figure class="testimonial">
+        <blockquote>
+          “Reliable Walks treats Bella like family. The regular updates keep us
+          smiling at work!”
+        </blockquote>
+        <figcaption>— Emma &amp; Bella</figcaption>
+      </figure>
+      <figure class="testimonial">
+        <blockquote>
+          “Always on time and so caring with our shy rescue dog. We couldn’t ask
+          for more.”
+        </blockquote>
+        <figcaption>— Jamie &amp; Monty</figcaption>
+      </figure>
+      <figure class="testimonial">
+        <blockquote>
+          “The group walks are perfect for Ollie’s energy. He always comes home
+          happy and tired!”
+        </blockquote>
+        <figcaption>— Priya &amp; Ollie</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+{% endblock %}

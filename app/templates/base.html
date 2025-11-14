@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Reliable Walks{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a class="logo" href="{{ url_for('main.index') }}">🐾 Reliable Walks</a>
+        <nav class="nav" aria-label="Main navigation">
+          <button class="nav-toggle" aria-expanded="false" aria-controls="nav-menu">
+            <span class="sr-only">Menu</span>
+            ☰
+          </button>
+          <ul id="nav-menu">
+            <li><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li><a href="{{ url_for('main.services') }}">Services</a></li>
+            <li><a href="{{ url_for('main.about') }}">About</a></li>
+            <li><a href="{{ url_for('main.booking') }}">Book</a></li>
+            <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main>{% block content %}{% endblock %}</main>
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <h3>Quick Links</h3>
+          <ul>
+            <li><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li><a href="{{ url_for('main.services') }}">Services</a></li>
+            <li><a href="{{ url_for('main.about') }}">About</a></li>
+            <li><a href="{{ url_for('main.booking') }}">Book</a></li>
+            <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Get in Touch</h3>
+          <p>Phone: <a href="tel:+441234567890">+44 1234 567890</a></p>
+          <p>Email: <a href="mailto:hello@reliablewalks.co.uk">hello@reliablewalks.co.uk</a></p>
+        </div>
+        <div>
+          <h3>Reliable Walks</h3>
+          <p>Trusted, insured, and ready for tail-wagging adventures.</p>
+        </div>
+      </div>
+      <p class="copyright">© {{ current_year }} Reliable Walks. All rights reserved.</p>
+    </footer>
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+  </body>
+</html>

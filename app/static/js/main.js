@@ -1,64 +1,60 @@
-async function submitWalk(event) {
-  event.preventDefault();
+function initNavigation() {
+  const toggle = document.querySelector(".nav-toggle");
+  const menu = document.getElementById("nav-menu");
 
-  const form = event.target;
-  const message = document.getElementById("form-message");
+  if (!toggle || !menu) return;
 
-  const payload = {
-    walker: form.walker.value.trim(),
-    dog: form.dog.value.trim(),
-    time: form.time.value,
-    duration: form.duration.value,
-  };
+  toggle.addEventListener("click", () => {
+    const isOpen = menu.dataset.open === "true";
+    menu.dataset.open = String(!isOpen);
+    toggle.setAttribute("aria-expanded", String(!isOpen));
+  });
 
-  try {
-    const response = await fetch("/api/schedule", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+  menu.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      menu.dataset.open = "false";
+      toggle.setAttribute("aria-expanded", "false");
     });
+  });
+}
 
-    if (!response.ok) {
-      throw new Error("Failed to schedule walk");
+function handleFormSubmission(formId, feedbackSelector, successMessage) {
+  const form = document.getElementById(formId);
+  const feedback = document.querySelector(feedbackSelector);
+
+  if (!form || !feedback) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      feedback.textContent = "Please complete all required fields.";
+      feedback.classList.add("error");
+      return;
     }
 
-    const walk = await response.json();
-    appendWalk(walk);
-    message.textContent = `Scheduled walk for ${walk.dog} with ${walk.walker}.`;
-    message.className = "success";
+    feedback.textContent = successMessage;
+    feedback.classList.remove("error");
     form.reset();
-  } catch (error) {
-    console.error(error);
-    message.textContent = "Sorry, something went wrong. Please try again.";
-    message.className = "error";
-  }
+  });
 }
 
-function appendWalk(walk) {
-  const list = document.getElementById("walk-list");
-  const emptyState = list.querySelector(".empty");
-  if (emptyState) {
-    emptyState.remove();
-  }
+function initForms() {
+  handleFormSubmission(
+    "contact-form",
+    "[data-role='contact-feedback']",
+    "Thank you — we’ll be in touch soon!"
+  );
 
-  const item = document.createElement("li");
-  item.dataset.id = walk.id;
-
-  item.innerHTML = `
-    <span class="dog">🐕 ${walk.dog}</span>
-    <span class="walker">Walker: ${walk.walker}</span>
-    <span class="time">Time: ${walk.time}</span>
-    <span class="duration">Duration: ${walk.duration} min</span>
-  `;
-
-  list.appendChild(item);
+  handleFormSubmission(
+    "booking-form",
+    "[data-role='booking-feedback']",
+    "Thank you — we’ll confirm shortly."
+  );
 }
 
-function init() {
-  const form = document.getElementById("walk-form");
-  if (form) {
-    form.addEventListener("submit", submitWalk);
-  }
-}
-
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", () => {
+  initNavigation();
+  initForms();
+});

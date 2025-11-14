@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Book | Reliable Walks{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container narrow">
+    <h1>Book a Walk</h1>
+    <p>Complete the form below and we’ll confirm your booking shortly.</p>
+  </div>
+</section>
+
+<section class="booking-section">
+  <div class="container narrow">
+    <form id="booking-form" novalidate>
+      <div class="form-grid">
+        <label>
+          Dog’s Name
+          <input type="text" name="dog_name" required />
+        </label>
+        <label>
+          Breed
+          <input type="text" name="breed" required />
+        </label>
+        <label>
+          Service Type
+          <select name="service_type" required>
+            <option value="" disabled selected>Select a service</option>
+            <option>Solo Dog Walk</option>
+            <option>Group Walk</option>
+            <option>Puppy Visit</option>
+            <option>House Check-ins</option>
+          </select>
+        </label>
+        <label>
+          Date
+          <input type="date" name="date" required />
+        </label>
+        <label>
+          Time
+          <input type="time" name="time" required />
+        </label>
+        <label>
+          Your Name
+          <input type="text" name="owner_name" required />
+        </label>
+        <label>
+          Email
+          <input type="email" name="email" required />
+        </label>
+        <label>
+          Phone
+          <input type="tel" name="phone" required />
+        </label>
+      </div>
+      <label class="notes">
+        Notes
+        <textarea name="notes" rows="4"></textarea>
+      </label>
+      <button class="button primary" type="submit">Submit Booking</button>
+      <p class="form-feedback" data-role="booking-feedback" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+{% endblock %}
