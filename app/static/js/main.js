@@ -245,6 +245,8 @@ function initLiveChatWidget() {
     } else {
       button.setAttribute("aria-label", "Open live chat");
     }
+    button.removeAttribute("aria-hidden");
+    button.removeAttribute("tabindex");
     if (typingTimeoutId) {
       window.clearTimeout(typingTimeoutId);
       typingTimeoutId = null;
@@ -259,6 +261,8 @@ function initLiveChatWidget() {
     panel.focus();
     button.setAttribute("aria-expanded", "true");
     button.setAttribute("aria-label", "Hide live chat window");
+    button.setAttribute("aria-hidden", "true");
+    button.setAttribute("tabindex", "-1");
     updateStatus("We're typically replying within a minute.");
     focusInput();
   };
