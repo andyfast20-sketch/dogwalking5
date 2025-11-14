@@ -2415,16 +2415,25 @@ function initBanManager() {
 
 document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
-  initAdminCards();
   initForms();
   initLiveChatWidget();
   initLiveChatIndicator();
   initChatSurprise();
   initBookingSchedule();
   initVisitorChat();
-  initAdminSchedule();
-  initAdminEnquiries();
-  initVisitorInsights();
-  initAdminChat();
-  initBanManager();
+
+  const runDeferredInitialisers = () => {
+    initAdminCards();
+    initAdminSchedule();
+    initAdminEnquiries();
+    initVisitorInsights();
+    initAdminChat();
+    initBanManager();
+  };
+
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(runDeferredInitialisers, { timeout: 1200 });
+  } else {
+    window.setTimeout(runDeferredInitialisers, 250);
+  }
 });
