@@ -73,24 +73,41 @@
         </form>
       </article>
       <article class="admin-card">
-        <h2>Live Conversation</h2>
-        <div class="chat-window" data-chat-messages aria-live="polite"></div>
-        <p class="chat-hint" data-role="chat-hint">
-          Autopilot is active. Disable it to respond manually.
-        </p>
-        <form id="agent-reply-form" class="reply-form">
-          <label class="field-label" for="agent-message">Reply to visitor</label>
-          <textarea
-            id="agent-message"
-            rows="4"
-            placeholder="Type your message to the visitor..."
-            required
-          ></textarea>
-          <div class="form-actions">
-            <button type="submit" class="button secondary">Send Reply</button>
-            <p class="form-feedback" data-role="agent-feedback"></p>
+        <h2>Live Conversations</h2>
+        <div class="conversation-layout">
+          <aside
+            class="visitor-list"
+            data-role="visitor-list"
+            aria-label="Visitor conversations"
+          ></aside>
+          <div class="conversation-panel">
+            <header class="chat-header">
+              <div>
+                <h3 class="visitor-heading" data-role="visitor-heading">
+                  No active visitors
+                </h3>
+                <span class="visitor-status-tag" data-role="visitor-status"></span>
+              </div>
+            </header>
+            <div class="chat-window" data-chat-messages aria-live="polite"></div>
+            <p class="chat-hint" data-role="chat-hint">
+              Autopilot is active. Disable it to respond manually.
+            </p>
+            <form id="agent-reply-form" class="reply-form">
+              <label class="field-label" for="agent-message">Reply to visitor</label>
+              <textarea
+                id="agent-message"
+                rows="4"
+                placeholder="Type your message to the visitor..."
+                required
+              ></textarea>
+              <div class="form-actions">
+                <button type="submit" class="button secondary">Send Reply</button>
+                <p class="form-feedback" data-role="agent-feedback"></p>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </article>
     </div>
   </div>

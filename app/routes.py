@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import uuid
 from datetime import datetime
@@ -15,26 +17,59 @@ ChatMessage = Dict[str, str]
 chat_state: Dict[str, Any] = {
     "autopilot": True,
     "business_context": "",
-    "messages": [],
+    "visitors": {},
 }
 
 
-visitor_state: Dict[str, Dict[str, Any]] = {}
+def _timestamp() -> str:
+    return datetime.utcnow().isoformat() + "Z"
 
 
-VISITOR_COOKIE_NAME = "rw_visitor_id"
+def _visitors() -> Dict[str, Any]:
+    return chat_state.setdefault("visitors", {})
 
 
-def _append_message(role: str, content: str) -> None:
+def _get_or_create_visitor(visitor_id: str) -> Dict[str, Any]:
+    visitors = _visitors()
+    visitor = visitors.get(visitor_id)
+    if visitor is None:
+        now = _timestamp()
+        visitor = {
+            "visitor_id": visitor_id,
+            "label": visitor_id[-6:].upper(),
+            "messages": [],
+            "created_at": now,
+            "last_seen": now,
+            "is_returning": False,
+        }
+        visitors[visitor_id] = visitor
+    else:
+        visitor["last_seen"] = _timestamp()
+    return visitor
+
+
+def _append_message(visitor: Dict[str, Any], role: str, content: str) -> None:
     message: ChatMessage = {
         "role": role,
         "content": content,
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": _timestamp(),
     }
-    messages: List[ChatMessage] = chat_state["messages"]
+    messages: List[ChatMessage] = visitor.setdefault("messages", [])
     messages.append(message)
-    if len(messages) > 100:
-        del messages[:-100]
+    if len(messages) > 200:
+        del messages[:-200]
+    visitor["last_seen"] = message["timestamp"]
+
+
+def _visitor_is_waiting(visitor: Dict[str, Any]) -> bool:
+    if chat_state.get("autopilot"):
+        return False
+    messages: List[ChatMessage] = visitor.get("messages", [])
+    return bool(messages) and messages[-1]["role"] == "visitor"
+
+
+def _waiting_count() -> int:
+    return sum(1 for visitor in _visitors().values() if _visitor_is_waiting(visitor))
 
 
 def _generate_ai_reply(user_message: str) -> str:
@@ -206,10 +241,20 @@ def admin():
 
 @main_bp.get("/api/chat/messages")
 def get_chat_messages():
+    visitor_id = (request.args.get("visitor_id") or "").strip()
+    if not visitor_id:
+        return jsonify({"error": "Visitor ID is required."}), 400
+
+    visitor = _get_or_create_visitor(visitor_id)
+
     return jsonify(
         {
-            "messages": chat_state["messages"],
+            "messages": visitor.get("messages", []),
             "autopilot": chat_state["autopilot"],
+            "visitor_id": visitor_id,
+            "label": visitor.get("label"),
+            "is_returning": bool(visitor.get("is_returning")),
+            "waiting_count": _waiting_count(),
         }
     )
 
@@ -218,20 +263,33 @@ def get_chat_messages():
 def post_chat_message():
     data = request.get_json(silent=True) or {}
     message = (data.get("message") or "").strip()
+    visitor_id = (data.get("visitor_id") or "").strip()
     if not message:
         return jsonify({"error": "Message is required."}), 400
 
-    _append_message("visitor", message)
+    if not visitor_id:
+        return jsonify({"error": "Visitor ID is required."}), 400
+
+    visitor = _get_or_create_visitor(visitor_id)
+    is_returning = bool(visitor.get("messages"))
+
+    _append_message(visitor, "visitor", message)
+    if is_returning:
+        visitor["is_returning"] = True
 
     if chat_state["autopilot"]:
         ai_reply = _generate_ai_reply(message)
-        _append_message("ai", ai_reply)
+        _append_message(visitor, "ai", ai_reply)
 
     return (
         jsonify(
             {
-                "messages": chat_state["messages"],
+                "messages": visitor.get("messages", []),
                 "autopilot": chat_state["autopilot"],
+                "visitor_id": visitor_id,
+                "label": visitor.get("label"),
+                "is_returning": bool(visitor.get("is_returning")),
+                "waiting_count": _waiting_count(),
             }
         ),
         201,
@@ -252,12 +310,26 @@ def post_agent_response():
 
     data = request.get_json(silent=True) or {}
     message = (data.get("message") or "").strip()
+    visitor_id = (data.get("visitor_id") or "").strip()
     if not message:
         return jsonify({"error": "Message is required."}), 400
 
-    _append_message("agent", message)
+    if not visitor_id:
+        return jsonify({"error": "Visitor ID is required."}), 400
 
-    return jsonify({"messages": chat_state["messages"], "autopilot": False})
+    visitor = _get_or_create_visitor(visitor_id)
+    _append_message(visitor, "agent", message)
+
+    return jsonify(
+        {
+            "messages": visitor.get("messages", []),
+            "autopilot": False,
+            "visitor_id": visitor_id,
+            "label": visitor.get("label"),
+            "is_returning": bool(visitor.get("is_returning")),
+            "waiting_count": _waiting_count(),
+        }
+    )
 
 
 @main_bp.get("/api/admin/chat-settings")
@@ -287,41 +359,40 @@ def update_chat_settings():
     )
 
 
-@main_bp.get("/api/admin/visitors")
-def get_visitor_log():
-    visitors: List[Dict[str, Any]] = []
-    for entry in visitor_state.values():
+@main_bp.get("/api/admin/conversations")
+def list_conversations():
+    visitors = []
+    for visitor_id, visitor in _visitors().items():
+        messages: List[ChatMessage] = visitor.get("messages", [])
+        last_message = messages[-1] if messages else None
         visitors.append(
             {
-                "id": entry.get("id"),
-                "ip_address": entry.get("ip_address", "Unknown"),
-                "first_seen": entry.get("first_seen"),
-                "last_seen": entry.get("last_seen"),
-                "visit_count": entry.get("visit_count", 0),
-                "returning": (entry.get("visit_count", 0) or 0) > 1,
-                "last_path": entry.get("last_path", "/"),
+                "visitor_id": visitor_id,
+                "label": visitor.get("label"),
+                "last_seen": visitor.get("last_seen"),
+                "message_count": len(messages),
+                "waiting": _visitor_is_waiting(visitor),
+                "is_returning": bool(visitor.get("is_returning")),
+                "last_message": last_message,
             }
         )
 
-    visitors.sort(key=lambda item: item.get("last_seen") or "", reverse=True)
-    returning_count = sum(1 for item in visitors if item["returning"])
-    total_visits = sum(entry.get("visit_count", 0) for entry in visitor_state.values())
+    visitors.sort(key=lambda entry: entry.get("last_seen") or "", reverse=True)
 
     return jsonify(
         {
+            "autopilot": chat_state["autopilot"],
+            "waiting_count": _waiting_count(),
             "visitors": visitors,
-            "summary": {
-                "total": len(visitors),
-                "returning": returning_count,
-                "total_visits": total_visits,
-            },
         }
     )
 
 
-@main_bp.delete("/api/admin/visitors/<visitor_id>")
-def delete_visitor(visitor_id: str):
-    if visitor_id in visitor_state:
-        visitor_state.pop(visitor_id, None)
-        return jsonify({"status": "deleted", "visitor_id": visitor_id})
-    return jsonify({"error": "Visitor not found."}), 404
+@main_bp.get("/api/chat/status")
+def chat_status():
+    return jsonify(
+        {
+            "waiting_count": _waiting_count(),
+            "autopilot": chat_state["autopilot"],
+        }
+    )
