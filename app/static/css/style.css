@@ -1,12 +1,14 @@
 :root {
-  --bg: #f7fafc;
-  --text: #1f2a44;
-  --accent: #4c6ef5;
-  --accent-dark: #3b5bdb;
-  --soft: #fff5f5;
-  --card: #ffffff;
-  --muted: #5c6c86;
-  --shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  --bg: #071613;
+  --bg-alt: #0f261f;
+  --text: #f5f9f7;
+  --accent: #f5b400;
+  --accent-dark: #d99a00;
+  --soft: #113228;
+  --card: #102821;
+  --muted: #b7cec4;
+  --eyebrow: #7dd27c;
+  --shadow: 0 30px 50px rgba(2, 11, 9, 0.45);
   font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--text);
   background-color: var(--bg);
@@ -18,7 +20,7 @@
 
 body {
   margin: 0;
-  background-color: var(--bg);
+  background: radial-gradient(circle at top left, #103329, var(--bg));
   color: var(--text);
   line-height: 1.7;
 }
@@ -52,9 +54,10 @@ img {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-  backdrop-filter: blur(6px);
+  background: rgba(10, 34, 27, 0.92);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .site-header .container {
@@ -68,6 +71,7 @@ img {
   font-weight: 800;
   font-size: 1.35rem;
   letter-spacing: 0.03em;
+  color: var(--text);
 }
 
 .nav ul {
@@ -81,11 +85,29 @@ img {
 .nav a {
   font-weight: 600;
   font-size: 0.95rem;
+  color: var(--muted);
+  transition: color 0.2s ease;
 }
 
 .nav a:hover,
 .nav a:focus {
-  color: var(--accent);
+  color: var(--text);
+}
+
+.nav li:last-child a {
+  background: linear-gradient(135deg, var(--accent), #ffd44d);
+  color: #1f1c0a;
+  padding: 0.55rem 1.4rem;
+  border-radius: 999px;
+  box-shadow: 0 14px 28px rgba(245, 180, 0, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.nav li:last-child a:hover,
+.nav li:last-child a:focus {
+  background: linear-gradient(135deg, var(--accent-dark), #ffce3d);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 32px rgba(245, 180, 0, 0.3);
 }
 
 .nav-toggle {
@@ -114,7 +136,7 @@ main {
 
 .hero {
   padding: 4.5rem 0 4rem;
-  background: linear-gradient(135deg, #fff5f5, #f0f4ff);
+  background: radial-gradient(circle at top right, #1a4738, var(--bg));
 }
 
 .hero-grid {
@@ -140,7 +162,7 @@ main {
   letter-spacing: 0.2em;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--eyebrow);
 }
 
 .button {
@@ -156,16 +178,16 @@ main {
 }
 
 .button.primary {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 12px 24px rgba(76, 110, 245, 0.3);
+  background: linear-gradient(135deg, var(--accent), #ffc928);
+  color: #1f1c0a;
+  box-shadow: 0 18px 30px rgba(245, 180, 0, 0.3);
 }
 
 .button.primary:hover,
 .button.primary:focus {
-  background: var(--accent-dark);
+  background: linear-gradient(135deg, var(--accent-dark), #ffce3d);
   transform: translateY(-2px);
-  box-shadow: 0 16px 28px rgba(76, 110, 245, 0.35);
+  box-shadow: 0 20px 34px rgba(245, 180, 0, 0.35);
 }
 
 .highlight-section,
@@ -191,6 +213,12 @@ main {
   padding: 2rem;
   border-radius: 24px;
   box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.info-card p,
+.service-card p {
+  color: var(--muted);
 }
 
 .info-card h3,
@@ -201,12 +229,12 @@ main {
 
 .price {
   font-weight: 700;
-  color: var(--accent);
+  color: #ffce3d;
   margin-top: 1.5rem;
 }
 
 .testimonial-section {
-  background: #ffffff;
+  background: var(--soft);
 }
 
 .testimonial-grid {
@@ -216,21 +244,23 @@ main {
 }
 
 .testimonial {
-  background: var(--card);
+  background: rgba(15, 38, 31, 0.9);
   border-radius: 24px;
   box-shadow: var(--shadow);
   padding: 2rem;
   margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .testimonial blockquote {
   margin: 0 0 1rem;
   font-style: italic;
+  color: var(--muted);
 }
 
 .page-hero {
   padding: 6rem 0 3rem;
-  background: linear-gradient(135deg, #e9f5ff, #fff5f5);
+  background: linear-gradient(135deg, #12372c, #071613);
   text-align: center;
 }
 
@@ -262,6 +292,7 @@ form {
   box-shadow: var(--shadow);
   display: grid;
   gap: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 label {
@@ -277,17 +308,23 @@ textarea {
   font: inherit;
   padding: 0.75rem 1rem;
   border-radius: 16px;
-  border: 1px solid rgba(76, 110, 245, 0.25);
-  background: #f9fbff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(7, 22, 19, 0.6);
+  color: var(--text);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(245, 249, 247, 0.6);
 }
 
 input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(76, 110, 245, 0.2);
+  border-color: rgba(255, 207, 61, 0.6);
+  box-shadow: 0 0 0 4px rgba(245, 180, 0, 0.2);
 }
 
 textarea {
@@ -307,7 +344,7 @@ textarea {
 .form-feedback {
   min-height: 1.25rem;
   font-weight: 600;
-  color: var(--accent);
+  color: #7dd27c;
   margin: 0;
 }
 
@@ -316,8 +353,8 @@ textarea {
 }
 
 .site-footer {
-  background: #1f2a44;
-  color: #e2e8f0;
+  background: #06130f;
+  color: #d6e4df;
   padding: 3rem 0 2rem;
   margin-top: 4rem;
 }
@@ -334,7 +371,7 @@ textarea {
 
 .site-footer a:hover,
 .site-footer a:focus {
-  color: #c3dafe;
+  color: #ffce3d;
 }
 
 .site-footer ul {
@@ -365,7 +402,7 @@ textarea {
     position: absolute;
     top: 100%;
     right: 1rem;
-    background: #ffffff;
+    background: rgba(15, 38, 31, 0.96);
     border-radius: 16px;
     box-shadow: var(--shadow);
     padding: 1rem 1.5rem;
