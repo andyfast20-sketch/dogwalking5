@@ -14,10 +14,54 @@
       <a class="button primary" href="{{ url_for('main.booking') }}">Book Now</a>
     </div>
     <div class="hero-image" role="presentation">
+      <div class="image-slider" aria-hidden="true">
+        <img
+          src="https://files.catbox.moe/ybpug8.png"
+          alt="Dog walking scene with lush greenery"
+        />
+        <img
+          src="https://files.catbox.moe/dm2dc8.png"
+          alt="Dog walker playing with an excited pup"
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="walker-highlight">
+  <div class="container walker-panel">
+    <div class="walker-photo">
       <img
-        src="https://images.unsplash.com/photo-1507146426996-ef05306b995a?auto=format&fit=crop&w=1000&q=80"
-        alt="Person walking two happy dogs"
+        src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=640&q=80"
+        alt="Portrait of Andy, a friendly dog walker"
       />
+      <div class="walker-cta">
+        <p class="walker-trust">Friendly, Reliable, Local</p>
+        <a class="button secondary" href="tel:07595289669">Call me: 07595 289669</a>
+        <a class="button primary" href="{{ url_for('main.contact') }}">Enquire Now</a>
+      </div>
+    </div>
+    <div class="walker-details">
+      <div class="walker-card">
+        <p class="eyebrow">Meet Andy</p>
+        <h2>Personal care tailored to your dog</h2>
+        <p>
+          Hi, I'm Andy — a local dog walker who's DBS checked, fully insured, and
+          first-aid trained. I keep walks calm, positive and tailored to your
+          dog's pace and personality.
+        </p>
+        <p>
+          You'll get GPS routes and photo updates after each walk so you always
+          know how it went. I treat every dog like my own and build routines they
+          genuinely enjoy.
+        </p>
+        <div class="walker-badges" role="list">
+          <span role="listitem">DBS Checked</span>
+          <span role="listitem">Public Liability Insured</span>
+          <span role="listitem">First-Aid Trained</span>
+          <span role="listitem">GPS &amp; Photo Updates</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
