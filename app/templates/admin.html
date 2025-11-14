@@ -3,6 +3,9 @@
 {% block content %}
 <section class="admin-panel">
   <div class="container admin-container" id="admin-chat" data-role="admin-chat">
+    <div class="admin-alert" data-role="waiting-alert" aria-live="assertive" hidden>
+      A visitor is waiting for a live reply.
+    </div>
     <div class="admin-grid" data-role="admin-grid">
       <article class="admin-card visitor-card" data-card data-role="visitor-insights">
         <div

@@ -1066,6 +1066,200 @@ function initAdminSchedule() {
   setInterval(loadSchedule, 20000);
 }
 
+function initVisitorInsights() {
+  const root = document.querySelector("[data-role='visitor-insights']");
+  if (!root) return;
+
+  const totalLabel = root.querySelector("[data-role='visitor-total']");
+  const returningLabel = root.querySelector("[data-role='visitor-returning']");
+  const visitLabel = root.querySelector("[data-role='visitor-total-visits']");
+  const refreshButton = root.querySelector("[data-role='visitor-refresh']");
+  const feedback = root.querySelector("[data-role='visitor-feedback']");
+  const tableBody = root.querySelector("[data-role='visitor-table-body']");
+  const emptyState = root.querySelector("[data-role='visitor-empty']");
+
+  let visitors = [];
+
+  function setCounts({ total = 0, returning = 0, total_visits: totalVisits = 0 }) {
+    if (totalLabel) {
+      totalLabel.textContent = String(total);
+    }
+    if (returningLabel) {
+      returningLabel.textContent = String(returning);
+    }
+    if (visitLabel) {
+      visitLabel.textContent = String(totalVisits);
+    }
+  }
+
+  function setFeedback(message, isError = false) {
+    if (!feedback) return;
+    feedback.textContent = message;
+    feedback.classList.toggle("error", Boolean(isError));
+  }
+
+  function formatVisitorLabel(visitor) {
+    const raw = visitor?.label || visitor?.visitor_id || "";
+    if (!raw) return "Visitor";
+    return raw.toString().trim();
+  }
+
+  function renderVisitors() {
+    if (!tableBody || !emptyState) return;
+
+    tableBody.innerHTML = "";
+
+    if (!visitors.length) {
+      emptyState.hidden = false;
+      return;
+    }
+
+    emptyState.hidden = true;
+
+    visitors.forEach((visitor) => {
+      const row = document.createElement("div");
+      row.classList.add("visitor-row");
+      row.setAttribute("role", "row");
+
+      const identityCell = document.createElement("div");
+      identityCell.classList.add("visitor-cell", "visitor-cell--identity");
+
+      const avatar = document.createElement("span");
+      avatar.classList.add("visitor-avatar");
+      const label = formatVisitorLabel(visitor);
+      const fallback = (visitor?.visitor_id || "").slice(-6).toUpperCase() || "VIS";
+      const avatarText = label ? label.replace(/[^A-Za-z0-9]/g, "").slice(0, 2) : fallback.slice(0, 2);
+      avatar.textContent = (avatarText || "VW").toUpperCase();
+
+      const identity = document.createElement("div");
+      identity.classList.add("visitor-identity");
+      const title = document.createElement("strong");
+      title.textContent = `Visitor ${label || fallback}`;
+      const meta = document.createElement("small");
+      meta.textContent = visitor?.last_seen
+        ? `Last seen ${formatDateTime(visitor.last_seen)}`
+        : "No visits recorded yet.";
+      identity.append(title, meta);
+
+      identityCell.append(avatar, identity);
+      row.appendChild(identityCell);
+
+      const statusCell = document.createElement("div");
+      statusCell.classList.add("visitor-cell", "visitor-cell--status");
+      const statusBadge = document.createElement("span");
+      statusBadge.classList.add("badge");
+      if (visitor?.is_returning) {
+        statusBadge.classList.add("badge--returning");
+        statusBadge.textContent = "Returning";
+      } else {
+        statusBadge.classList.add("badge--new");
+        statusBadge.textContent = "New";
+      }
+      statusCell.appendChild(statusBadge);
+
+      if (visitor?.waiting) {
+        const waitingBadge = document.createElement("span");
+        waitingBadge.classList.add("badge", "badge--new");
+        waitingBadge.textContent = "Waiting";
+        statusCell.appendChild(waitingBadge);
+      }
+
+      const visitCountLabel = document.createElement("span");
+      visitCountLabel.classList.add("visitor-count");
+      const visitsNumber = Number(visitor?.visit_count) || 0;
+      visitCountLabel.textContent = `${visitsNumber} visit${visitsNumber === 1 ? "" : "s"}`;
+      statusCell.appendChild(visitCountLabel);
+
+      const messagePreview = document.createElement("span");
+      messagePreview.classList.add("visitor-trail");
+      const previewContent = visitor?.last_message?.content;
+      messagePreview.textContent = previewContent
+        ? previewContent.length > 80
+          ? `${previewContent.slice(0, 77)}…`
+          : previewContent
+        : "No chat messages yet.";
+      statusCell.appendChild(messagePreview);
+
+      row.appendChild(statusCell);
+
+      const timelineCell = document.createElement("div");
+      timelineCell.classList.add("visitor-cell", "visitor-cell--timeline");
+      const timelineHeading = document.createElement("strong");
+      timelineHeading.textContent = visitor?.last_path
+        ? `Last page ${visitor.last_path}`
+        : "Recent activity";
+      const trail = document.createElement("p");
+      trail.classList.add("visitor-trail");
+      const visits = Array.isArray(visitor?.visits) ? visitor.visits.slice(-3) : [];
+      if (visits.length) {
+        const summary = visits
+          .map((entry) => {
+            const timeLabel = entry?.timestamp ? formatTimestamp(entry.timestamp) : "—";
+            const pathLabel = entry?.path || "/";
+            return `${timeLabel} · ${pathLabel}`;
+          })
+          .join("   •   ");
+        trail.textContent = summary;
+      } else {
+        trail.textContent = "No page visits tracked yet.";
+      }
+      timelineCell.append(timelineHeading, trail);
+      row.appendChild(timelineCell);
+
+      const actionsCell = document.createElement("div");
+      actionsCell.classList.add("visitor-cell", "visitor-cell--actions");
+      const openButton = document.createElement("button");
+      openButton.type = "button";
+      openButton.classList.add("button", "ghost");
+      openButton.textContent = "Open chat";
+      openButton.addEventListener("click", () => {
+        if (!visitor?.visitor_id) return;
+        document.dispatchEvent(
+          new CustomEvent("admin:select-visitor", {
+            detail: { visitorId: visitor.visitor_id },
+          })
+        );
+      });
+      actionsCell.appendChild(openButton);
+      row.appendChild(actionsCell);
+
+      tableBody.appendChild(row);
+    });
+  }
+
+  async function loadVisitors(showLoading = false) {
+    if (showLoading) {
+      setFeedback("Refreshing insights...");
+    }
+    if (refreshButton) {
+      refreshButton.disabled = true;
+    }
+    try {
+      const data = await fetchJson("/api/admin/visitors");
+      visitors = data.visitors ?? [];
+      setCounts(data);
+      renderVisitors();
+      setFeedback("");
+      updateLiveChatIndicator(data.waiting_count || 0);
+    } catch (error) {
+      setFeedback("Couldn’t load visitor insights.", true);
+    } finally {
+      if (refreshButton) {
+        refreshButton.disabled = false;
+      }
+    }
+  }
+
+  if (refreshButton) {
+    refreshButton.addEventListener("click", () => {
+      loadVisitors(true);
+    });
+  }
+
+  loadVisitors();
+  setInterval(loadVisitors, 15000);
+}
+
 function initAdminChat() {
   const adminRoot = document.querySelector("[data-role='admin-chat']");
   if (!adminRoot) return;
@@ -1087,10 +1281,103 @@ function initAdminChat() {
   const visitorList = adminRoot.querySelector("[data-role='visitor-list']");
   const visitorHeading = adminRoot.querySelector("[data-role='visitor-heading']");
   const visitorStatus = adminRoot.querySelector("[data-role='visitor-status']");
+  const waitingAlert = adminRoot.querySelector("[data-role='waiting-alert']");
+  const conversationToggle = adminRoot.querySelector(
+    "[data-card-toggle][aria-controls='conversation-card-body']"
+  );
 
   let autopilotEnabled = false;
   let selectedVisitorId = "";
   let visitorSummaries = [];
+  let currentWaitingCount = 0;
+  let waitingAlertAcknowledged = false;
+  let beepIntervalId = null;
+  let audioContext = null;
+
+  function stopBeep() {
+    if (beepIntervalId) {
+      clearInterval(beepIntervalId);
+      beepIntervalId = null;
+    }
+  }
+
+  function playBeep() {
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      if (!audioContext) {
+        audioContext = new AudioContextClass();
+      }
+      if (audioContext.state === "suspended") {
+        audioContext.resume().catch(() => {});
+      }
+      const ctx = audioContext;
+      const now = ctx.currentTime;
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(880, now);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.25);
+    } catch (error) {
+      stopBeep();
+    }
+  }
+
+  function startBeep() {
+    if (beepIntervalId) return;
+    playBeep();
+    beepIntervalId = window.setInterval(playBeep, 1800);
+  }
+
+  function updateWaitingAlert(waitingCount) {
+    const previousCount = currentWaitingCount;
+    currentWaitingCount = Number(waitingCount) || 0;
+    if (!waitingAlert) return;
+
+    if (autopilotEnabled || currentWaitingCount <= 0) {
+      waitingAlert.hidden = true;
+      waitingAlert.classList.remove("is-active", "is-paused");
+      waitingAlertAcknowledged = false;
+      stopBeep();
+      return;
+    }
+
+    if (currentWaitingCount > previousCount) {
+      waitingAlertAcknowledged = false;
+    }
+
+    const message =
+      currentWaitingCount === 1
+        ? "A visitor is waiting for a live reply."
+        : `${currentWaitingCount} visitors are waiting for a live reply.`;
+    waitingAlert.textContent = message;
+    waitingAlert.hidden = false;
+
+    if (waitingAlertAcknowledged) {
+      waitingAlert.classList.add("is-paused");
+      waitingAlert.classList.remove("is-active");
+      stopBeep();
+    } else {
+      waitingAlert.classList.add("is-active");
+      waitingAlert.classList.remove("is-paused");
+      startBeep();
+    }
+  }
+
+  function acknowledgeWaitingAlert() {
+    if (!waitingAlert || currentWaitingCount <= 0) {
+      return;
+    }
+    waitingAlertAcknowledged = true;
+    waitingAlert.classList.add("is-paused");
+    waitingAlert.classList.remove("is-active");
+    stopBeep();
+  }
 
   function updateReplyAvailability() {
     const disableInput = autopilotEnabled || !selectedVisitorId;
@@ -1133,6 +1420,7 @@ function initAdminChat() {
         : "Select a visitor to view their messages and reply.";
     }
     updateReplyAvailability();
+    updateWaitingAlert(currentWaitingCount);
   }
 
   function updateVisitorStatusTag(isReturning) {
@@ -1263,6 +1551,17 @@ function initAdminChat() {
     });
   }
 
+  document.addEventListener("admin:select-visitor", (event) => {
+    const visitorId = event?.detail?.visitorId;
+    if (!visitorId) return;
+    selectedVisitorId = visitorId;
+    if (conversationToggle?.getAttribute("aria-expanded") !== "true") {
+      conversationToggle?.click();
+    }
+    renderVisitorList(visitorSummaries);
+    refreshMessages();
+  });
+
   async function refreshMessages() {
     if (!selectedVisitorId) {
       clearConversation();
@@ -1276,6 +1575,7 @@ function initAdminChat() {
       setVisitorHeading(data.label || "");
       updateVisitorStatusTag(Boolean(data.is_returning));
       updateLiveChatIndicator(data.waiting_count || 0);
+      updateWaitingAlert(data.waiting_count ?? currentWaitingCount);
       if (chatHint) {
         if (!data.messages || data.messages.length === 0) {
           chatHint.textContent = autopilotEnabled
@@ -1301,6 +1601,7 @@ function initAdminChat() {
       const data = await fetchJson("/api/admin/conversations");
       updateModeDescription(Boolean(data.autopilot));
       updateLiveChatIndicator(data.waiting_count || 0);
+      updateWaitingAlert(data.waiting_count || 0);
       visitorSummaries = data.visitors || [];
 
       if (selectedVisitorId && !visitorSummaries.some((v) => v.visitor_id === selectedVisitorId)) {
@@ -1326,6 +1627,12 @@ function initAdminChat() {
         settingsFeedback.classList.add("error");
       }
     }
+  }
+
+  if (replyTextarea) {
+    replyTextarea.addEventListener("input", () => {
+      acknowledgeWaitingAlert();
+    });
   }
 
   if (settingsForm && autopilotToggle && businessContext) {
@@ -1631,6 +1938,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initBookingSchedule();
   initVisitorChat();
   initAdminSchedule();
+  initVisitorInsights();
   initAdminChat();
   initBanManager();
 });

@@ -42,6 +42,25 @@ def _visitors() -> Dict[str, Dict[str, Any]]:
     return visitors
 
 
+def _get_or_create_visitor(visitor_id: str) -> Dict[str, Any]:
+    visitors = _visitors()
+    visitor = visitors.get(visitor_id)
+    if visitor:
+        return visitor
+
+    now_iso = _iso_now()
+    visitor = {
+        "id": visitor_id,
+        "first_seen": now_iso,
+        "last_seen": now_iso,
+        "visit_count": 0,
+        "visits": [],
+        "last_path": "",
+    }
+    visitors[visitor_id] = visitor
+    return visitor
+
+
 def _append_message(visitor: Dict[str, Any], role: str, content: str) -> None:
     message: ChatMessage = {
         "role": role,
@@ -64,6 +83,38 @@ def _visitor_is_waiting(visitor: Dict[str, Any]) -> bool:
 
 def _waiting_count() -> int:
     return sum(1 for visitor in _visitors().values() if _visitor_is_waiting(visitor))
+
+
+def _serialize_conversation(visitor: Dict[str, Any]) -> Dict[str, Any]:
+    messages: List[ChatMessage] = visitor.get("messages", [])
+    last_message = messages[-1] if messages else None
+    return {
+        "visitor_id": visitor.get("id"),
+        "label": visitor.get("label"),
+        "is_returning": bool(visitor.get("is_returning")),
+        "waiting": _visitor_is_waiting(visitor),
+        "last_seen": visitor.get("last_seen"),
+        "last_message": last_message,
+        "visit_count": int(visitor.get("visit_count") or 0),
+    }
+
+
+def _serialize_visitor_record(visitor: Dict[str, Any]) -> Dict[str, Any]:
+    messages: List[ChatMessage] = visitor.get("messages", [])
+    last_message = messages[-1] if messages else None
+    visits = list(visitor.get("visits", []))
+    recent_visits = visits[-5:]
+    return {
+        "visitor_id": visitor.get("id"),
+        "label": visitor.get("label"),
+        "is_returning": bool(visitor.get("is_returning")),
+        "visit_count": int(visitor.get("visit_count") or 0),
+        "last_seen": visitor.get("last_seen"),
+        "last_path": visitor.get("last_path"),
+        "waiting": _visitor_is_waiting(visitor),
+        "last_message": last_message,
+        "visits": recent_visits,
+    }
 
 
 def _parse_slot_datetime(date_value: str, time_value: str) -> datetime:
@@ -325,6 +376,60 @@ def booking():
 @main_bp.get("/admin")
 def admin():
     return render_template("admin.html")
+
+
+@main_bp.get("/api/admin/visitors")
+def list_visitor_overview():
+    visitors = list(_visitors().values())
+    total_visitors = len(visitors)
+    returning_visitors = sum(1 for visitor in visitors if visitor.get("is_returning"))
+    total_visits = sum(int(visitor.get("visit_count") or 0) for visitor in visitors)
+
+    serialized = [_serialize_visitor_record(visitor) for visitor in visitors]
+    serialized.sort(
+        key=lambda item: (
+            item.get("last_seen") or "",
+            item.get("visitor_id") or "",
+        ),
+        reverse=True,
+    )
+
+    return jsonify(
+        {
+            "total": total_visitors,
+            "returning": returning_visitors,
+            "total_visits": total_visits,
+            "waiting_count": _waiting_count(),
+            "visitors": serialized,
+        }
+    )
+
+
+@main_bp.get("/api/admin/conversations")
+def list_conversations():
+    visitors = list(_visitors().values())
+    summaries: List[Dict[str, Any]] = []
+    for visitor in visitors:
+        messages: List[ChatMessage] = visitor.get("messages", [])
+        if messages or _visitor_is_waiting(visitor):
+            summaries.append(_serialize_conversation(visitor))
+
+    summaries = sorted(
+        summaries,
+        key=lambda item: (
+            item.get("waiting", False),
+            item.get("last_seen") or "",
+        ),
+        reverse=True,
+    )
+
+    return jsonify(
+        {
+            "autopilot": chat_state["autopilot"],
+            "waiting_count": _waiting_count(),
+            "visitors": summaries,
+        }
+    )
 
 
 @main_bp.get("/api/slots")
