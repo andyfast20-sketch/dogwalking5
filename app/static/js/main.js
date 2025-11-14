@@ -155,6 +155,164 @@ function updateLiveChatIndicator(waitingCount) {
   }
 }
 
+function initLiveChatWidget() {
+  const widget = document.querySelector("[data-role='live-chat-widget']");
+  if (!widget) return;
+
+  const panel = widget.querySelector("[data-role='live-chat-panel']");
+  const button = widget.querySelector("[data-role='live-chat-button']");
+  const closeButton = widget.querySelector("[data-role='chat-close']");
+  const form = widget.querySelector("[data-role='chat-form']");
+  const input = widget.querySelector("[data-role='chat-input']");
+  const thread = widget.querySelector("[data-role='chat-thread']");
+  const statusLabel = widget.querySelector("[data-role='chat-status']");
+
+  if (!panel || !button || !form || !input || !thread) {
+    return;
+  }
+
+  if (!button.dataset.originalLabel) {
+    button.dataset.originalLabel = button.getAttribute("aria-label") || "Open live chat";
+  }
+
+  const replies = [
+    "Absolutely! We collect from your door and send real-time walk updates.",
+    "We have weekday, weekend and adventure packages — happy to share pricing!",
+    "Pop in your pup's name and routine and we'll tailor a plan for you.",
+    "Fancy meeting the walker first? We offer complimentary meet & greets.",
+  ];
+
+  let replyIndex = 0;
+  let typingTimeoutId = null;
+  let isOpen = false;
+
+  const updateStatus = (message) => {
+    if (statusLabel) {
+      statusLabel.textContent = message;
+    }
+  };
+
+  const autoResize = () => {
+    input.style.height = "auto";
+    const maxHeight = 180;
+    const nextHeight = Math.min(input.scrollHeight, maxHeight);
+    input.style.height = `${nextHeight}px`;
+  };
+
+  autoResize();
+
+  const appendMessage = (content, role) => {
+    const item = document.createElement("li");
+    item.classList.add("live-chat-message");
+    const isVisitor = role === "visitor";
+    item.classList.add(isVisitor ? "live-chat-message--visitor" : "live-chat-message--agent");
+
+    const meta = document.createElement("span");
+    meta.classList.add("live-chat-meta");
+    const authorLabel = isVisitor ? "You" : "Lila · Live concierge";
+    meta.textContent = `${authorLabel} · ${formatTimestamp(new Date().toISOString())}`;
+
+    const body = document.createElement("p");
+    body.textContent = content;
+
+    item.append(meta, body);
+    thread.appendChild(item);
+    thread.scrollTop = thread.scrollHeight;
+  };
+
+  const focusInput = () => {
+    window.requestAnimationFrame(() => {
+      input.focus();
+      const end = input.value.length;
+      input.setSelectionRange?.(end, end);
+    });
+  };
+
+  const closePanel = () => {
+    if (!isOpen) return;
+    isOpen = false;
+    widget.classList.remove("is-open");
+    panel.setAttribute("aria-hidden", "true");
+    button.setAttribute("aria-expanded", "false");
+    if (button.dataset.originalLabel) {
+      button.setAttribute("aria-label", button.dataset.originalLabel);
+    } else {
+      button.setAttribute("aria-label", "Open live chat");
+    }
+    if (typingTimeoutId) {
+      window.clearTimeout(typingTimeoutId);
+      typingTimeoutId = null;
+    }
+  };
+
+  const openPanel = () => {
+    if (isOpen) return;
+    isOpen = true;
+    widget.classList.add("is-open");
+    panel.setAttribute("aria-hidden", "false");
+    panel.focus();
+    button.setAttribute("aria-expanded", "true");
+    button.setAttribute("aria-label", "Hide live chat window");
+    updateStatus("We're typically replying within a minute.");
+    focusInput();
+  };
+
+  const scheduleReply = () => {
+    if (typingTimeoutId) {
+      window.clearTimeout(typingTimeoutId);
+    }
+    updateStatus("Lila is typing…");
+    typingTimeoutId = window.setTimeout(() => {
+      const response = replies[replyIndex % replies.length];
+      replyIndex += 1;
+      appendMessage(response, "agent");
+      updateStatus("We're online all day — ask us anything!");
+      typingTimeoutId = null;
+    }, 1100);
+  };
+
+  button.addEventListener("click", () => {
+    if (isOpen) {
+      closePanel();
+    } else {
+      openPanel();
+    }
+  });
+
+  closeButton?.addEventListener("click", () => {
+    closePanel();
+    button.focus();
+  });
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const message = input.value.trim();
+    if (!message) {
+      focusInput();
+      return;
+    }
+    appendMessage(message, "visitor");
+    input.value = "";
+    autoResize();
+    scheduleReply();
+  });
+
+  input.addEventListener("input", autoResize);
+
+  document.addEventListener("click", (event) => {
+    if (!isOpen) return;
+    if (widget.contains(event.target)) return;
+    closePanel();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && isOpen) {
+      closePanel();
+      button.focus();
+    }
+  });
+}
+
 function initChatSurprise() {
   const button = document.querySelector("[data-role='live-chat-button']");
   if (!button) return;
@@ -2003,6 +2161,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initAdminCards();
   initForms();
+  initLiveChatWidget();
   initLiveChatIndicator();
   initChatSurprise();
   initBookingSchedule();
