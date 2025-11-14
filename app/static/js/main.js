@@ -18,6 +18,92 @@ function initNavigation() {
   });
 }
 
+let adminCardsInitialized = false;
+
+function initAdminCards() {
+  if (adminCardsInitialized) return;
+
+  const cards = document.querySelectorAll("[data-card]");
+  if (!cards.length) {
+    return;
+  }
+
+  adminCardsInitialized = true;
+
+  let expandedCard = null;
+
+  const collapseCard = (card) => {
+    if (!card) return;
+    const toggle = card.querySelector("[data-card-toggle]");
+    const body = card.querySelector("[data-card-body]");
+    if (!toggle || !body) return;
+    card.classList.remove("is-expanded");
+    toggle.setAttribute("aria-expanded", "false");
+    body.hidden = true;
+  };
+
+  const expandCard = (card) => {
+    if (!card) return;
+    const toggle = card.querySelector("[data-card-toggle]");
+    const body = card.querySelector("[data-card-body]");
+    if (!toggle || !body) return;
+    card.classList.add("is-expanded");
+    toggle.setAttribute("aria-expanded", "true");
+    body.hidden = false;
+  };
+
+  cards.forEach((card) => {
+    const toggle = card.querySelector("[data-card-toggle]");
+    const body = card.querySelector("[data-card-body]");
+    if (!toggle || !body) {
+      return;
+    }
+
+    // Ensure collapsed state on load
+    toggle.setAttribute("aria-expanded", "false");
+    body.hidden = true;
+
+    toggle.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (expandedCard === card) {
+        collapseCard(card);
+        expandedCard = null;
+        return;
+      }
+
+      if (expandedCard) {
+        collapseCard(expandedCard);
+      }
+
+      expandCard(card);
+      expandedCard = card;
+
+      window.requestAnimationFrame(() => {
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    });
+
+    toggle.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggle.click();
+      }
+    });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && expandedCard) {
+      const currentCard = expandedCard;
+      collapseCard(currentCard);
+      expandedCard = null;
+      const toggle = currentCard.querySelector("[data-card-toggle]");
+      if (toggle) {
+        toggle.focus();
+      }
+    }
+  });
+}
+
 const VISITOR_ID_STORAGE_KEY = "reliableWalksVisitorId";
 
 function getOrCreateVisitorId() {
@@ -671,10 +757,10 @@ function initAdminSchedule() {
   const feedback = root.querySelector("[data-role='schedule-feedback']");
   const slotList = root.querySelector("[data-role='admin-slot-list']");
   const slotEmpty = root.querySelector("[data-role='admin-slot-empty']");
-  const slotCount = root.querySelector("[data-role='admin-slot-count']");
+  const slotCountElements = root.querySelectorAll("[data-role='admin-slot-count']");
   const bookingList = root.querySelector("[data-role='admin-booking-list']");
   const bookingEmpty = root.querySelector("[data-role='admin-booking-empty']");
-  const bookingCount = root.querySelector("[data-role='admin-booking-count']");
+  const bookingCountElements = root.querySelectorAll("[data-role='admin-booking-count']");
 
   let slots = [];
   let bookings = [];
@@ -690,13 +776,13 @@ function initAdminSchedule() {
   }
 
   function updateCounts() {
-    if (slotCount) {
-      const count = availableSlots().length;
-      slotCount.textContent = count;
-    }
-    if (bookingCount) {
-      bookingCount.textContent = bookings.length;
-    }
+    const availableCount = availableSlots().length;
+    slotCountElements.forEach((element) => {
+      element.textContent = availableCount;
+    });
+    bookingCountElements.forEach((element) => {
+      element.textContent = bookings.length;
+    });
   }
 
   function renderSlotList() {
@@ -986,7 +1072,10 @@ function initAdminChat() {
 
   const messageContainer = adminRoot.querySelector("[data-chat-messages]");
   const chatHint = adminRoot.querySelector("[data-role='chat-hint']");
-  const modeDescription = adminRoot.querySelector("[data-role='mode-description']");
+  const modeDescriptions = adminRoot.querySelectorAll("[data-role='mode-description']");
+  const conversationSummaries = adminRoot.querySelectorAll(
+    "[data-role='conversation-summary']"
+  );
   const settingsForm = adminRoot.querySelector("#chat-settings-form");
   const autopilotToggle = adminRoot.querySelector("#autopilot-toggle");
   const businessContext = adminRoot.querySelector("#business-context");
@@ -1013,13 +1102,31 @@ function initAdminChat() {
     }
   }
 
+  function updateConversationSummary() {
+    if (!conversationSummaries.length) {
+      return;
+    }
+    const activeCount = visitorSummaries.length;
+    const waitingCount = visitorSummaries.filter((visitor) => visitor.waiting).length;
+    const summaryText =
+      activeCount > 0
+        ? `${activeCount} active conversation${activeCount === 1 ? "" : "s"}${
+            waitingCount ? ` · ${waitingCount} waiting` : ""
+          }`
+        : "No active visitors right now.";
+    conversationSummaries.forEach((element) => {
+      element.textContent = summaryText;
+    });
+  }
+
   function updateModeDescription(isAutopilot) {
     autopilotEnabled = Boolean(isAutopilot);
-    if (modeDescription) {
-      modeDescription.textContent = autopilotEnabled
-        ? "Visitors chat with the AI assistant."
-        : "Visitors will wait for a live reply from you.";
-    }
+    const descriptionText = autopilotEnabled
+      ? "Visitors chat with the AI assistant."
+      : "Visitors will wait for a live reply from you.";
+    modeDescriptions.forEach((element) => {
+      element.textContent = descriptionText;
+    });
     if (!selectedVisitorId && chatHint) {
       chatHint.textContent = autopilotEnabled
         ? "Autopilot is active. Disable it to respond manually."
@@ -1062,6 +1169,7 @@ function initAdminChat() {
         : "No visitors are waiting right now.";
     }
     updateReplyAvailability();
+    updateConversationSummary();
   }
 
   async function loadSettings() {
@@ -1205,6 +1313,7 @@ function initAdminChat() {
       }
 
       renderVisitorList(visitorSummaries);
+      updateConversationSummary();
 
       if (selectedVisitorId) {
         await refreshMessages();
@@ -1316,7 +1425,7 @@ function initBanManager() {
   const tableBody = root.querySelector("[data-role='ban-table-body']");
   const emptyState = root.querySelector("[data-role='ban-empty']");
   const table = root.querySelector("[data-role='ban-table']");
-  const countPill = root.querySelector("[data-role='ban-count']");
+  const countPills = root.querySelectorAll("[data-role='ban-count']");
 
   let visitors = [];
 
@@ -1335,14 +1444,15 @@ function initBanManager() {
   }
 
   function updateCount() {
-    if (!countPill) return;
     const activeCount = visitors.filter((visitor) => visitor.active).length;
-    countPill.textContent = activeCount;
-    if (activeCount === 0) {
-      countPill.dataset.state = "empty";
-    } else {
-      delete countPill.dataset.state;
-    }
+    countPills.forEach((pill) => {
+      pill.textContent = activeCount;
+      if (activeCount === 0) {
+        pill.dataset.state = "empty";
+      } else {
+        delete pill.dataset.state;
+      }
+    });
   }
 
   function renderVisitors() {
@@ -1515,6 +1625,7 @@ function initBanManager() {
 
 document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
+  initAdminCards();
   initForms();
   initLiveChatIndicator();
   initBookingSchedule();
