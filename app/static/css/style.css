@@ -3266,12 +3266,12 @@ textarea {
 }
 
 .booking-scheduler {
-  padding: 3.5rem 0 4.5rem;
+  padding: 2.75rem 0 4rem;
 }
 
 .booking-intro {
   text-align: center;
-  margin: 0 auto 2.5rem;
+  margin: 0 auto 1.75rem;
   width: min(720px, 90vw);
 }
 
