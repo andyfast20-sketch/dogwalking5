@@ -18,11 +18,18 @@ chat_state: Dict[str, Any] = {
 }
 
 
+banned_visitors: Dict[str, Dict[str, Any]] = {}
+
+
+def _iso_now() -> str:
+    return datetime.utcnow().isoformat() + "Z"
+
+
 def _append_message(role: str, content: str) -> None:
     message: ChatMessage = {
         "role": role,
         "content": content,
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": _iso_now(),
     }
     messages: List[ChatMessage] = chat_state["messages"]
     messages.append(message)
@@ -89,6 +96,41 @@ def _generate_ai_reply(user_message: str) -> str:
 @main_bp.app_context_processor
 def inject_globals():
     return {"current_year": datetime.now().year}
+
+
+def _client_identifier() -> str:
+    forwarded_for = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+    return forwarded_for or (request.remote_addr or "unknown")
+
+
+def _is_admin_request() -> bool:
+    path = request.path or ""
+    return path.startswith("/admin") or path.startswith("/api/admin")
+
+
+@main_bp.before_app_request
+def enforce_banned_visitors():
+    if request.endpoint == "static":  # allow assets to load for the banned page
+        return None
+
+    if _is_admin_request():
+        return None
+
+    visitor_id = _client_identifier()
+    visitor = banned_visitors.get(visitor_id)
+    if not visitor or not visitor.get("active", False):
+        return None
+
+    message = {
+        "error": "access_denied",
+        "message": "This visitor has been banned by the site administrator.",
+        "visitor": visitor,
+    }
+
+    if request.path.startswith("/api/"):
+        return jsonify(message), 403
+
+    return render_template("banned.html", visitor_id=visitor_id, visitor=visitor), 403
 
 
 @main_bp.get("/")
@@ -202,3 +244,72 @@ def update_chat_settings():
             "business_context": chat_state["business_context"],
         }
     )
+
+
+def _serialize_banned_visitors() -> List[Dict[str, Any]]:
+    return sorted(
+        (visitor for visitor in banned_visitors.values()),
+        key=lambda item: item.get("created_at", ""),
+        reverse=True,
+    )
+
+
+@main_bp.get("/api/admin/banned-visitors")
+def list_banned_visitors():
+    return jsonify({"visitors": _serialize_banned_visitors()})
+
+
+@main_bp.post("/api/admin/banned-visitors")
+def create_or_update_ban():
+    data = request.get_json(silent=True) or {}
+    identifier = (data.get("identifier") or "").strip()
+    reason = (data.get("reason") or "").strip()
+
+    if not identifier:
+        return jsonify({"error": "Visitor identifier is required."}), 400
+
+    existing = banned_visitors.get(identifier)
+    timestamp = _iso_now()
+    if existing:
+        existing.update(
+            {
+                "reason": reason,
+                "active": True,
+                "updated_at": timestamp,
+            }
+        )
+        visitor = existing
+        status_code = 200
+    else:
+        visitor = {
+            "id": identifier,
+            "reason": reason,
+            "active": True,
+            "created_at": timestamp,
+            "updated_at": timestamp,
+        }
+        banned_visitors[identifier] = visitor
+        status_code = 201
+
+    return jsonify({"visitor": visitor, "visitors": _serialize_banned_visitors()}), status_code
+
+
+@main_bp.post("/api/admin/banned-visitors/<path:visitor_id>/unban")
+def unban_visitor(visitor_id: str):
+    visitor = banned_visitors.get(visitor_id)
+    if not visitor:
+        return jsonify({"error": "Visitor not found."}), 404
+
+    visitor["active"] = False
+    visitor["updated_at"] = _iso_now()
+
+    return jsonify({"visitor": visitor, "visitors": _serialize_banned_visitors()})
+
+
+@main_bp.delete("/api/admin/banned-visitors/<path:visitor_id>")
+def delete_visitor(visitor_id: str):
+    visitor = banned_visitors.pop(visitor_id, None)
+    if not visitor:
+        return jsonify({"error": "Visitor not found."}), 404
+
+    return jsonify({"removed": True, "visitors": _serialize_banned_visitors()})

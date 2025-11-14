@@ -53,6 +53,61 @@
           </div>
         </form>
       </article>
+      <article class="admin-card access-card" data-role="ban-manager">
+        <div class="card-heading">
+          <h2>Visitor Access Control</h2>
+          <p>
+            Instantly block disruptive visitors, keep tabs on every restriction, and
+            restore access whenever you’re ready.
+          </p>
+        </div>
+        <form id="ban-visitor-form" class="ban-form">
+          <div class="ban-form-grid">
+            <label class="field-label" for="ban-identifier">Visitor identifier</label>
+            <input
+              id="ban-identifier"
+              name="identifier"
+              type="text"
+              placeholder="IP address, email, or reference"
+              autocomplete="off"
+              required
+            />
+            <label class="field-label" for="ban-reason">Reason (optional)</label>
+            <input
+              id="ban-reason"
+              name="reason"
+              type="text"
+              placeholder="Spam messages, abusive language, etc."
+              autocomplete="off"
+            />
+            <button type="submit" class="button danger">Ban visitor</button>
+          </div>
+          <p class="form-feedback" data-role="ban-feedback"></p>
+        </form>
+        <div class="ban-list">
+          <div class="ban-list-header">
+            <h3>Restricted visitors</h3>
+            <span class="status-pill" data-role="ban-count">0</span>
+          </div>
+          <p class="ban-empty" data-role="ban-empty">
+            No visitors are currently banned.
+          </p>
+          <div class="table-wrapper">
+            <table class="ban-table" data-role="ban-table">
+              <thead>
+                <tr>
+                  <th scope="col">Visitor</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Reason</th>
+                  <th scope="col">Added</th>
+                  <th scope="col" class="actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody data-role="ban-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </article>
     </div>
   </div>
 </section>

@@ -395,9 +395,218 @@ function initAdminChat() {
   setInterval(refreshMessages, 6000);
 }
 
+function initBanManager() {
+  const root = document.querySelector("[data-role='ban-manager']");
+  if (!root) return;
+
+  const form = root.querySelector("#ban-visitor-form");
+  const identifierInput = root.querySelector("#ban-identifier");
+  const reasonInput = root.querySelector("#ban-reason");
+  const feedback = root.querySelector("[data-role='ban-feedback']");
+  const tableBody = root.querySelector("[data-role='ban-table-body']");
+  const emptyState = root.querySelector("[data-role='ban-empty']");
+  const table = root.querySelector("[data-role='ban-table']");
+  const countPill = root.querySelector("[data-role='ban-count']");
+
+  let visitors = [];
+
+  function setFeedback(message, isError = false) {
+    if (!feedback) return;
+    feedback.textContent = message;
+    feedback.classList.toggle("error", Boolean(isError));
+  }
+
+  function setFormDisabled(isDisabled) {
+    if (!form) return;
+    const elements = form.querySelectorAll("input, button");
+    elements.forEach((element) => {
+      element.disabled = isDisabled;
+    });
+  }
+
+  function updateCount() {
+    if (!countPill) return;
+    const activeCount = visitors.filter((visitor) => visitor.active).length;
+    countPill.textContent = activeCount;
+    if (activeCount === 0) {
+      countPill.dataset.state = "empty";
+    } else {
+      delete countPill.dataset.state;
+    }
+  }
+
+  function renderVisitors() {
+    if (!tableBody || !emptyState || !table) return;
+
+    tableBody.innerHTML = "";
+
+    if (!visitors.length) {
+      emptyState.hidden = false;
+      table.hidden = true;
+      updateCount();
+      return;
+    }
+
+    emptyState.hidden = true;
+    table.hidden = false;
+
+    visitors.forEach((visitor) => {
+      const row = document.createElement("tr");
+      row.dataset.id = visitor.id;
+
+      const visitorCell = document.createElement("td");
+      visitorCell.textContent = visitor.id;
+
+      const statusCell = document.createElement("td");
+      const statusBadge = document.createElement("span");
+      statusBadge.classList.add("ban-status");
+      statusBadge.classList.add(visitor.active ? "active" : "inactive");
+      statusBadge.textContent = visitor.active ? "Active ban" : "Inactive";
+      statusCell.appendChild(statusBadge);
+
+      const reasonCell = document.createElement("td");
+      reasonCell.textContent = visitor.reason || "—";
+
+      const createdCell = document.createElement("td");
+      createdCell.textContent = formatDateTime(visitor.created_at || visitor.updated_at);
+
+      const actionsCell = document.createElement("td");
+      actionsCell.classList.add("actions-cell");
+      const actionsWrapper = document.createElement("div");
+      actionsWrapper.classList.add("ban-actions");
+
+      const toggleButton = document.createElement("button");
+      toggleButton.type = "button";
+      toggleButton.classList.add("ban-action", visitor.active ? "unban" : "reinstate");
+      toggleButton.dataset.action = visitor.active ? "unban" : "reinstate";
+      toggleButton.dataset.id = visitor.id;
+      toggleButton.textContent = visitor.active ? "Unban" : "Reinstate";
+      toggleButton.setAttribute(
+        "aria-label",
+        visitor.active
+          ? `Unban visitor ${visitor.id}`
+          : `Reinstate ban for visitor ${visitor.id}`
+      );
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.classList.add("ban-action", "delete");
+      deleteButton.dataset.action = "delete";
+      deleteButton.dataset.id = visitor.id;
+      deleteButton.textContent = "Delete";
+      deleteButton.setAttribute("aria-label", `Delete record for visitor ${visitor.id}`);
+
+      actionsWrapper.append(toggleButton, deleteButton);
+      actionsCell.appendChild(actionsWrapper);
+
+      row.append(visitorCell, statusCell, reasonCell, createdCell, actionsCell);
+      tableBody.appendChild(row);
+    });
+
+    updateCount();
+  }
+
+  async function loadVisitors() {
+    try {
+      const data = await fetchJson("/api/admin/banned-visitors");
+      visitors = data.visitors ?? [];
+      renderVisitors();
+      if (!visitors.length) {
+        setFeedback("No banned visitors at the moment.");
+      } else {
+        setFeedback("");
+      }
+    } catch (error) {
+      setFeedback("Couldn’t load the banned visitors list.", true);
+    }
+  }
+
+  if (form && identifierInput) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const identifier = identifierInput.value.trim();
+      const reason = reasonInput?.value.trim() ?? "";
+      if (!identifier) {
+        identifierInput.focus();
+        return;
+      }
+
+      setFormDisabled(true);
+      setFeedback("Saving restriction...");
+
+      try {
+        const payload = { identifier, reason };
+        const data = await fetchJson("/api/admin/banned-visitors", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        visitors = data.visitors ?? visitors;
+        renderVisitors();
+        form.reset();
+        setFeedback("Visitor has been banned.");
+      } catch (error) {
+        if (error?.response?.status === 400) {
+          setFeedback("Please provide a visitor identifier to ban.", true);
+        } else {
+          setFeedback("We couldn’t save that ban. Try again.", true);
+        }
+      } finally {
+        setFormDisabled(false);
+      }
+    });
+  }
+
+  if (tableBody) {
+    tableBody.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+
+      const { action, id } = button.dataset;
+      if (!id) return;
+
+      button.disabled = true;
+
+      try {
+        if (action === "unban") {
+          const data = await fetchJson(`/api/admin/banned-visitors/${encodeURIComponent(id)}/unban`, {
+            method: "POST",
+          });
+          visitors = data.visitors ?? visitors;
+          setFeedback(`Visitor ${id} has been unbanned.`);
+        } else if (action === "reinstate") {
+          const visitor = visitors.find((item) => item.id === id);
+          const reason = visitor?.reason ?? "";
+          const data = await fetchJson("/api/admin/banned-visitors", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ identifier: id, reason }),
+          });
+          visitors = data.visitors ?? visitors;
+          setFeedback(`Ban reinstated for ${id}.`);
+        } else if (action === "delete") {
+          const data = await fetchJson(`/api/admin/banned-visitors/${encodeURIComponent(id)}`, {
+            method: "DELETE",
+          });
+          visitors = data.visitors ?? visitors.filter((item) => item.id !== id);
+          setFeedback(`Removed ${id} from the list.`);
+        }
+        renderVisitors();
+      } catch (error) {
+        setFeedback("That action could not be completed.", true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+
+  loadVisitors();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initForms();
   initVisitorChat();
   initAdminChat();
+  initBanManager();
 });
