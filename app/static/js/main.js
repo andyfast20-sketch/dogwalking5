@@ -644,10 +644,166 @@ function initAdminChat() {
   setInterval(refreshMessages, 6000);
 }
 
+function initVisitorInsights() {
+  const insightsRoot = document.querySelector("[data-role='visitor-insights']");
+  if (!insightsRoot) return;
+
+  const tableBody = insightsRoot.querySelector("[data-role='visitor-table-body']");
+  const emptyState = insightsRoot.querySelector("[data-role='visitor-empty']");
+  const feedback = insightsRoot.querySelector("[data-role='visitor-feedback']");
+  const totalVisitors = insightsRoot.querySelector("[data-role='visitor-total']");
+  const returningVisitors = insightsRoot.querySelector("[data-role='visitor-returning']");
+  const totalVisits = insightsRoot.querySelector("[data-role='visitor-total-visits']");
+  const refreshButton = insightsRoot.querySelector("[data-role='visitor-refresh']");
+  let loading = false;
+
+  function setFeedback(message = "", isError = false) {
+    if (!feedback) return;
+    feedback.textContent = message;
+    if (message) {
+      feedback.classList.toggle("error", Boolean(isError));
+    } else {
+      feedback.classList.remove("error");
+    }
+  }
+
+  function renderSummary(summary = {}) {
+    if (totalVisitors) {
+      totalVisitors.textContent = String(summary.total ?? 0);
+    }
+    if (returningVisitors) {
+      returningVisitors.textContent = String(summary.returning ?? 0);
+    }
+    if (totalVisits) {
+      totalVisits.textContent = String(summary.total_visits ?? 0);
+    }
+  }
+
+  function renderVisitors(visitors = []) {
+    if (!tableBody) return;
+    tableBody.innerHTML = "";
+
+    if (!visitors.length) {
+      if (emptyState) {
+        emptyState.hidden = false;
+      }
+      return;
+    }
+
+    if (emptyState) {
+      emptyState.hidden = true;
+    }
+
+    visitors.forEach((visitor) => {
+      const row = document.createElement("div");
+      row.classList.add("visitor-row");
+      row.setAttribute("role", "row");
+      row.dataset.visitorId = visitor.id || "";
+
+      const shortId = ((visitor.id || "").slice(-6) || "guest").toUpperCase();
+      const avatarText = shortId.slice(-2) || "RW";
+      const ipAddress = visitor.ip_address || "Unknown IP";
+      const visitCount = Number(visitor.visit_count) || 0;
+      const visitLabel = `${visitCount} visit${visitCount === 1 ? "" : "s"}`;
+      const returning = Boolean(visitor.returning);
+      const lastSeen = visitor.last_seen ? formatDateTime(visitor.last_seen) : "Just now";
+      const firstSeen = visitor.first_seen ? formatDateTime(visitor.first_seen) : "Just now";
+      const lastPath = visitor.last_path || "/";
+
+      row.innerHTML = `
+        <span class="visitor-cell visitor-cell--identity" role="cell">
+          <span class="visitor-avatar">${escapeHtml(avatarText)}</span>
+          <span class="visitor-identity">
+            <strong>${escapeHtml(ipAddress)}</strong>
+            <small>Visitor ${escapeHtml(shortId)}</small>
+          </span>
+        </span>
+        <span class="visitor-cell visitor-cell--status" role="cell">
+          <span class="badge ${returning ? "badge--returning" : "badge--new"}">${
+            returning ? "Returning" : "New"
+          }</span>
+          <span class="visitor-count">${escapeHtml(visitLabel)}</span>
+          <span class="visitor-trail">Last page • ${escapeHtml(lastPath)}</span>
+        </span>
+        <span class="visitor-cell visitor-cell--timeline" role="cell">
+          <span>Last seen</span>
+          <strong>${escapeHtml(lastSeen)}</strong>
+          <span>First seen • ${escapeHtml(firstSeen)}</span>
+        </span>
+        <span class="visitor-cell visitor-cell--actions" role="cell">
+          <button type="button" class="button ghost" data-role="delete-visitor">Remove</button>
+        </span>
+      `;
+
+      tableBody.appendChild(row);
+    });
+  }
+
+  async function loadVisitors(showStatus = false) {
+    if (loading) return;
+    loading = true;
+    if (showStatus) {
+      setFeedback("Refreshing...", false);
+    }
+
+    try {
+      const data = await fetchJson("/api/admin/visitors");
+      renderSummary(data.summary || {});
+      renderVisitors(data.visitors || []);
+      setFeedback(showStatus ? "Visitor insights refreshed." : "", false);
+    } catch (error) {
+      setFeedback("We couldn’t fetch visitor insights right now.", true);
+    } finally {
+      loading = false;
+    }
+  }
+
+  if (refreshButton) {
+    refreshButton.addEventListener("click", () => {
+      loadVisitors(true);
+    });
+  }
+
+  if (tableBody) {
+    tableBody.addEventListener("click", async (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const button = target.closest("[data-role='delete-visitor']");
+      if (!(button instanceof HTMLButtonElement)) return;
+
+      const row = button.closest(".visitor-row");
+      const visitorId = row?.dataset.visitorId;
+      if (!visitorId) return;
+
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = "Removing...";
+      try {
+        await fetchJson(`/api/admin/visitors/${encodeURIComponent(visitorId)}`, {
+          method: "DELETE",
+        });
+        await loadVisitors();
+        setFeedback("Visitor removed.", false);
+      } catch (error) {
+        setFeedback("Couldn’t remove that visitor. Try again.", true);
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText || "Remove";
+      }
+    });
+  }
+
+  loadVisitors();
+  setInterval(() => {
+    loadVisitors();
+  }, 12000);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initForms();
   initLiveChatIndicator();
   initVisitorChat();
   initAdminChat();
+  initVisitorInsights();
 });
