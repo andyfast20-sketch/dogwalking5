@@ -1,63 +1,110 @@
 {% extends "base.html" %}
 {% block title %}Book | Reliable Walks{% endblock %}
 {% block content %}
-<section class="page-hero">
+<section class="page-hero booking-hero">
   <div class="container narrow">
-    <h1>Book a Walk</h1>
-    <p>Complete the form below and we’ll confirm your booking shortly.</p>
+    <h1>Reserve a Tail-Wagging Adventure</h1>
+    <p>
+      Pick a slot that suits your schedule, then share a few details so we can make your
+      dog’s walk perfect.
+    </p>
   </div>
 </section>
 
-<section class="booking-section">
-  <div class="container narrow">
-    <form id="booking-form" novalidate>
-      <div class="form-grid">
-        <label>
-          Dog’s Name
-          <input type="text" name="dog_name" required />
-        </label>
-        <label>
-          Breed
-          <input type="text" name="breed" required />
-        </label>
-        <label>
-          Service Type
-          <select name="service_type" required>
-            <option value="" disabled selected>Select a service</option>
-            <option>Solo Dog Walk</option>
-            <option>Group Walk</option>
-            <option>Puppy Visit</option>
-            <option>House Check-ins</option>
-          </select>
-        </label>
-        <label>
-          Date
-          <input type="date" name="date" required />
-        </label>
-        <label>
-          Time
-          <input type="time" name="time" required />
-        </label>
-        <label>
-          Your Name
-          <input type="text" name="owner_name" required />
-        </label>
-        <label>
-          Email
-          <input type="email" name="email" required />
-        </label>
-        <label>
-          Phone
-          <input type="tel" name="phone" required />
-        </label>
+<section class="booking-scheduler">
+  <div class="container">
+    <div class="booking-intro">
+      <h2>Choose an Available Slot</h2>
+      <p>
+        Tap a date, explore the curated times, and lock in the walk that fits your day. Each
+        slot includes the walk length and transparent pricing.
+      </p>
+    </div>
+
+    <div class="booking-layout" data-role="booking-schedule">
+      <aside class="booking-sidebar">
+        <div class="calendar-card">
+          <h3>Filter by date</h3>
+          <p>Select a day to see matching slots.</p>
+          <input type="date" data-role="date-filter" />
+          <button type="button" class="button ghost" data-action="clear-date">
+            Clear filter
+          </button>
+        </div>
+        <div class="legend-card">
+          <h3>What’s included</h3>
+          <ul>
+            <li>Friendly pick-up and drop-off</li>
+            <li>Real-time photo updates</li>
+            <li>Fresh water and towel-off</li>
+            <li>Flexible rescheduling if plans change</li>
+          </ul>
+        </div>
+      </aside>
+
+      <div class="slot-column">
+        <div class="slot-toolbar">
+          <h3>Available walks</h3>
+          <span class="slot-count" data-role="slot-count">—</span>
+        </div>
+        <div class="slot-list" data-role="slot-list" aria-live="polite"></div>
+        <p class="slot-empty" data-role="slot-empty">
+          New slots are added daily — check back soon or message us for a bespoke time.
+        </p>
       </div>
-      <label class="notes">
-        Notes
-        <textarea name="notes" rows="4"></textarea>
-      </label>
-      <button class="button primary" type="submit">Submit Booking</button>
-      <p class="form-feedback" data-role="booking-feedback" aria-live="polite"></p>
-    </form>
+    </div>
+
+    <div class="booking-note">
+      <h3>Need a custom arrangement?</h3>
+      <p>
+        If you have multiple dogs, require a special route, or want an extended adventure,
+        let us know in the booking notes or get in touch directly. We love creating magical
+        experiences for every pup.
+      </p>
+    </div>
+  </div>
+
+  <div class="booking-modal" data-role="booking-modal" aria-hidden="true">
+    <div class="modal-overlay" data-action="close-modal"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="booking-modal-title">
+      <button type="button" class="modal-close" data-action="close-modal" aria-label="Close booking form">
+        ×
+      </button>
+      <div class="modal-header">
+        <span class="eyebrow">Secure your spot</span>
+        <h2 id="booking-modal-title">Complete your booking</h2>
+        <p data-role="modal-slot-summary"></p>
+      </div>
+      <form id="slot-booking-form" data-role="slot-booking-form" novalidate>
+        <input type="hidden" name="slot_id" />
+        <div class="modal-form-grid">
+          <label>
+            Your name
+            <input type="text" name="name" required />
+          </label>
+          <label>
+            Email address
+            <input type="email" name="email" required />
+          </label>
+          <label>
+            Phone number
+            <input type="tel" name="phone" required />
+          </label>
+          <label>
+            Dog’s name
+            <input type="text" name="dog_name" required />
+          </label>
+        </div>
+        <label>
+          Booking notes
+          <textarea name="notes" rows="4" placeholder="Tell us about your dog, access notes, or special requests."></textarea>
+        </label>
+        <div class="modal-actions">
+          <button type="submit" class="button primary">Request this walk</button>
+          <p class="form-feedback" data-role="modal-feedback" aria-live="polite"></p>
+        </div>
+      </form>
+    </div>
   </div>
 </section>
 {% endblock %}

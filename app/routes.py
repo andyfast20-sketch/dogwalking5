@@ -23,6 +23,12 @@ chat_state: Dict[str, Any] = {
 
 banned_visitors: Dict[str, Dict[str, Any]] = {}
 
+SlotRecord = Dict[str, Any]
+BookingRecord = Dict[str, Any]
+
+booking_slots: Dict[str, SlotRecord] = {}
+booking_records: Dict[str, BookingRecord] = {}
+
 
 VISITOR_COOKIE_NAME = "dogwalking_visitor_id"
 
@@ -60,24 +66,62 @@ def _waiting_count() -> int:
     return sum(1 for visitor in _visitors().values() if _visitor_is_waiting(visitor))
 
 
-def _get_or_create_visitor(visitor_id: str) -> Dict[str, Any]:
-    visitors = _visitors()
-    visitor = visitors.get(visitor_id)
-    now_iso = _iso_now()
-    if not visitor:
-        visitor = {
-            "id": visitor_id,
-            "messages": [],
-            "first_seen": now_iso,
-            "last_seen": now_iso,
-        }
-        visitors[visitor_id] = visitor
-    else:
-        visitor.setdefault("messages", [])
-        visitor.setdefault("first_seen", now_iso)
-        visitor.setdefault("label", None)
-    visitor["last_seen"] = now_iso
-    return visitor
+def _parse_slot_datetime(date_value: str, time_value: str) -> datetime:
+    return datetime.strptime(f"{date_value} {time_value}", "%Y-%m-%d %H:%M")
+
+
+def _serialize_slot(slot: SlotRecord) -> SlotRecord:
+    data = dict(slot)
+    try:
+        start = _parse_slot_datetime(slot["date"], slot["time"])
+        data["start_iso"] = start.isoformat()
+    except Exception:
+        data["start_iso"] = slot.get("start_iso")
+    return data
+
+
+def _sorted_slots(include_booked: bool | None = None) -> List[SlotRecord]:
+    def should_include(slot: SlotRecord) -> bool:
+        if include_booked is None:
+            return True
+        return bool(slot.get("is_booked")) == include_booked
+
+    sortable: List[SlotRecord] = []
+    for slot in booking_slots.values():
+        if should_include(slot):
+            sortable.append(slot)
+
+    def sort_key(slot: SlotRecord):
+        try:
+            start = _parse_slot_datetime(slot["date"], slot["time"])
+        except Exception:
+            start = datetime.max
+        return (start, slot.get("created_at", ""))
+
+    return [_serialize_slot(slot) for slot in sorted(sortable, key=sort_key)]
+
+
+def _serialize_booking(booking: BookingRecord) -> BookingRecord:
+    data = dict(booking)
+    slot = booking_slots.get(booking.get("slot_id"))
+    if slot:
+        data["slot"] = _serialize_slot(slot)
+    return data
+
+
+def _sorted_bookings() -> List[BookingRecord]:
+    def sort_key(record: BookingRecord):
+        slot = booking_slots.get(record.get("slot_id"))
+        try:
+            if slot:
+                start = _parse_slot_datetime(slot["date"], slot["time"])
+            else:
+                raise ValueError
+        except Exception:
+            start = datetime.max
+        return (start, record.get("created_at", ""))
+
+    return [_serialize_booking(booking) for booking in sorted(booking_records.values(), key=sort_key)]
 
 
 def _generate_ai_reply(user_message: str) -> str:
@@ -281,6 +325,153 @@ def booking():
 @main_bp.get("/admin")
 def admin():
     return render_template("admin.html")
+
+
+@main_bp.get("/api/slots")
+def list_public_slots():
+    available_slots = _sorted_slots(include_booked=False)
+    return jsonify({"slots": available_slots})
+
+
+@main_bp.get("/api/admin/schedule")
+def get_schedule_overview():
+    return jsonify({
+        "slots": _sorted_slots(),
+        "bookings": _sorted_bookings(),
+    })
+
+
+@main_bp.post("/api/admin/slots")
+def create_slot():
+    data = request.get_json(silent=True) or {}
+    date_value = (data.get("date") or "").strip()
+    time_value = (data.get("time") or "").strip()
+    duration_value = int(data.get("duration_minutes") or 0)
+    price_value = float(data.get("price") or 0)
+    notes = (data.get("notes") or "").strip()
+
+    if not date_value or not time_value:
+        return jsonify({"error": "Date and time are required."}), 400
+
+    if duration_value <= 0:
+        return jsonify({"error": "Duration must be greater than zero."}), 400
+
+    if price_value < 0:
+        return jsonify({"error": "Price cannot be negative."}), 400
+
+    try:
+        start = _parse_slot_datetime(date_value, time_value)
+    except Exception:
+        return jsonify({"error": "Please provide a valid date and time."}), 400
+
+    slot_id = uuid.uuid4().hex
+    slot: SlotRecord = {
+        "id": slot_id,
+        "date": date_value,
+        "time": time_value,
+        "duration_minutes": duration_value,
+        "price": price_value,
+        "notes": notes,
+        "is_booked": False,
+        "created_at": _iso_now(),
+        "start_iso": start.isoformat(),
+    }
+    booking_slots[slot_id] = slot
+
+    return (
+        jsonify({
+            "slot": _serialize_slot(slot),
+            "slots": _sorted_slots(),
+        }),
+        201,
+    )
+
+
+@main_bp.delete("/api/admin/slots/<slot_id>")
+def delete_slot(slot_id: str):
+    slot = booking_slots.get(slot_id)
+    if not slot:
+        return jsonify({"error": "Slot not found."}), 404
+
+    if slot.get("is_booked"):
+        return jsonify({"error": "This slot has an active booking and cannot be removed."}), 409
+
+    booking_slots.pop(slot_id, None)
+    return jsonify({"removed": True, "slots": _sorted_slots()}), 200
+
+
+@main_bp.post("/api/bookings")
+def create_booking():
+    data = request.get_json(silent=True) or {}
+    slot_id = (data.get("slot_id") or "").strip()
+    client_name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").strip()
+    phone = (data.get("phone") or "").strip()
+    dog_name = (data.get("dog_name") or "").strip()
+    notes = (data.get("notes") or "").strip()
+
+    if not slot_id:
+        return jsonify({"error": "Slot ID is required."}), 400
+
+    slot = booking_slots.get(slot_id)
+    if not slot:
+        return jsonify({"error": "We couldn’t find that slot. Please refresh."}), 404
+
+    if slot.get("is_booked"):
+        return jsonify({"error": "That slot has just been booked. Please choose another."}), 409
+
+    if not client_name or not email or not phone or not dog_name:
+        return (
+            jsonify({"error": "Please complete all booking details before submitting."}),
+            400,
+        )
+
+    booking_id = uuid.uuid4().hex
+    booking: BookingRecord = {
+        "id": booking_id,
+        "slot_id": slot_id,
+        "client_name": client_name,
+        "email": email,
+        "phone": phone,
+        "dog_name": dog_name,
+        "notes": notes,
+        "created_at": _iso_now(),
+        "confirmed": False,
+    }
+
+    slot["is_booked"] = True
+    slot["booking_id"] = booking_id
+    booking_records[booking_id] = booking
+
+    return (
+        jsonify({
+            "booking": _serialize_booking(booking),
+            "slots": _sorted_slots(include_booked=False),
+        }),
+        201,
+    )
+
+
+@main_bp.get("/api/admin/bookings")
+def list_bookings():
+    return jsonify({"bookings": _sorted_bookings()})
+
+
+@main_bp.post("/api/admin/bookings/<booking_id>/status")
+def update_booking_status(booking_id: str):
+    booking = booking_records.get(booking_id)
+    if not booking:
+        return jsonify({"error": "Booking not found."}), 404
+
+    data = request.get_json(silent=True) or {}
+    confirmed = bool(data.get("confirmed"))
+    booking["confirmed"] = confirmed
+    booking["updated_at"] = _iso_now()
+
+    return jsonify({
+        "booking": _serialize_booking(booking),
+        "bookings": _sorted_bookings(),
+    })
 
 
 @main_bp.get("/api/chat/messages")
