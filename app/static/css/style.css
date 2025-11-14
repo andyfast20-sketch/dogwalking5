@@ -368,7 +368,7 @@ main {
 .meet-walker,
 .contact-section,
 .booking-section {
-  padding: 4rem 0;
+  padding: clamp(3rem, 6vw, 4.5rem) 0;
 }
 
 .walker-highlight {
@@ -531,6 +531,316 @@ main {
   padding: 6rem 0 3rem;
   background: linear-gradient(135deg, #12372c, #071613);
   text-align: center;
+}
+
+.contact-hero {
+  position: relative;
+  padding: clamp(4rem, 10vw, 6.5rem) 0 clamp(3rem, 7vw, 4.5rem);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(125, 210, 124, 0.18), transparent 55%),
+    radial-gradient(circle at 85% 12%, rgba(245, 180, 0, 0.25), transparent 50%),
+    linear-gradient(135deg, rgba(9, 41, 31, 0.95), rgba(5, 19, 14, 0.98));
+  overflow: hidden;
+}
+
+.contact-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 110% 20%, rgba(255, 255, 255, 0.08), transparent 55%);
+  pointer-events: none;
+}
+
+.contact-hero-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(2.5rem, 6vw, 4rem);
+  align-items: center;
+}
+
+.contact-hero-copy {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 560px;
+  position: relative;
+  z-index: 1;
+}
+
+.contact-hero-copy .eyebrow {
+  font-size: 0.9rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(245, 180, 0, 0.9);
+  margin: 0;
+}
+
+.contact-hero-copy h1 {
+  font-size: clamp(2.6rem, 5vw, 3.4rem);
+  margin: 0;
+  line-height: 1.1;
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.contact-hero-copy .lede {
+  margin: 0;
+  color: rgba(244, 248, 246, 0.78);
+  font-size: 1.05rem;
+}
+
+.contact-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.contact-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 700;
+  background: rgba(125, 210, 124, 0.14);
+  color: var(--text);
+  border: 1px solid rgba(125, 210, 124, 0.35);
+  box-shadow: 0 12px 24px rgba(7, 22, 19, 0.35);
+}
+
+.contact-card {
+  background: rgba(7, 24, 19, 0.85);
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border-radius: 28px;
+  box-shadow: 0 28px 46px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  gap: 1.25rem;
+  backdrop-filter: blur(10px);
+}
+
+.contact-card h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.contact-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.contact-links li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.contact-links li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.contact-links span {
+  font-weight: 700;
+  color: rgba(245, 180, 0, 0.88);
+}
+
+.contact-links a {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.contact-links a:hover,
+.contact-links a:focus {
+  color: var(--accent);
+}
+
+.contact-areas {
+  background: rgba(125, 210, 124, 0.12);
+  padding: 1rem 1.25rem;
+  border-radius: 18px;
+  border: 1px solid rgba(125, 210, 124, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(125, 210, 124, 0.12);
+}
+
+.contact-areas h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.contact-areas p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.95rem;
+}
+
+.contact-hero-visual {
+  position: relative;
+  display: grid;
+  gap: 1.5rem;
+  justify-items: end;
+}
+
+.hero-photo {
+  width: min(420px, 80vw);
+  aspect-ratio: 4 / 5;
+  border-radius: 36px;
+  background: url("https://files.catbox.moe/vb9gji.png") center/cover;
+  box-shadow: 0 40px 70px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(7, 22, 19, 0) 20%, rgba(7, 22, 19, 0.5) 100%);
+}
+
+.hero-quote {
+  background: rgba(7, 24, 19, 0.82);
+  border-radius: 20px;
+  padding: 1.2rem 1.5rem;
+  max-width: 320px;
+  box-shadow: 0 24px 40px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+}
+
+.hero-quote p {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.hero-quote span {
+  font-size: 0.9rem;
+  color: rgba(244, 248, 246, 0.65);
+}
+
+.contact-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 340px);
+  gap: clamp(2rem, 5vw, 3.5rem);
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .contact-panels {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-side {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+.contact-highlight {
+  display: grid;
+  gap: 1.75rem;
+}
+
+.contact-highlight h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+}
+
+.contact-highlight p {
+  margin: 0;
+  color: rgba(244, 248, 246, 0.75);
+  font-size: 1.05rem;
+}
+
+.contact-form {
+  background: linear-gradient(145deg, rgba(8, 32, 24, 0.92), rgba(12, 40, 31, 0.9));
+  padding: clamp(1.75rem, 4vw, 2.5rem);
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 26px 42px rgba(0, 0, 0, 0.35);
+}
+
+.contact-side {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.side-card {
+  background: rgba(9, 31, 24, 0.9);
+  border-radius: 24px;
+  padding: 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 24px 36px rgba(0, 0, 0, 0.32);
+}
+
+.side-card h3 {
+  margin: 0 0 1rem;
+}
+
+.side-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: rgba(244, 248, 246, 0.75);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.availability {
+  text-align: center;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.availability p {
+  margin: 0;
+  color: rgba(244, 248, 246, 0.75);
+}
+
+.availability .badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  color: #1f1c0a;
+  background: linear-gradient(135deg, #ffd44d, #f5b400);
+  box-shadow: 0 14px 26px rgba(245, 180, 0, 0.35);
+}
+
+.chat-section {
+  padding: clamp(2.5rem, 6vw, 4rem) 0 clamp(3rem, 6vw, 4.5rem);
+}
+
+.chat-card {
+  background: rgba(9, 31, 24, 0.92);
+  border-radius: 28px;
+  padding: clamp(1.75rem, 4vw, 2.5rem);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 28px 44px rgba(0, 0, 0, 0.35);
+  display: grid;
+  gap: 1.5rem;
+}
+
+.chat-card-header {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.chat-status {
+  margin: 0;
+  color: rgba(244, 248, 246, 0.75);
 }
 
 .two-column {
