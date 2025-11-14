@@ -18,14 +18,14 @@
     <div class="hero-image" role="presentation">
       <div class="image-slider" aria-hidden="true">
         <img
-          src="https://files.catbox.moe/ybpug8.png"
-          alt="Dog walking scene with lush greenery"
+          src="{{ url_for('static', filename='img/hero-1.svg') }}"
+          alt="Dog walker leading two happy dogs through a park"
           fetchpriority="high"
           decoding="async"
         />
         <img
-          src="https://files.catbox.moe/dm2dc8.png"
-          alt="Dog walker playing with an excited pup"
+          src="{{ url_for('static', filename='img/hero-2.svg') }}"
+          alt="Playful dog chasing a ball in a meadow"
           loading="lazy"
           decoding="async"
         />
@@ -55,8 +55,8 @@
   <div class="container walker-panel">
     <div class="walker-photo">
       <img
-        src="https://files.catbox.moe/986gie.jpg"
-        alt="Portrait of Andy, a friendly dog walker"
+        src="{{ url_for('static', filename='img/walker-portrait.svg') }}"
+        alt="Portrait illustration of Andy, a friendly dog walker"
         loading="lazy"
         decoding="async"
       />
