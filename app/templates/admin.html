@@ -13,6 +13,64 @@
       A visitor is waiting for a live reply.
     </a>
     <div class="admin-grid" data-role="admin-grid">
+      <article class="admin-card conversation-card" data-card data-card-default id="live-conversations">
+        <div
+          class="card-preview"
+          data-card-toggle
+          role="button"
+          tabindex="0"
+          aria-expanded="false"
+          aria-controls="conversation-card-body"
+        >
+          <div class="card-preview__header">
+            <span class="eyebrow">Live Support</span>
+            <h2>Live Conversations</h2>
+            <p class="card-subtitle">
+              Keep Autopilot in check, watch waiting visitors, and jump into chats instantly.
+            </p>
+          </div>
+          <p class="card-summary-line" data-role="conversation-summary">
+            No active visitors right now.
+          </p>
+          <span class="card-toggle-hint" aria-hidden="true">Open inbox</span>
+        </div>
+        <div class="card-body" id="conversation-card-body" data-card-body hidden>
+          <div class="conversation-layout">
+            <aside
+              class="visitor-list"
+              data-role="visitor-list"
+              aria-label="Visitor conversations"
+            ></aside>
+            <div class="conversation-panel">
+              <header class="chat-header">
+                <div>
+                  <h3 class="visitor-heading" data-role="visitor-heading">
+                    No active visitors
+                  </h3>
+                  <span class="visitor-status-tag" data-role="visitor-status"></span>
+                </div>
+              </header>
+              <div class="chat-window" data-chat-messages aria-live="polite"></div>
+              <p class="chat-hint" data-role="chat-hint">
+                Autopilot is active. Disable it to respond manually.
+              </p>
+              <form id="agent-reply-form" class="reply-form">
+                <label class="field-label" for="agent-message">Reply to visitor</label>
+                <textarea
+                  id="agent-message"
+                  rows="4"
+                  placeholder="Type your message to the visitor..."
+                  required
+                ></textarea>
+                <div class="form-actions">
+                  <button type="submit" class="button secondary">Send Reply</button>
+                  <p class="form-feedback" data-role="agent-feedback"></p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </article>
       <article class="admin-card visitor-card" data-card data-role="visitor-insights">
         <div
           class="card-preview"
@@ -212,64 +270,6 @@
               <p class="form-feedback" data-role="settings-feedback"></p>
             </div>
           </form>
-        </div>
-      </article>
-      <article class="admin-card conversation-card" data-card id="live-conversations">
-        <div
-          class="card-preview"
-          data-card-toggle
-          role="button"
-          tabindex="0"
-          aria-expanded="false"
-          aria-controls="conversation-card-body"
-        >
-          <div class="card-preview__header">
-            <span class="eyebrow">Live Support</span>
-            <h2>Live Conversations</h2>
-            <p class="card-subtitle">
-              Keep Autopilot in check, watch waiting visitors, and jump into chats instantly.
-            </p>
-          </div>
-          <p class="card-summary-line" data-role="conversation-summary">
-            No active visitors right now.
-          </p>
-          <span class="card-toggle-hint" aria-hidden="true">Open inbox</span>
-        </div>
-        <div class="card-body" id="conversation-card-body" data-card-body hidden>
-          <div class="conversation-layout">
-            <aside
-              class="visitor-list"
-              data-role="visitor-list"
-              aria-label="Visitor conversations"
-            ></aside>
-            <div class="conversation-panel">
-              <header class="chat-header">
-                <div>
-                  <h3 class="visitor-heading" data-role="visitor-heading">
-                    No active visitors
-                  </h3>
-                  <span class="visitor-status-tag" data-role="visitor-status"></span>
-                </div>
-              </header>
-              <div class="chat-window" data-chat-messages aria-live="polite"></div>
-              <p class="chat-hint" data-role="chat-hint">
-                Autopilot is active. Disable it to respond manually.
-              </p>
-              <form id="agent-reply-form" class="reply-form">
-                <label class="field-label" for="agent-message">Reply to visitor</label>
-                <textarea
-                  id="agent-message"
-                  rows="4"
-                  placeholder="Type your message to the visitor..."
-                  required
-                ></textarea>
-                <div class="form-actions">
-                  <button type="submit" class="button secondary">Send Reply</button>
-                  <p class="form-feedback" data-role="agent-feedback"></p>
-                </div>
-              </form>
-            </div>
-          </div>
         </div>
       </article>
       <article class="admin-card access-card" data-card data-role="ban-manager">
