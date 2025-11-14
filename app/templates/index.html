@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dog Walking Schedule</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body>
+    <header>
+      <h1>Dog Walking Schedule</h1>
+      <p class="subtitle">Track upcoming walks and add new appointments.</p>
+    </header>
+
+    <main>
+      <section class="walks">
+        <h2>Upcoming Walks</h2>
+        <ul id="walk-list">
+          {% for walk in walks %}
+          <li data-id="{{ walk.id }}">
+            <span class="dog">🐕 {{ walk.dog }}</span>
+            <span class="walker">Walker: {{ walk.walker }}</span>
+            <span class="time">Time: {{ walk.time }}</span>
+            <span class="duration">Duration: {{ walk.duration }} min</span>
+          </li>
+          {% else %}
+          <li class="empty">No walks scheduled yet.</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="form-section">
+        <h2>Schedule a New Walk</h2>
+        <form id="walk-form">
+          <label>
+            Walker Name
+            <input type="text" id="walker" name="walker" required />
+          </label>
+          <label>
+            Dog Name
+            <input type="text" id="dog" name="dog" required />
+          </label>
+          <label>
+            Start Time
+            <input type="time" id="time" name="time" required />
+          </label>
+          <label>
+            Duration (minutes)
+            <input type="number" id="duration" name="duration" min="5" max="120" required />
+          </label>
+          <button type="submit">Add Walk</button>
+        </form>
+        <p id="form-message" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+  </body>
+</html>
