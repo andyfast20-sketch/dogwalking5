@@ -1,53 +1,66 @@
 {% extends "base.html" %}
 {% block title %}Admin | Reliable Walks{% endblock %}
 {% block content %}
-<section class="page-hero admin-hero">
-  <div class="container narrow">
-    <h1>Agent Control Centre</h1>
-    <p>Everything you need to keep Reliable Walks running smoothly.</p>
-  </div>
-</section>
-
-<section class="container admin-dashboard">
-  <h2>Quick actions</h2>
-  <div class="task-grid">
-    <article class="task-card">
-      <h3>Daily Schedule</h3>
-      <p>Review upcoming walks, assign walkers, and confirm meeting points.</p>
-      <span class="task-card__badge">3 routes awaiting confirmation</span>
-    </article>
-    <article class="task-card">
-      <h3>Team Updates</h3>
-      <p>Share announcements with walkers and review availability changes.</p>
-      <span class="task-card__badge">Next briefing: Friday 9:00</span>
-    </article>
-    <button class="task-card task-card--action" type="button" data-role="enquiry-card">
-      <div class="task-card__header">
-        <h3>Enquiries inbox</h3>
-        <span class="task-card__total" data-role="enquiry-total">0 enquiries</span>
-      </div>
-      <p>Follow up on new client messages and keep conversations moving.</p>
-      <span class="task-card__badge task-card__badge--highlight" data-role="new-badge" hidden>
-        <strong data-role="new-count">0</strong> new awaiting review
-      </span>
-      <span class="task-card__cta">Open enquiries</span>
-    </button>
-  </div>
-</section>
-
-<section class="enquiry-panel" data-role="enquiry-panel" hidden>
-  <div class="container">
-    <div class="enquiry-panel__header">
-      <div>
-        <h2>Enquiries inbox</h2>
-        <p>Track each enquiry and mark it complete once it has been handled.</p>
-      </div>
-      <button class="button secondary" type="button" data-role="close-panel">Back to dashboard</button>
+<section class="admin-panel">
+  <div class="container narrow" id="admin-chat" data-role="admin-chat">
+    <header class="admin-header">
+      <h1>Chat Control Centre</h1>
+      <p class="admin-subtitle">
+        Switch between Autopilot and Live Chat, keep the AI briefed on your services,
+        and respond to visitors in real time.
+      </p>
+    </header>
+    <div class="admin-grid">
+      <article class="admin-card">
+        <h2>Chat Mode &amp; Business Context</h2>
+        <form id="chat-settings-form" class="settings-form">
+          <div class="toggle-row">
+            <label class="toggle">
+              <input type="checkbox" id="autopilot-toggle" />
+              <span class="toggle-track" aria-hidden="true"></span>
+              <span class="toggle-label">Autopilot</span>
+            </label>
+            <p class="toggle-description" data-role="mode-description">
+              Visitors chat with the AI assistant.
+            </p>
+          </div>
+          <label class="field-label" for="business-context">Business Knowledge</label>
+          <p class="field-help">
+            Add bullet points, FAQs, pricing, or any notes you want the AI to use in
+            its replies.
+          </p>
+          <textarea
+            id="business-context"
+            rows="8"
+            placeholder="Opening hours, pricing, service areas, booking steps, etc."
+          ></textarea>
+          <div class="form-actions">
+            <button type="submit" class="button primary">Save Settings</button>
+            <p class="form-feedback" data-role="settings-feedback"></p>
+          </div>
+        </form>
+      </article>
+      <article class="admin-card">
+        <h2>Live Conversation</h2>
+        <div class="chat-window" data-chat-messages aria-live="polite"></div>
+        <p class="chat-hint" data-role="chat-hint">
+          Autopilot is active. Disable it to respond manually.
+        </p>
+        <form id="agent-reply-form" class="reply-form">
+          <label class="field-label" for="agent-message">Reply to visitor</label>
+          <textarea
+            id="agent-message"
+            rows="4"
+            placeholder="Type your message to the visitor..."
+            required
+          ></textarea>
+          <div class="form-actions">
+            <button type="submit" class="button secondary">Send Reply</button>
+            <p class="form-feedback" data-role="agent-feedback"></p>
+          </div>
+        </form>
+      </article>
     </div>
-    <div class="enquiry-empty" data-role="enquiry-empty" hidden>
-      <p>No enquiries yet. New messages will appear here automatically.</p>
-    </div>
-    <ul class="enquiry-list" data-role="enquiry-list"></ul>
   </div>
 </section>
 {% endblock %}
