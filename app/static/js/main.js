@@ -215,6 +215,11 @@ function initLiveChatWidget() {
   const input = widget.querySelector("[data-role='chat-input']");
   const thread = widget.querySelector("[data-role='chat-thread']");
   const statusLabel = widget.querySelector("[data-role='chat-status']");
+  const feedback = widget.querySelector("[data-role='chat-feedback']");
+  const submitButton = form?.querySelector("button[type='submit']");
+
+  const storedVisitorId = getOrCreateVisitorId();
+  const visitorId = storedVisitorId || `visitor-${Date.now()}`;
 
   if (!panel || !button || !form || !input || !thread) {
     return;
@@ -224,21 +229,29 @@ function initLiveChatWidget() {
     button.dataset.originalLabel = button.getAttribute("aria-label") || "Open live chat";
   }
 
-  const replies = [
-    "Absolutely! We collect from your door and send real-time walk updates.",
-    "We have weekday, weekend and adventure packages — happy to share pricing!",
-    "Pop in your pup's name and routine and we'll tailor a plan for you.",
-    "Fancy meeting the walker first? We offer complimentary meet & greets.",
-  ];
-
-  let replyIndex = 0;
-  let typingTimeoutId = null;
+  let pollIntervalId = null;
   let isOpen = false;
+  let isSending = false;
+  let autopilotEnabled = true;
 
-  const updateStatus = (message) => {
+  const setFeedback = (message = "", isError = false) => {
+    if (!feedback) return;
+    feedback.textContent = message;
+    feedback.classList.toggle("error", Boolean(isError));
+    feedback.classList.toggle("is-error", Boolean(isError));
+  };
+
+  const setStatusMessage = (message) => {
     if (statusLabel) {
       statusLabel.textContent = message;
     }
+  };
+
+  const updateModeStatus = () => {
+    const message = autopilotEnabled
+      ? "Autopilot is online for instant answers."
+      : "Live concierge is on standby — leave us a note.";
+    setStatusMessage(message);
   };
 
   const autoResize = () => {
@@ -250,31 +263,48 @@ function initLiveChatWidget() {
 
   autoResize();
 
-  const appendMessage = (content, role) => {
-    const item = document.createElement("li");
-    item.classList.add("live-chat-message");
-    const isVisitor = role === "visitor";
-    item.classList.add(isVisitor ? "live-chat-message--visitor" : "live-chat-message--agent");
-
-    const meta = document.createElement("span");
-    meta.classList.add("live-chat-meta");
-    const authorLabel = isVisitor ? "You" : "Lila · Live concierge";
-    meta.textContent = `${authorLabel} · ${formatTimestamp(new Date().toISOString())}`;
-
-    const body = document.createElement("p");
-    body.textContent = content;
-
-    item.append(meta, body);
-    thread.appendChild(item);
-    thread.scrollTop = thread.scrollHeight;
-  };
-
   const focusInput = () => {
     window.requestAnimationFrame(() => {
       input.focus();
       const end = input.value.length;
       input.setSelectionRange?.(end, end);
     });
+  };
+
+  const startPolling = () => {
+    if (pollIntervalId) return;
+    pollIntervalId = window.setInterval(() => {
+      refreshMessages(true);
+    }, 6000);
+  };
+
+  const stopPolling = () => {
+    if (!pollIntervalId) return;
+    window.clearInterval(pollIntervalId);
+    pollIntervalId = null;
+  };
+
+  const refreshMessages = async (isBackground = false) => {
+    try {
+      const data = await fetchJson(
+        `/api/chat/messages?visitor_id=${encodeURIComponent(visitorId)}`
+      );
+      autopilotEnabled = Boolean(data.autopilot);
+      renderLiveChatMessages(thread, data.messages || []);
+      updateLiveChatIndicator(data.waiting_count || 0);
+      updateModeStatus();
+      if (!isBackground) {
+        setFeedback(
+          autopilotEnabled
+            ? "Autopilot is replying in the conversation."
+            : "We’ve alerted the team for a live reply."
+        );
+      }
+    } catch (error) {
+      if (!isBackground) {
+        setFeedback("We couldn’t refresh the chat just now.", true);
+      }
+    }
   };
 
   const closePanel = () => {
@@ -290,10 +320,7 @@ function initLiveChatWidget() {
     }
     button.removeAttribute("aria-hidden");
     button.removeAttribute("tabindex");
-    if (typingTimeoutId) {
-      window.clearTimeout(typingTimeoutId);
-      typingTimeoutId = null;
-    }
+    stopPolling();
   };
 
   const openPanel = () => {
@@ -306,22 +333,11 @@ function initLiveChatWidget() {
     button.setAttribute("aria-label", "Hide live chat window");
     button.setAttribute("aria-hidden", "true");
     button.setAttribute("tabindex", "-1");
-    updateStatus("We're typically replying within a minute.");
+    setFeedback("");
+    updateModeStatus();
+    refreshMessages();
+    startPolling();
     focusInput();
-  };
-
-  const scheduleReply = () => {
-    if (typingTimeoutId) {
-      window.clearTimeout(typingTimeoutId);
-    }
-    updateStatus("Lila is typing…");
-    typingTimeoutId = window.setTimeout(() => {
-      const response = replies[replyIndex % replies.length];
-      replyIndex += 1;
-      appendMessage(response, "agent");
-      updateStatus("We're online all day — ask us anything!");
-      typingTimeoutId = null;
-    }, 1100);
   };
 
   button.addEventListener("click", () => {
@@ -344,10 +360,46 @@ function initLiveChatWidget() {
       focusInput();
       return;
     }
-    appendMessage(message, "visitor");
-    input.value = "";
-    autoResize();
-    scheduleReply();
+    if (isSending) {
+      return;
+    }
+
+    isSending = true;
+    input.disabled = true;
+    submitButton?.setAttribute("disabled", "true");
+    setStatusMessage("Sending…");
+    setFeedback("Sending...");
+
+    fetchJson("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, visitor_id: visitorId }),
+    })
+      .then((data) => {
+        autopilotEnabled = Boolean(data.autopilot);
+        renderLiveChatMessages(thread, data.messages || []);
+        updateLiveChatIndicator(data.waiting_count || 0);
+        input.value = "";
+        autoResize();
+        updateModeStatus();
+        setFeedback(
+          autopilotEnabled
+            ? "Message delivered — Autopilot is replying now."
+            : "Message delivered — we’ll reply here shortly."
+        );
+      })
+      .catch(async (error) => {
+        const fallback = "Sorry, we couldn’t send that message. Please try again.";
+        const messageText = await resolveErrorMessage(error, fallback);
+        setFeedback(messageText, true);
+        updateModeStatus();
+      })
+      .finally(() => {
+        isSending = false;
+        input.disabled = false;
+        submitButton?.removeAttribute("disabled");
+        focusInput();
+      });
   });
 
   input.addEventListener("input", autoResize);
@@ -364,6 +416,8 @@ function initLiveChatWidget() {
       button.focus();
     }
   });
+
+  refreshMessages(true);
 }
 
 function initChatSurprise() {
@@ -623,6 +677,59 @@ function renderMessages(container, messages) {
   });
 
   container.scrollTop = container.scrollHeight;
+}
+
+function renderLiveChatMessages(list, messages) {
+  if (!list) return;
+  list.innerHTML = "";
+  const roleLabels = {
+    visitor: "You",
+    ai: "Lila · Autopilot",
+    agent: "Happy Paws Concierge",
+  };
+  const defaultMessages = [
+    {
+      role: "agent",
+      content: "Need weekday walks, puppy visits, or a weekend hike? Ask away!",
+      timestamp: new Date().toISOString(),
+      meta_label: "Lila · Live concierge",
+    },
+    {
+      role: "agent",
+      content:
+        "Can you collect my dog from home? Absolutely — doorstep pickups are our speciality.",
+      timestamp: new Date().toISOString(),
+      meta_label: "Popular question",
+    },
+  ];
+  const conversation = Array.isArray(messages) && messages.length ? messages : defaultMessages;
+
+  const useDefaults = !Array.isArray(messages) || messages.length === 0;
+  conversation.forEach((message, index) => {
+    const item = document.createElement("li");
+    item.classList.add("live-chat-message");
+    if (message.role) {
+      item.classList.add(
+        message.role === "visitor" ? "live-chat-message--visitor" : "live-chat-message--agent"
+      );
+    }
+    if (useDefaults && index === 1) {
+      item.classList.add("live-chat-message--glow");
+    }
+
+    const meta = document.createElement("span");
+    meta.classList.add("live-chat-meta");
+    const label = message.meta_label || roleLabels[message.role] || "Message";
+    meta.textContent = `${label} · ${formatTimestamp(message.timestamp)}`;
+
+    const body = document.createElement("p");
+    body.textContent = message.content;
+
+    item.append(meta, body);
+    list.appendChild(item);
+  });
+
+  list.scrollTop = list.scrollHeight;
 }
 
 async function fetchJson(url, options) {
@@ -2284,6 +2391,7 @@ function initBanManager() {
   const tableBody = root.querySelector("[data-role='ban-table-body']");
   const emptyState = root.querySelector("[data-role='ban-empty']");
   const table = root.querySelector("[data-role='ban-table']");
+  const tableWrapper = table?.closest(".table-wrapper");
   const countPills = root.querySelectorAll("[data-role='ban-count']");
 
   let visitors = [];
@@ -2322,12 +2430,18 @@ function initBanManager() {
     if (!visitors.length) {
       emptyState.hidden = false;
       table.hidden = true;
+      if (tableWrapper) {
+        tableWrapper.hidden = true;
+      }
       updateCount();
       return;
     }
 
     emptyState.hidden = true;
     table.hidden = false;
+    if (tableWrapper) {
+      tableWrapper.hidden = false;
+    }
 
     visitors.forEach((visitor) => {
       const row = document.createElement("tr");

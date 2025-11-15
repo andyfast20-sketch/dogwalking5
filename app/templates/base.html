@@ -102,34 +102,37 @@
         <div class="live-chat-panel__intro">
           <p>Hi there! I'm Lila and I'd love to help plan your pup's next adventure.</p>
         </div>
-        <ul class="live-chat-thread" data-role="chat-thread" role="log" aria-live="polite">
-          <li class="live-chat-message live-chat-message--agent">
-            <span class="live-chat-meta">Lila · Live concierge</span>
-            <p>Need weekday walks, puppy visits, or a weekend hike? Ask away!</p>
-          </li>
-          <li class="live-chat-message live-chat-message--agent live-chat-message--glow">
-            <span class="live-chat-meta">Popular question</span>
-            <p>“Can you collect my dog from home?” Absolutely — doorstep pickups are our speciality.</p>
-          </li>
-        </ul>
-        <form class="live-chat-form" data-role="chat-form">
-          <label class="sr-only" for="live-chat-input">Send a message</label>
-          <div class="live-chat-input-group">
-            <textarea
-              id="live-chat-input"
-              class="live-chat-input"
-              name="message"
-              rows="1"
-              placeholder="Type a message..."
-              autocomplete="off"
-              data-role="chat-input"
-              required
-            ></textarea>
-            <button type="submit" class="live-chat-send" aria-label="Send message">
-              <span aria-hidden="true">➤</span>
-            </button>
-          </div>
-        </form>
+        <div class="live-chat-panel__body">
+          <ul class="live-chat-thread" data-role="chat-thread" role="log" aria-live="polite">
+            <li class="live-chat-message live-chat-message--agent">
+              <span class="live-chat-meta">Lila · Live concierge</span>
+              <p>Need weekday walks, puppy visits, or a weekend hike? Ask away!</p>
+            </li>
+            <li class="live-chat-message live-chat-message--agent live-chat-message--glow">
+              <span class="live-chat-meta">Popular question</span>
+              <p>“Can you collect my dog from home?” Absolutely — doorstep pickups are our speciality.</p>
+            </li>
+          </ul>
+          <form class="live-chat-form" data-role="chat-form">
+            <label class="sr-only" for="live-chat-input">Send a message</label>
+            <div class="live-chat-input-group">
+              <textarea
+                id="live-chat-input"
+                class="live-chat-input"
+                name="message"
+                rows="1"
+                placeholder="Type a message..."
+                autocomplete="off"
+                data-role="chat-input"
+                required
+              ></textarea>
+              <button type="submit" class="live-chat-send" aria-label="Send message">
+                <span aria-hidden="true">➤</span>
+              </button>
+            </div>
+            <p class="live-chat-feedback" data-role="chat-feedback" aria-live="polite"></p>
+          </form>
+        </div>
       </section>
       <button
         type="button"
