@@ -1763,11 +1763,11 @@ textarea {
 }
 
 .admin-panel {
-  padding: 2.75rem 0 3.5rem;
+  padding: 2rem 0 2.75rem;
 }
 
 .admin-container {
-  width: min(1180px, 94vw);
+  width: min(1280px, 96vw);
 }
 
 .admin-alert {
@@ -1841,7 +1841,7 @@ textarea {
 
 .admin-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2.25rem;
 }
 
 .admin-subtitle {
@@ -1852,8 +1852,8 @@ textarea {
 
 .admin-grid {
   display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   align-items: start;
   grid-auto-flow: dense;
 }
@@ -1861,15 +1861,15 @@ textarea {
 .admin-card {
   position: relative;
   background: var(--card);
-  padding: 1.35rem;
-  border-radius: 20px;
+  padding: 1rem;
+  border-radius: 16px;
   box-shadow: var(--shadow);
   border: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  font-size: 0.95rem;
-  min-height: 220px;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  min-height: 180px;
   transition: box-shadow 0.35s ease, transform 0.35s ease, border-color 0.35s ease;
   overflow: hidden;
   isolation: isolate;
@@ -1880,12 +1880,12 @@ textarea {
 }
 
 .conversation-card:not(.is-expanded) {
-  max-width: 420px;
+  max-width: 360px;
   width: 100%;
 }
 
 .admin-card h2 {
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   margin: 0;
 }
 
@@ -1913,7 +1913,7 @@ textarea {
 
 .admin-card.is-expanded {
   grid-column: 1 / -1;
-  padding: 1.5rem;
+  padding: 1.35rem;
   border-color: rgba(125, 210, 124, 0.45);
   box-shadow: 0 46px 110px rgba(8, 30, 24, 0.55);
 }
@@ -1925,13 +1925,13 @@ textarea {
 .card-preview {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
   cursor: pointer;
   outline: none;
   position: relative;
   z-index: 1;
-  padding: 0.25rem;
-  border-radius: 18px;
+  padding: 0.15rem;
+  border-radius: 14px;
   transition: background 0.35s ease, transform 0.35s ease;
 }
 
@@ -1946,26 +1946,26 @@ textarea {
 
 .card-preview__header {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 .card-summary-line {
   margin: 0;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   color: rgba(245, 249, 247, 0.66);
 }
 
 .card-toggle-hint {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   margin-top: auto;
-  padding: 0.35rem 0.85rem;
+  padding: 0.3rem 0.75rem;
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   background: rgba(255, 255, 255, 0.08);
@@ -1985,15 +1985,15 @@ textarea {
 
 .card-glance {
   display: grid;
-  gap: 0.65rem;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   margin: 0;
 }
 
 .card-glance__item {
   position: relative;
-  padding: 0.75rem 0.9rem;
-  border-radius: 16px;
+  padding: 0.6rem 0.75rem;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(7, 28, 22, 0.55);
   box-shadow: 0 16px 34px rgba(5, 15, 12, 0.35);
@@ -2009,15 +2009,15 @@ textarea {
 
 .card-glance__value {
   margin: 0;
-  font-size: 1.55rem;
+  font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: 0.04em;
 }
 
 .card-body {
   display: grid;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
   position: relative;
   z-index: 1;
 }
@@ -2028,8 +2028,8 @@ textarea {
 
 .admin-card.is-expanded .card-preview {
   background: rgba(255, 255, 255, 0.06);
-  padding: 0.75rem;
-  border-radius: 22px;
+  padding: 0.6rem;
+  border-radius: 18px;
 }
 
 .admin-card.is-expanded .card-summary-line {
@@ -2163,6 +2163,12 @@ textarea {
   }
 }
 
+@media (min-width: 1440px) {
+  .admin-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 1100px) {
   .conversation-layout {
     grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.2fr);
@@ -2271,7 +2277,7 @@ textarea {
 }
 
 .conversation-card.is-expanded .conversation-layout {
-  height: min(760px, calc(100vh - 6rem));
+  height: min(660px, calc(100vh - 5rem));
   flex: 1 1 auto;
 }
 
