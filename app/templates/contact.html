@@ -50,28 +50,49 @@
         Drop us a quick note and we’ll reply with a bespoke walking plan, pricing, and our next
         available slots. We’re here to make every stroll sensational.
       </p>
-      <form id="contact-form" class="contact-form" novalidate>
-        <div class="form-grid">
-          <label>
-            Name
-            <input type="text" name="name" placeholder="Your name" required />
-          </label>
-          <label>
-            Email
-            <input type="email" name="email" placeholder="you@example.com" required />
-          </label>
-          <label>
-            Phone
-            <input type="tel" name="phone" placeholder="Mobile number" required />
-          </label>
+      <div class="contact-form-shell">
+        <div class="contact-form__header">
+          <p class="eyebrow">Personal concierge</p>
+          <h3>Plan their next adventure</h3>
+          <p>
+            Every enquiry lands directly with our lead walker so you’ll always hear back with a
+            thoughtful response and tailored next steps.
+          </p>
         </div>
-        <label>
-          Message
-          <textarea name="message" rows="4" placeholder="Tell us about your dog, schedule, and goals" required></textarea>
-        </label>
-        <button class="button primary" type="submit">Send Message</button>
-        <p class="form-feedback" data-role="contact-feedback" aria-live="polite"></p>
-      </form>
+        <form id="contact-form" class="contact-form" novalidate>
+          <div class="form-grid">
+            <label class="form-field">
+              <span>Name</span>
+              <input type="text" name="name" placeholder="Your name" required />
+            </label>
+            <label class="form-field">
+              <span>Email</span>
+              <input type="email" name="email" placeholder="you@example.com" required />
+            </label>
+            <label class="form-field">
+              <span>Phone</span>
+              <input type="tel" name="phone" placeholder="Mobile number" required />
+            </label>
+          </div>
+          <label class="form-field">
+            <span>Message</span>
+            <textarea
+              name="message"
+              rows="4"
+              placeholder="Tell us about your dog, schedule, and goals"
+              required
+            ></textarea>
+          </label>
+          <div class="contact-form__footer">
+            <div class="contact-guarantee">
+              <p>We reply in under two hours during walking hours.</p>
+              <p class="contact-guarantee__meta">Fully insured · DBS checked · GPS tracked walks</p>
+            </div>
+            <button class="button primary" type="submit">Send Message</button>
+          </div>
+          <p class="form-feedback" data-role="contact-feedback" aria-live="polite"></p>
+        </form>
+      </div>
     </div>
     <aside class="contact-side">
       <div class="side-card">

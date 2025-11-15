@@ -38,6 +38,8 @@ EnquiryRecord = Dict[str, Any]
 banned_visitors: Dict[str, Dict[str, Any]] = {}
 contact_enquiries: Dict[str, EnquiryRecord] = {}
 
+VALID_ENQUIRY_STATUSES = {"new", "in_progress", "complete"}
+
 SlotRecord = Dict[str, Any]
 BookingRecord = Dict[str, Any]
 
@@ -109,7 +111,17 @@ def _sorted_bookings() -> List[BookingRecord]:
 
 def _serialize_enquiry(enquiry: EnquiryRecord) -> EnquiryRecord:
     data = dict(enquiry)
+    status = _enquiry_status(enquiry)
+    data["status"] = status
+    data["completed"] = status == "complete"
     return data
+
+
+def _enquiry_status(enquiry: EnquiryRecord) -> str:
+    status = (enquiry.get("status") or "").strip().lower().replace("-", "_")
+    if status in VALID_ENQUIRY_STATUSES:
+        return status
+    return "complete" if enquiry.get("completed") else "new"
 
 
 def _sorted_enquiries() -> List[EnquiryRecord]:
@@ -125,7 +137,7 @@ def _sorted_enquiries() -> List[EnquiryRecord]:
 
 def _enquiry_summary(enquiries_list: List[EnquiryRecord] | None = None) -> Dict[str, Any]:
     enquiries_data = enquiries_list if enquiries_list is not None else _sorted_enquiries()
-    open_count = sum(1 for item in enquiries_data if not item.get("completed"))
+    open_count = sum(1 for item in enquiries_data if _enquiry_status(item) != "complete")
     return {
         "enquiries": enquiries_data,
         "counts": {"open": open_count, "total": len(enquiries_data)},
@@ -357,6 +369,7 @@ def submit_enquiry():
         "updated_at": now_iso,
         "completed": False,
         "completed_at": None,
+        "status": "new",
     }
     contact_enquiries[enquiry_id] = record
 
@@ -377,13 +390,37 @@ def update_enquiry(enquiry_id: str):
 
     data = request.get_json(silent=True) or {}
     updated = False
+    now_iso = _iso_now()
 
-    if "completed" in data:
-        completed = _coerce_bool(data.get("completed"))
-        enquiry["completed"] = completed
-        enquiry["updated_at"] = _iso_now()
-        enquiry["completed_at"] = enquiry["updated_at"] if completed else None
+    def set_status(status_value: str):
+        nonlocal updated
+        enquiry["status"] = status_value
+        enquiry["completed"] = status_value == "complete"
+        enquiry["updated_at"] = now_iso
+        enquiry["completed_at"] = now_iso if enquiry["completed"] else None
         updated = True
+
+    if "status" in data:
+        status_value = (data.get("status") or "").strip().lower().replace("-", "_")
+        if status_value not in VALID_ENQUIRY_STATUSES:
+            return (
+                jsonify({"error": "Status must be new, in_progress, or complete."}),
+                400,
+            )
+        set_status(status_value)
+
+    if "completed" in data and "status" not in data:
+        completed = _coerce_bool(data.get("completed"))
+        set_status("complete" if completed else "new")
+
+    for field in ("name", "email", "phone", "message"):
+        if field in data:
+            value = (data.get(field) or "").strip()
+            if not value:
+                return jsonify({"error": f"{field.title()} cannot be empty."}), 400
+            enquiry[field] = value
+            enquiry["updated_at"] = now_iso
+            updated = True
 
     if not updated:
         return jsonify({"error": "No changes supplied."}), 400
@@ -392,6 +429,15 @@ def update_enquiry(enquiry_id: str):
     response = _enquiry_summary(enquiries_data)
     response["enquiry"] = _serialize_enquiry(enquiry)
     return jsonify(response)
+
+
+@main_bp.delete("/api/admin/enquiries/<enquiry_id>")
+def delete_enquiry(enquiry_id: str):
+    if enquiry_id not in contact_enquiries:
+        return jsonify({"error": "Enquiry not found."}), 404
+
+    contact_enquiries.pop(enquiry_id, None)
+    return jsonify(_enquiry_summary())
 
 
 @main_bp.get("/api/admin/bookings")

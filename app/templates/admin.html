@@ -2,47 +2,127 @@
 {% block title %}Admin | Reliable Walks{% endblock %}
 {% block content %}
 <section class="admin-panel admin-panel--focused">
-  <div class="admin-body admin-body--focused">
-    <div class="container narrow">
-      <header class="admin-console admin-console--focused">
-        <p class="eyebrow">Operations</p>
-        <h1>Admin tools</h1>
-        <p>
-          The live chat experiment has been retired so we can focus on bookings, enquiries, and
-          our core walking schedule. Use the forms below to stay on top of day-to-day admin.
-        </p>
-      </header>
+  <div class="admin-container">
+    <div class="admin-hero">
+      <div class="admin-hero__grid">
+        <div class="admin-hero__copy">
+          <p class="eyebrow">Operations HQ</p>
+          <h1>Command the pack</h1>
+          <p class="admin-hero__subtitle">
+            Monitor enquiries, triage responses, and keep every walker in the loop. Everything you
+            need to reply fast and keep tails wagging lives here.
+          </p>
+          <ul class="admin-hero__chips">
+            <li>Instant inbox overview</li>
+            <li>One-click status updates</li>
+            <li>Full audit trail</li>
+          </ul>
+        </div>
+        <dl class="admin-hero__stats">
+          <div class="admin-hero__stat">
+            <dt>Open enquiries</dt>
+            <dd data-role="enquiry-open-count">0</dd>
+            <small>Needing your reply</small>
+          </div>
+          <div class="admin-hero__stat">
+            <dt>Total logged</dt>
+            <dd data-role="enquiry-total-count">0</dd>
+            <small>Stored securely in memory</small>
+          </div>
+          <div class="admin-hero__stat">
+            <dt>Response goal</dt>
+            <dd>02:00</dd>
+            <small>Average within business hours</small>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="admin-body admin-body--focused">
       <div class="admin-console admin-console--focused">
-        <article class="side-card">
-          <h2>Booking schedule</h2>
-          <p>
-            Manage availability through the public booking page. Slots that you add via the
-            schedule API instantly appear for customers, and you can continue to confirm or cancel
-            requests from your email notifications.
-          </p>
-          <p>
-            Endpoint: <code>POST /api/admin/slots</code> for new slots and
-            <code>PATCH /api/admin/bookings/&lt;id&gt;/status</code> to confirm visits.
-          </p>
-        </article>
-        <article class="side-card">
-          <h2>Contact enquiries</h2>
-          <p>
-            Every submission from the contact page is logged in memory. Fetch them via
-            <code>GET /api/admin/enquiries</code> and mark enquiries as completed once you have
-            replied so the counts remain accurate.
-          </p>
-        </article>
-        <article class="side-card availability">
-          <h2>Visitor bans</h2>
-          <p>
-            Need to block a repeat spammer? Use the banned visitor endpoints to add, unban, or
-            delete restrictions. The middleware still respects these records even without live chat.
-          </p>
-          <p>
-            Endpoint: <code>POST /api/admin/banned-visitors</code>
-          </p>
-        </article>
+        <div class="admin-console__heading">
+          <p class="eyebrow">Live console</p>
+          <div>
+            <h1>Inbox + Ops</h1>
+            <p class="admin-console__summary">
+              Dive into enquiries, keep the booking waitlist tidy, and manage visitor bans without
+              leaving this page.
+            </p>
+          </div>
+        </div>
+        <div class="admin-grid" data-role="admin-grid">
+          <article
+            class="admin-card admin-card--xl enquiry-card"
+            data-card
+            data-card-default
+            data-role="enquiry-manager"
+          >
+            <button class="card-preview" data-card-toggle>
+              <div class="card-preview__header">
+                <p class="card-summary-line">Inbox health</p>
+                <h2>Contact enquiries</h2>
+              </div>
+              <dl class="card-glance">
+                <div class="card-glance__item">
+                  <dt>Open</dt>
+                  <dd class="card-glance__value" data-role="enquiry-open-count">0</dd>
+                </div>
+                <div class="card-glance__item">
+                  <dt>Total</dt>
+                  <dd class="card-glance__value" data-role="enquiry-total-count">0</dd>
+                </div>
+              </dl>
+              <p class="card-toggle-hint">Tap to manage enquiries</p>
+            </button>
+            <div class="card-body" data-card-body>
+              <div class="enquiry-panel">
+                <div class="enquiry-panel__header">
+                  <div>
+                    <p class="eyebrow">Inbox summary</p>
+                    <p class="admin-console__status" data-role="enquiry-summary">
+                      Checking for new enquiries...
+                    </p>
+                  </div>
+                  <div class="admin-console__actions">
+                    <button class="button secondary" type="button" data-role="enquiry-refresh">
+                      Refresh feed
+                    </button>
+                    <p class="form-feedback" data-role="enquiry-feedback" aria-live="polite"></p>
+                  </div>
+                </div>
+                <div class="enquiry-panel__body">
+                  <div class="enquiry-empty" data-role="enquiry-empty" hidden>
+                    No enquiries just yet. New submissions from the contact page will appear here in
+                    real time.
+                  </div>
+                  <ul class="enquiry-list" data-role="enquiry-list"></ul>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="admin-card schedule-card">
+            <div class="card-preview">
+              <p class="card-summary-line">Bookings</p>
+              <h2>Schedule API</h2>
+              <p>
+                Slots added via <code>POST /api/admin/slots</code> appear on the booking page
+                instantly. Confirm visits with <code>PATCH /api/admin/bookings/&lt;id&gt;/status</code>.
+              </p>
+            </div>
+          </article>
+
+          <article class="admin-card visitor-card">
+            <div class="card-preview">
+              <p class="card-summary-line">Security</p>
+              <h2>Banned visitors</h2>
+              <p>
+                Keep serial spammers away by posting to <code>/api/admin/banned-visitors</code> and
+                managing bans via the REST endpoints.
+              </p>
+            </div>
+          </article>
+        </div>
       </div>
     </div>
   </div>

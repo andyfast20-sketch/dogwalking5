@@ -952,6 +952,24 @@ function initAdminEnquiries() {
   let enquiries = [];
   let isLoading = false;
   let feedbackTimeoutId = null;
+  let activeEditorId = null;
+
+  const STATUS_LABELS = {
+    new: "Awaiting reply",
+    in_progress: "In progress",
+    complete: "Completed",
+  };
+
+  function getStatus(enquiry) {
+    if (!enquiry) return "new";
+    const status = (enquiry.status || (enquiry.completed ? "complete" : "new"))
+      .toString()
+      .toLowerCase();
+    if (["new", "in_progress", "complete"].includes(status)) {
+      return status;
+    }
+    return enquiry.completed ? "complete" : "new";
+  }
 
   function clearFeedbackLater() {
     if (feedbackTimeoutId) {
@@ -981,7 +999,9 @@ function initAdminEnquiries() {
   }
 
   function updateCounts(counts) {
-    const openCount = Number(counts?.open ?? enquiries.filter((item) => !item.completed).length);
+    const openCount = Number(
+      counts?.open ?? enquiries.filter((item) => getStatus(item) !== "complete").length
+    );
     const totalCount = Number(counts?.total ?? enquiries.length);
 
     openCountLabels.forEach((element) => {
@@ -1021,69 +1041,97 @@ function initAdminEnquiries() {
     enquiries.forEach((enquiry) => {
       const item = document.createElement("li");
       item.classList.add("enquiry-item");
-      if (enquiry.completed) {
+      item.dataset.id = enquiry.id;
+      const status = getStatus(enquiry);
+      if (status === "complete") {
         item.classList.add("is-complete");
+      }
+      if (activeEditorId === enquiry.id) {
+        item.classList.add("is-editing");
       }
 
       const header = document.createElement("div");
       header.classList.add("enquiry-item__header");
-
       const title = document.createElement("h4");
-      title.textContent = enquiry.name || "Enquiry";
+      title.textContent = enquiry.name || "Unknown walker";
       header.appendChild(title);
 
-      const statusBadge = document.createElement("span");
-      statusBadge.classList.add("status-badge");
-      if (enquiry.completed) {
-        statusBadge.classList.add("status-complete");
-        statusBadge.textContent = "Dealt with";
-      } else {
-        statusBadge.textContent = "Open";
-      }
-      header.appendChild(statusBadge);
+      const badge = document.createElement("span");
+      badge.classList.add("status-badge", `status-${status.replace("_", "-")}`);
+      badge.textContent = STATUS_LABELS[status] || "Awaiting reply";
+      header.appendChild(badge);
 
       const meta = document.createElement("div");
       meta.classList.add("enquiry-item__meta");
-      const receivedLabel = document.createElement("span");
-      receivedLabel.textContent = `Received ${formatDateTime(enquiry.created_at || enquiry.createdAt)}`;
-      meta.appendChild(receivedLabel);
+      const submitted = document.createElement("span");
+      submitted.textContent = `Received ${formatDateTime(enquiry.created_at)}`;
+      meta.appendChild(submitted);
 
       if (enquiry.email) {
+        const emailWrapper = document.createElement("span");
         const emailLink = document.createElement("a");
+        emailLink.classList.add("enquiry-contact");
         emailLink.href = `mailto:${enquiry.email}`;
         emailLink.textContent = enquiry.email;
-        emailLink.classList.add("enquiry-contact");
-        meta.appendChild(emailLink);
+        emailWrapper.appendChild(emailLink);
+        meta.appendChild(emailWrapper);
       }
 
       if (enquiry.phone) {
+        const phoneWrapper = document.createElement("span");
         const phoneLink = document.createElement("a");
+        phoneLink.classList.add("enquiry-contact");
         phoneLink.href = `tel:${enquiry.phone}`;
         phoneLink.textContent = enquiry.phone;
-        phoneLink.classList.add("enquiry-contact");
-        meta.appendChild(phoneLink);
-      }
-
-      if (enquiry.completed && enquiry.completed_at) {
-        const completedLabel = document.createElement("span");
-        completedLabel.textContent = `Completed ${formatDateTime(enquiry.completed_at)}`;
-        meta.appendChild(completedLabel);
+        phoneWrapper.appendChild(phoneLink);
+        meta.appendChild(phoneWrapper);
       }
 
       const message = document.createElement("p");
       message.classList.add("enquiry-item__message");
-      message.textContent = enquiry.message || "No message provided.";
+      message.textContent = enquiry.message || "(No message provided)";
 
       const actions = document.createElement("div");
       actions.classList.add("enquiry-actions");
-      const toggleButton = document.createElement("button");
-      toggleButton.type = "button";
-      toggleButton.classList.add("button", enquiry.completed ? "ghost" : "secondary");
-      toggleButton.dataset.action = "toggle-enquiry";
-      toggleButton.dataset.id = enquiry.id;
-      toggleButton.dataset.completed = enquiry.completed ? "false" : "true";
-      toggleButton.textContent = enquiry.completed ? "Mark as open" : "Mark as dealt";
-      actions.appendChild(toggleButton);
+
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.classList.add("button", "ghost");
+      editButton.dataset.action = "edit-enquiry";
+      editButton.dataset.id = enquiry.id;
+      editButton.setAttribute("aria-expanded", activeEditorId === enquiry.id ? "true" : "false");
+      editButton.textContent = activeEditorId === enquiry.id ? "Close editor" : "Edit details";
+      actions.appendChild(editButton);
+
+      const statusActions = [];
+      if (status !== "in_progress") {
+        statusActions.push({ status: "in_progress", label: "Mark in progress" });
+      }
+      if (status !== "complete") {
+        statusActions.push({ status: "complete", label: "Mark complete" });
+      }
+      if (status === "complete" || status === "in_progress") {
+        statusActions.push({ status: "new", label: "Reopen" });
+      }
+
+      statusActions.forEach((action) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.classList.add("button", action.status === "complete" ? "secondary" : "ghost");
+        button.dataset.action = "set-status";
+        button.dataset.status = action.status;
+        button.dataset.id = enquiry.id;
+        button.textContent = action.label;
+        actions.appendChild(button);
+      });
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.classList.add("button", "danger");
+      deleteButton.dataset.action = "delete-enquiry";
+      deleteButton.dataset.id = enquiry.id;
+      deleteButton.textContent = "Delete";
+      actions.appendChild(deleteButton);
 
       if (enquiry.email) {
         const replyLink = document.createElement("a");
@@ -1094,9 +1142,68 @@ function initAdminEnquiries() {
         actions.appendChild(replyLink);
       }
 
-      item.append(header, meta, message, actions);
+      const editor = document.createElement("form");
+      editor.classList.add("enquiry-item__editor");
+      editor.dataset.role = "enquiry-editor";
+      editor.dataset.id = enquiry.id;
+      editor.hidden = activeEditorId !== enquiry.id;
+
+      const editorGrid = document.createElement("div");
+      editorGrid.classList.add("enquiry-editor__grid");
+
+      const createField = (labelText, name, type = "text") => {
+        const label = document.createElement("label");
+        label.textContent = labelText;
+        const input = type === "textarea" ? document.createElement("textarea") : document.createElement("input");
+        input.name = name;
+        input.required = true;
+        if (type === "email") {
+          input.type = "email";
+        } else if (type !== "textarea") {
+          input.type = type;
+        }
+        input.value = enquiry[name] || "";
+        label.appendChild(input);
+        return label;
+      };
+
+      editorGrid.append(
+        createField("Name", "name"),
+        createField("Email", "email", "email"),
+        createField("Phone", "phone"),
+        (() => {
+          const field = createField("Message", "message", "textarea");
+          return field;
+        })()
+      );
+
+      const editorActions = document.createElement("div");
+      editorActions.classList.add("enquiry-editor__actions");
+      const cancelButton = document.createElement("button");
+      cancelButton.type = "button";
+      cancelButton.classList.add("button", "ghost");
+      cancelButton.dataset.action = "close-editor";
+      cancelButton.dataset.id = enquiry.id;
+      cancelButton.textContent = "Cancel";
+
+      const saveButton = document.createElement("button");
+      saveButton.type = "submit";
+      saveButton.classList.add("button", "primary");
+      saveButton.textContent = "Save changes";
+
+      editorActions.append(cancelButton, saveButton);
+      editor.append(editorGrid, editorActions);
+
+      item.append(header, meta, message, actions, editor);
       list.appendChild(item);
     });
+
+    if (activeEditorId) {
+      const activeItem = list.querySelector(`[data-id='${activeEditorId}']`);
+      if (!activeItem) {
+        activeEditorId = null;
+      }
+    }
   }
 
   async function loadEnquiries(showLoading = false) {
@@ -1129,23 +1236,132 @@ function initAdminEnquiries() {
     }
   }
 
-  async function toggleEnquiry(enquiryId, completed) {
-    if (!enquiryId) return;
+  async function setEnquiryStatus(enquiryId, status) {
+    if (!enquiryId || !status) return;
+    const statusLabel = STATUS_LABELS[status] || status;
     try {
       const data = await fetchJson(`/api/admin/enquiries/${encodeURIComponent(enquiryId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completed }),
+        body: JSON.stringify({ status }),
       });
       enquiries = Array.isArray(data.enquiries) ? data.enquiries : enquiries;
       renderList(data.counts);
-      setFeedback(completed ? "Enquiry marked as dealt with." : "Enquiry reopened.");
+      setFeedback(`Enquiry marked as ${statusLabel.toLowerCase()}.`);
     } catch (error) {
       const message = await resolveErrorMessage(
         error,
         "We couldn’t update that enquiry just now."
       );
       setFeedback(message, true);
+    }
+  }
+
+  async function deleteEnquiry(enquiryId) {
+    if (!enquiryId) return;
+    try {
+      const data = await fetchJson(`/api/admin/enquiries/${encodeURIComponent(enquiryId)}`, {
+        method: "DELETE",
+      });
+      enquiries = Array.isArray(data.enquiries) ? data.enquiries : enquiries;
+      if (!enquiries.find((item) => item.id === enquiryId)) {
+        activeEditorId = null;
+      }
+      renderList(data.counts);
+      setFeedback("Enquiry deleted.");
+    } catch (error) {
+      const message = await resolveErrorMessage(
+        error,
+        "We couldn’t delete that enquiry right now."
+      );
+      setFeedback(message, true);
+    }
+  }
+
+  function closeEditor(item) {
+    if (!item) return;
+    const editor = item.querySelector("[data-role='enquiry-editor']");
+    const toggle = item.querySelector("[data-action='edit-enquiry']");
+    if (editor) {
+      editor.hidden = true;
+    }
+    if (toggle) {
+      toggle.textContent = "Edit details";
+      toggle.setAttribute("aria-expanded", "false");
+    }
+    item.classList.remove("is-editing");
+    if (item.dataset.id === activeEditorId) {
+      activeEditorId = null;
+    }
+  }
+
+  function openEditor(item) {
+    if (!item) return;
+    const editor = item.querySelector("[data-role='enquiry-editor']");
+    const toggle = item.querySelector("[data-action='edit-enquiry']");
+    if (editor) {
+      editor.hidden = false;
+      const firstField = editor.querySelector("input, textarea");
+      if (firstField) {
+        firstField.focus();
+      }
+    }
+    if (toggle) {
+      toggle.textContent = "Close editor";
+      toggle.setAttribute("aria-expanded", "true");
+    }
+    item.classList.add("is-editing");
+    activeEditorId = item.dataset.id || null;
+  }
+
+  function toggleEditor(item) {
+    if (!item) return;
+    const isOpen = item.classList.contains("is-editing");
+    const current = root.querySelector(".enquiry-item.is-editing");
+    if (current && current !== item) {
+      closeEditor(current);
+    }
+    if (isOpen) {
+      closeEditor(item);
+    } else {
+      openEditor(item);
+    }
+  }
+
+  async function saveEditor(form) {
+    const enquiryId = form.dataset.id;
+    if (!enquiryId) return;
+    const submitButton = form.querySelector("button[type='submit']");
+    if (submitButton) {
+      submitButton.disabled = true;
+    }
+    setFeedback("Saving enquiry...");
+
+    try {
+      const formData = new FormData(form);
+      const payload = {};
+      ["name", "email", "phone", "message"].forEach((field) => {
+        const value = formData.get(field);
+        payload[field] = value ? value.toString().trim() : "";
+      });
+
+      const data = await fetchJson(`/api/admin/enquiries/${encodeURIComponent(enquiryId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      enquiries = Array.isArray(data.enquiries) ? data.enquiries : enquiries;
+      activeEditorId = null;
+      renderList(data.counts);
+      setFeedback("Enquiry updated.");
+    } catch (error) {
+      const message = await resolveErrorMessage(error, "We couldn’t save those changes.");
+      setFeedback(message, true);
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
     }
   }
 
@@ -1157,10 +1373,39 @@ function initAdminEnquiries() {
 
   if (list) {
     list.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-action='toggle-enquiry']");
-      if (!button) return;
-      const { id, completed } = button.dataset;
-      toggleEnquiry(id, completed === "true");
+      const statusButton = event.target.closest("[data-action='set-status']");
+      if (statusButton) {
+        const { id, status } = statusButton.dataset;
+        setEnquiryStatus(id, status);
+        return;
+      }
+
+      const deleteButton = event.target.closest("[data-action='delete-enquiry']");
+      if (deleteButton) {
+        const { id } = deleteButton.dataset;
+        deleteEnquiry(id);
+        return;
+      }
+
+      const cancelButton = event.target.closest("[data-action='close-editor']");
+      if (cancelButton) {
+        const item = cancelButton.closest(".enquiry-item");
+        closeEditor(item);
+        return;
+      }
+
+      const editButton = event.target.closest("[data-action='edit-enquiry']");
+      if (editButton) {
+        const item = editButton.closest(".enquiry-item");
+        toggleEditor(item);
+      }
+    });
+
+    list.addEventListener("submit", (event) => {
+      const form = event.target.closest("[data-role='enquiry-editor']");
+      if (!form) return;
+      event.preventDefault();
+      saveEditor(form);
     });
   }
 
