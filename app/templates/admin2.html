@@ -3,62 +3,52 @@
 {% block content %}
 <section class="admin-panel admin-panel--lab">
   <div class="admin-container admin2-layout">
-    <aside class="admin2-sidebar">
-      <div class="admin2-briefing">
-        <p class="eyebrow">Field command lab</p>
-        <h1>Keep walkers, clients, and pups in sync</h1>
+    <section class="admin2-overview" aria-label="Operations overview">
+      <div class="admin2-overview__intro">
+        <p class="eyebrow">Ops status</p>
+        <h1>Realtime command surface</h1>
         <p>
-          Admin 2 trades hero banners for a crisp operator brief. Glance at the vitals, pick a lane,
-          and stay focused while enquiries, bans, and bookings update in real time.
+          Key vitals now sit beside the working console so operators can move from metrics to action
+          without scanning past a hero banner.
         </p>
-        <div class="admin2-callout" role="note" aria-label="Admin 2 headline">
-          <p class="admin2-callout__title">Operator memo</p>
-          <p class="admin2-callout__body">
-            Desk-friendly overview, shared metrics between teams, and immediate ban plus booking alerts—
-            all in one lens so leadership sees the same story you do.
-          </p>
-          <p class="admin2-callout__foot">
-            Use this space to broadcast the latest signal from the field in a way that's calm, clear, and
-            impossible to miss.
-          </p>
-        </div>
       </div>
-
-      <div class="admin2-metrics">
-        <article class="admin2-metric-card">
-          <p>Open enquiries</p>
-          <strong data-role="enquiry-open-count">0</strong>
-          <small>Needing attention</small>
-        </article>
-        <article class="admin2-metric-card">
-          <p>Inbox volume</p>
-          <strong data-role="enquiry-total-count">0</strong>
-          <small>Total threads</small>
-        </article>
-        <article class="admin2-metric-card">
-          <p>Ban watch</p>
-          <strong data-role="ban-count">0</strong>
-          <small>Active restrictions</small>
-        </article>
-      </div>
-
-      <div class="admin2-snapshot">
-        <div>
-          <h2>Live signal</h2>
-          <p data-role="enquiry-summary">Loading status...</p>
-        </div>
-        <ul>
-          <li>
-            <span>Last refresh</span>
-            <strong data-role="lab-refresh">Just now</strong>
-          </li>
-          <li>
-            <span>Watch list</span>
+      <div class="admin2-overview__grid">
+        <div class="admin2-metrics">
+          <article class="admin2-metric-card">
+            <p>Open enquiries</p>
+            <strong data-role="enquiry-open-count">0</strong>
+            <small>Needing attention</small>
+          </article>
+          <article class="admin2-metric-card">
+            <p>Inbox volume</p>
+            <strong data-role="enquiry-total-count">0</strong>
+            <small>Total threads</small>
+          </article>
+          <article class="admin2-metric-card">
+            <p>Ban watch</p>
             <strong data-role="ban-count">0</strong>
-          </li>
-        </ul>
+            <small>Active restrictions</small>
+          </article>
+        </div>
+
+        <div class="admin2-snapshot">
+          <div>
+            <h2>Live signal</h2>
+            <p data-role="enquiry-summary">Loading status...</p>
+          </div>
+          <ul>
+            <li>
+              <span>Last refresh</span>
+              <strong data-role="lab-refresh">Just now</strong>
+            </li>
+            <li>
+              <span>Watch list</span>
+              <strong data-role="ban-count">0</strong>
+            </li>
+          </ul>
+        </div>
       </div>
-    </aside>
+    </section>
 
     <div class="admin2-main">
       <div class="admin-console admin-console--lab">
