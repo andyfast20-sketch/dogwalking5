@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Admin 2 | Reliable Walks{% endblock %}
+{% block content %}
+<section class="admin-panel admin-panel--lab">
+  <div class="admin-container">
+    <header class="admin-hero admin-hero--lab">
+      <div class="admin-hero__grid">
+        <div class="admin-hero__copy">
+          <p class="eyebrow">Field command lab</p>
+          <h1>Keep walkers, clients, and pups in sync</h1>
+          <p class="admin-hero__subtitle">
+            Admin 2 is a calmer space for operators who want a high-signal overview of live
+            enquiries, safety alerts, and the booking queue.
+          </p>
+          <ul class="admin-hero__chips">
+            <li>Desk-friendly layout</li>
+            <li>Shared metrics</li>
+            <li>Ban + booking alerts</li>
+          </ul>
+        </div>
+        <dl class="admin-hero__stats">
+          <div class="admin-hero__stat">
+            <dt>Open enquiries</dt>
+            <dd data-role="enquiry-open-count">0</dd>
+            <small>Needs a reply</small>
+          </div>
+          <div class="admin-hero__stat">
+            <dt>Inbox volume</dt>
+            <dd data-role="enquiry-total-count">0</dd>
+            <small>Total threads</small>
+          </div>
+          <div class="admin-hero__stat">
+            <dt>Ban watch</dt>
+            <dd data-role="ban-count">0</dd>
+            <small>Active restrictions</small>
+          </div>
+        </dl>
+      </div>
+    </header>
+
+    <div class="admin-body admin-body--lab">
+      <div class="admin-console admin-console--lab">
+        <div class="admin-console__heading">
+          <p class="eyebrow">Mission control</p>
+          <div>
+            <h1>Choose a lane and get to work</h1>
+            <p class="admin-console__summary">
+              Each card below opens a dedicated tool focused on enquiries, visitor bans, or
+              schedule hygiene. Use the back button to jump between workstreams.
+            </p>
+          </div>
+          <button class="button ghost" type="button" data-role="admin-back" hidden>Back to overview</button>
+        </div>
+        <div class="admin-grid admin-grid--lab" data-role="admin-grid">
+          <article
+            class="admin-card admin-card--xl enquiry-card"
+            data-card
+            data-card-default
+            data-role="enquiry-manager"
+          >
+            <button class="card-preview" data-card-toggle>
+              <div class="card-preview__header">
+                <p class="card-summary-line">Inbox radar</p>
+                <h2>Rapid response desk</h2>
+              </div>
+              <dl class="card-glance">
+                <div class="card-glance__item">
+                  <dt>Open</dt>
+                  <dd class="card-glance__value" data-role="enquiry-open-count">0</dd>
+                </div>
+                <div class="card-glance__item">
+                  <dt>Total</dt>
+                  <dd class="card-glance__value" data-role="enquiry-total-count">0</dd>
+                </div>
+              </dl>
+              <p class="card-toggle-hint">Expand to triage incoming contact requests</p>
+            </button>
+            <div class="card-body" data-card-body>
+              <div class="enquiry-panel">
+                <div class="enquiry-panel__header">
+                  <div>
+                    <p class="eyebrow">Contact inbox</p>
+                    <p class="admin-console__status" data-role="enquiry-summary">
+                      Loading enquiries...
+                    </p>
+                  </div>
+                  <div class="admin-console__actions">
+                    <button class="button secondary" type="button" data-role="enquiry-refresh">
+                      Refresh feed
+                    </button>
+                    <p class="form-feedback" data-role="enquiry-feedback" aria-live="polite"></p>
+                  </div>
+                </div>
+                <div class="enquiry-panel__body">
+                  <div class="enquiry-empty" data-role="enquiry-empty" hidden>
+                    Nice! There are currently no conversations waiting on us.
+                  </div>
+                  <ul class="enquiry-list" data-role="enquiry-list"></ul>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="admin-card admin-card--md" data-card data-role="ban-manager">
+            <button class="card-preview" data-card-toggle>
+              <div class="card-preview__header">
+                <p class="card-summary-line">Security sweeps</p>
+                <h2>Banned visitors</h2>
+              </div>
+              <p>
+                Ban serial spammers, note why action was taken, and revoke access when behaviour
+                improves. API: <code>POST /api/admin/banned-visitors</code>
+              </p>
+              <p class="card-toggle-hint">Expand to review the ban ledger</p>
+            </button>
+            <div class="card-body" data-card-body>
+              <div class="ban-panel">
+                <div class="ban-panel__header">
+                  <p class="eyebrow">Active bans</p>
+                  <p class="form-feedback" data-role="ban-feedback" aria-live="polite"></p>
+                </div>
+                <div class="ban-panel__body">
+                  <div class="ban-empty" data-role="ban-empty" hidden>
+                    No visitors are restricted at the moment.
+                  </div>
+                  <table class="ban-table" data-role="ban-table" hidden>
+                    <thead>
+                      <tr>
+                        <th scope="col">Identifier</th>
+                        <th scope="col">Reason</th>
+                        <th scope="col">Created</th>
+                        <th scope="col">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody data-role="ban-table-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="admin-card admin-card--lg" data-card data-role="schedule-manager">
+            <button class="card-preview" data-card-toggle>
+              <div class="card-preview__header">
+                <p class="card-summary-line">Capacity planning</p>
+                <h2>Schedule + bookings</h2>
+              </div>
+              <p>
+                Surface every slot that has been posted via <code>POST /api/admin/slots</code> and track
+                the bookings confirmed in app.
+              </p>
+              <p class="card-toggle-hint">Expand to curate the public booking board</p>
+            </button>
+            <div class="card-body" data-card-body>
+              <div class="schedule-panel" data-role="booking-schedule">
+                <div class="schedule-panel__header">
+                  <div>
+                    <p class="eyebrow">Upcoming slots</p>
+                    <p>
+                      Filter by date, double check durations, and ensure the public booking page stays
+                      accurate.
+                    </p>
+                  </div>
+                  <label class="schedule-filter">
+                    <span>Filter by date</span>
+                    <input type="date" data-role="date-filter" />
+                  </label>
+                </div>
+                <div class="schedule-panel__body">
+                  <div class="schedule-empty" data-role="slot-empty" hidden>
+                    No open slots were found for that timeframe.
+                  </div>
+                  <ul class="schedule-list" data-role="slot-list"></ul>
+                  <div class="schedule-panel__meta">
+                    <p><strong data-role="slot-count">0</strong> open slots shown</p>
+                    <p class="schedule-note">
+                      To add more availability, use the admin schedule API or the form in the original
+                      Admin page.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
