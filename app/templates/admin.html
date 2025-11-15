@@ -3,15 +3,6 @@
 {% block content %}
 <section class="admin-panel">
   <div class="container admin-container" id="admin-chat" data-role="admin-chat">
-    <a
-      class="admin-alert"
-      data-role="waiting-alert"
-      aria-live="assertive"
-      href="#live-conversations"
-      hidden
-    >
-      A visitor is waiting for a live reply.
-    </a>
     <div class="admin-grid" data-role="admin-grid">
       <article class="admin-card conversation-card" data-card id="live-conversations">
         <div
@@ -143,6 +134,17 @@
             <span class="eyebrow">Visitor Intelligence</span>
             <h2>Website Visitors</h2>
             <p class="card-subtitle">Monitor real-time traffic and see who’s waiting.</p>
+          </div>
+          <div class="visitor-card__alert">
+            <a
+              class="admin-alert"
+              data-role="waiting-alert"
+              aria-live="assertive"
+              href="#live-conversations"
+              hidden
+            >
+              A visitor is waiting for a live reply.
+            </a>
           </div>
           <dl class="card-glance">
             <div class="card-glance__item">
