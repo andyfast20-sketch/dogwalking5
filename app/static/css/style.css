@@ -2322,6 +2322,53 @@ textarea {
   gap: 0.2rem;
 }
 
+.card-preview__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.chat-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+  padding: 0.38rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  align-self: flex-start;
+  border: 1px solid transparent;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.chat-status-indicator::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.chat-status-indicator.is-on {
+  background: rgba(103, 232, 141, 0.22);
+  color: #d7ffe2;
+  border-color: rgba(103, 232, 141, 0.45);
+  box-shadow: 0 14px 30px rgba(21, 68, 43, 0.45);
+}
+
+.chat-status-indicator.is-off {
+  background: rgba(255, 199, 118, 0.22);
+  color: #fff1d6;
+  border-color: rgba(255, 199, 118, 0.45);
+  box-shadow: 0 14px 30px rgba(68, 41, 7, 0.45);
+}
+
 .card-summary-line {
   margin: 0;
   font-weight: 700;

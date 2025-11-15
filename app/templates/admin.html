@@ -23,8 +23,18 @@
           aria-controls="conversation-card-body"
         >
           <div class="card-preview__header">
-            <span class="eyebrow">Live Support</span>
-            <h2>Live Conversations</h2>
+            <div class="card-preview__heading">
+              <span class="eyebrow">Live Support</span>
+              <h2>Live Conversations</h2>
+            </div>
+            <span
+              class="chat-status-indicator is-off"
+              data-role="live-chat-status"
+              role="status"
+              aria-live="polite"
+            >
+              Live chat is OFF — Autopilot replies instantly.
+            </span>
           </div>
           <p class="card-summary-line" data-role="conversation-summary"></p>
           <span class="card-toggle-hint" aria-hidden="true">Open inbox</span>
@@ -316,7 +326,7 @@
             <p class="card-subtitle">Toggle Autopilot and keep your business details current.</p>
           </div>
           <p class="card-summary-line" data-role="mode-description">
-            Visitors chat with the AI assistant.
+            Live chat is OFF — visitors chat with the AI assistant.
           </p>
           <span class="card-toggle-hint" aria-hidden="true">Update assistant</span>
         </div>
@@ -329,7 +339,7 @@
                 <span class="toggle-label">Autopilot</span>
               </label>
               <p class="toggle-description" data-role="mode-description">
-                Visitors chat with the AI assistant.
+                Live chat is OFF — visitors chat with the AI assistant.
               </p>
             </div>
             <label class="field-label" for="business-context">Business Knowledge</label>
