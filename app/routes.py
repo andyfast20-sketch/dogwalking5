@@ -229,6 +229,9 @@ def _enquiry_summary(enquiries_list: List[EnquiryRecord] | None = None) -> Dict[
 
 
 def _generate_ai_reply(user_message: str) -> str:
+    if not chat_state.get("autopilot"):
+        return ""
+
     api_key = os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
         return (
@@ -258,6 +261,9 @@ def _generate_ai_reply(user_message: str) -> str:
     }
 
     try:
+        if not chat_state.get("autopilot"):
+            return ""
+
         response = requests.post(
             "https://api.deepseek.com/v1/chat/completions",
             headers={
@@ -275,9 +281,13 @@ def _generate_ai_reply(user_message: str) -> str:
         message = choices[0]["message"]["content"].strip()
         if not message:
             raise ValueError("Empty message from DeepSeek API")
+        if not chat_state.get("autopilot"):
+            return ""
         return message
     except Exception:  # pragma: no cover - best effort logging only
         current_app.logger.exception("DeepSeek chat completion failed")
+        if not chat_state.get("autopilot"):
+            return ""
         return (
             "I’m having a little trouble answering right now. Please share your "
             "details and we’ll follow up personally!"
@@ -754,7 +764,8 @@ def post_chat_message():
 
     if chat_state["autopilot"]:
         ai_reply = _generate_ai_reply(message)
-        _append_message(visitor, "ai", ai_reply)
+        if chat_state.get("autopilot") and ai_reply:
+            _append_message(visitor, "ai", ai_reply)
 
     return (
         jsonify(
