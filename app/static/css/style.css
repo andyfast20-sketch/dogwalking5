@@ -1513,12 +1513,13 @@ textarea {
 }
 
 .live-chat-message {
-  padding: 0.75rem 1rem;
-  border-radius: 20px 20px 20px 10px;
+  padding: 0.55rem 0.85rem;
+  border-radius: 12px;
   background: rgba(6, 32, 24, 0.72);
   border: 1px solid rgba(155, 242, 182, 0.35);
   box-shadow: 0 14px 30px rgba(4, 20, 15, 0.45);
-  line-height: 1.5;
+  line-height: 1.45;
+  font-size: 0.92rem;
   position: relative;
   max-width: 90%;
 }
@@ -1538,12 +1539,12 @@ textarea {
 
 .live-chat-message--visitor {
   align-self: flex-end;
-  border-radius: 20px 20px 10px 20px;
+  border-radius: 12px 12px 8px 12px;
   background: linear-gradient(140deg, #fff1b5, #ffd270 60%, #ffe28a 100%);
   color: #2b230b;
   border-color: rgba(255, 249, 220, 0.85);
-  box-shadow: 0 18px 36px rgba(255, 200, 90, 0.38);
-  padding: 0.65rem 0.95rem;
+  box-shadow: 0 14px 28px rgba(255, 200, 90, 0.32);
+  padding: 0.5rem 0.8rem;
 }
 
 .live-chat-meta {
