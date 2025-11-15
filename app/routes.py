@@ -20,6 +20,16 @@ chat_state: Dict[str, Any] = {
     "visitors": {},
 }
 
+AI_ASSISTANT_UNAVAILABLE_MESSAGE = (
+    "I’m currently unable to reach our AI assistant. Please leave your message, "
+    "and a team member will get back to you shortly."
+)
+
+AI_ASSISTANT_RETRY_MESSAGE = (
+    "I’m having a little trouble answering right now. Please share your "
+    "details and we’ll follow up personally!"
+)
+
 
 def _coerce_bool(value: Any) -> bool:
     """Convert different truthy representations into a boolean.
@@ -101,10 +111,38 @@ def _append_message(visitor: Dict[str, Any], role: str, content: str) -> None:
     visitor["last_seen"] = message["timestamp"]
 
 
+def _prune_autopilot_fallback_messages(
+    messages: List[ChatMessage],
+) -> List[ChatMessage]:
+    autopilot_only_messages = {
+        AI_ASSISTANT_UNAVAILABLE_MESSAGE,
+        AI_ASSISTANT_RETRY_MESSAGE,
+    }
+    return [
+        message
+        for message in messages
+        if not (
+            message.get("role") == "ai"
+            and message.get("content") in autopilot_only_messages
+        )
+    ]
+
+
+def _visitor_messages(visitor: Dict[str, Any]) -> List[ChatMessage]:
+    messages: List[ChatMessage] = visitor.get("messages", [])
+    if chat_state.get("autopilot"):
+        return messages
+
+    filtered_messages = _prune_autopilot_fallback_messages(messages)
+    if len(filtered_messages) != len(messages):
+        visitor["messages"] = filtered_messages
+    return filtered_messages
+
+
 def _visitor_is_waiting(visitor: Dict[str, Any]) -> bool:
     if chat_state.get("autopilot"):
         return False
-    messages: List[ChatMessage] = visitor.get("messages", [])
+    messages = _visitor_messages(visitor)
     return bool(messages) and messages[-1]["role"] == "visitor"
 
 
@@ -113,7 +151,7 @@ def _waiting_count() -> int:
 
 
 def _serialize_conversation(visitor: Dict[str, Any]) -> Dict[str, Any]:
-    messages: List[ChatMessage] = visitor.get("messages", [])
+    messages = _visitor_messages(visitor)
     last_message = messages[-1] if messages else None
     return {
         "visitor_id": visitor.get("id"),
@@ -127,7 +165,7 @@ def _serialize_conversation(visitor: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _serialize_visitor_record(visitor: Dict[str, Any]) -> Dict[str, Any]:
-    messages: List[ChatMessage] = visitor.get("messages", [])
+    messages = _visitor_messages(visitor)
     last_message = messages[-1] if messages else None
     visits = list(visitor.get("visits", []))
     recent_visits = visits[-5:]
@@ -234,10 +272,7 @@ def _generate_ai_reply(user_message: str) -> str:
 
     api_key = os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
-        return (
-            "I’m currently unable to reach our AI assistant. Please leave your message, "
-            "and a team member will get back to you shortly."
-        )
+        return AI_ASSISTANT_UNAVAILABLE_MESSAGE
 
     system_prompt = (
         "You are a helpful customer support assistant for a dog walking service. "
@@ -288,10 +323,7 @@ def _generate_ai_reply(user_message: str) -> str:
         current_app.logger.exception("DeepSeek chat completion failed")
         if not chat_state.get("autopilot"):
             return ""
-        return (
-            "I’m having a little trouble answering right now. Please share your "
-            "details and we’ll follow up personally!"
-        )
+        return AI_ASSISTANT_RETRY_MESSAGE
 
 
 def _get_client_ip() -> str:
@@ -480,7 +512,7 @@ def list_conversations():
     visitors = list(_visitors().values())
     summaries: List[Dict[str, Any]] = []
     for visitor in visitors:
-        messages: List[ChatMessage] = visitor.get("messages", [])
+        messages = _visitor_messages(visitor)
         if messages or _visitor_is_waiting(visitor):
             summaries.append(_serialize_conversation(visitor))
 
@@ -716,10 +748,11 @@ def get_chat_messages():
         return jsonify({"error": "Visitor ID is required."}), 400
 
     visitor = _get_or_create_visitor(visitor_id)
+    messages = _visitor_messages(visitor)
 
     return jsonify(
         {
-            "messages": visitor.get("messages", []),
+            "messages": messages,
             "autopilot": chat_state["autopilot"],
             "visitor_id": visitor_id,
             "label": visitor.get("label"),
@@ -732,7 +765,7 @@ def get_chat_messages():
 @main_bp.get("/api/chat/status")
 def get_chat_status():
     visitors = list(_visitors().values())
-    active_conversations = sum(1 for visitor in visitors if visitor.get("messages"))
+    active_conversations = sum(1 for visitor in visitors if _visitor_messages(visitor))
 
     return jsonify(
         {
@@ -756,7 +789,7 @@ def post_chat_message():
         return jsonify({"error": "Visitor ID is required."}), 400
 
     visitor = _get_or_create_visitor(visitor_id)
-    is_returning = bool(visitor.get("messages"))
+    is_returning = bool(_visitor_messages(visitor))
 
     _append_message(visitor, "visitor", message)
     if is_returning:
@@ -767,10 +800,12 @@ def post_chat_message():
         if chat_state.get("autopilot") and ai_reply:
             _append_message(visitor, "ai", ai_reply)
 
+    response_messages = _visitor_messages(visitor)
+
     return (
         jsonify(
             {
-                "messages": visitor.get("messages", []),
+                "messages": response_messages,
                 "autopilot": chat_state["autopilot"],
                 "visitor_id": visitor_id,
                 "label": visitor.get("label"),
@@ -806,9 +841,11 @@ def post_agent_response():
     visitor = _get_or_create_visitor(visitor_id)
     _append_message(visitor, "agent", message)
 
+    response_messages = _visitor_messages(visitor)
+
     return jsonify(
         {
-            "messages": visitor.get("messages", []),
+            "messages": response_messages,
             "autopilot": False,
             "visitor_id": visitor_id,
             "label": visitor.get("label"),
