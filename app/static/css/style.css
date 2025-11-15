@@ -2255,6 +2255,13 @@ textarea {
   padding: 1.35rem;
   border-color: rgba(125, 210, 124, 0.45);
   box-shadow: 0 46px 110px rgba(8, 30, 24, 0.55);
+  max-height: min(820px, calc(100vh - 5rem));
+}
+
+.admin-card.is-expanded .card-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 .admin-card.is-expanded::after {
@@ -2656,6 +2663,29 @@ textarea {
 
 
 
+.admin-card.is-expanded .live-support-shell,
+.admin-card.is-expanded .live-support-main {
+  height: 100%;
+  min-height: 0;
+}
+
+.admin-card.is-expanded .live-support-main {
+  align-items: stretch;
+}
+
+.admin-card.is-expanded .live-support-stage {
+  min-height: 0;
+  height: 100%;
+}
+
+.admin-card.is-expanded .conversation-panel {
+  min-height: 0;
+}
+
+.admin-card.is-expanded .conversation-panel .chat-window {
+  min-height: 0;
+}
+
 .live-support-main {
   display: grid;
   gap: clamp(1rem, 2vw, 1.6rem);
@@ -2675,6 +2705,10 @@ textarea {
   box-shadow: 0 28px 46px rgba(3, 12, 10, 0.38);
   grid-area: inbox;
   align-self: flex-start;
+}
+
+.admin-card.is-expanded .live-support-inbox {
+  height: 100%;
 }
 
 .live-support-inbox__header {
@@ -2709,6 +2743,11 @@ textarea {
   max-height: clamp(220px, 42vh, 360px);
   min-height: 0;
   font-size: 0.78rem;
+}
+
+.admin-card.is-expanded .live-support-inbox .visitor-list {
+  flex: 1;
+  max-height: none;
 }
 
 .live-support-stage {
