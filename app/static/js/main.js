@@ -1860,6 +1860,8 @@ function initAdminChat() {
 
   const messageContainer = adminRoot.querySelector("[data-chat-messages]");
   const chatHint = adminRoot.querySelector("[data-role='chat-hint']");
+  const chatModeLabel = adminRoot.querySelector("[data-role='chat-mode']");
+  const liveChatStatus = adminRoot.querySelector("[data-role='live-chat-status']");
   const modeDescriptions = adminRoot.querySelectorAll("[data-role='mode-description']");
   const conversationSummaries = adminRoot.querySelectorAll(
     "[data-role='conversation-summary']"
@@ -2072,16 +2074,27 @@ function initAdminChat() {
 
   function updateModeDescription(isAutopilot) {
     autopilotEnabled = Boolean(isAutopilot);
-    const descriptionText = autopilotEnabled
-      ? "Visitors chat with the AI assistant."
-      : "Visitors will wait for a live reply from you.";
+    const liveChatOn = !autopilotEnabled;
+    const descriptionText = liveChatOn
+      ? "Live chat is ON — visitors wait for a live reply from you."
+      : "Live chat is OFF — visitors chat with the AI assistant.";
     modeDescriptions.forEach((element) => {
       element.textContent = descriptionText;
     });
+    if (chatModeLabel) {
+      chatModeLabel.textContent = liveChatOn ? "Live chat ON" : "Live chat OFF";
+    }
+    if (liveChatStatus) {
+      liveChatStatus.textContent = liveChatOn
+        ? "Live chat is ON — you need to reply to visitors."
+        : "Live chat is OFF — Autopilot replies instantly.";
+      liveChatStatus.classList.toggle("is-on", liveChatOn);
+      liveChatStatus.classList.toggle("is-off", !liveChatOn);
+    }
     if (!selectedVisitorId && chatHint) {
-      chatHint.textContent = autopilotEnabled
-        ? "Autopilot is active. Disable it to respond manually."
-        : "Select a visitor to view their messages and reply.";
+      chatHint.textContent = liveChatOn
+        ? "Live chat is ON. Select a visitor to reply."
+        : "Live chat is OFF. Turn it on to respond manually.";
     }
     updateReplyAvailability();
     updateWaitingAlert(currentWaitingCount);
@@ -2117,8 +2130,8 @@ function initAdminChat() {
     updateVisitorStatusTag(false);
     if (chatHint) {
       chatHint.textContent = autopilotEnabled
-        ? "Autopilot is active. Disable it to respond manually."
-        : "No visitors are waiting right now.";
+        ? "Live chat is OFF. Turn it on to respond manually."
+        : "Live chat is ON. No visitors are waiting right now.";
     }
     updateReplyAvailability();
     updateConversationSummary();
@@ -2247,12 +2260,12 @@ function initAdminChat() {
       if (chatHint) {
         if (!data.messages || data.messages.length === 0) {
           chatHint.textContent = autopilotEnabled
-            ? "Autopilot is active. Disable it to respond manually."
+            ? "Live chat is OFF. Turn it on to respond manually."
             : "No messages from this visitor yet.";
         } else {
           chatHint.textContent = autopilotEnabled
-            ? "Autopilot is active. Disable it to respond manually."
-            : "Live chat is on. New visitor messages will appear here.";
+            ? "Live chat is OFF. Turn it on to respond manually."
+            : "Live chat is ON. New visitor messages will appear here.";
         }
       }
       updateReplyAvailability();
@@ -2391,7 +2404,7 @@ function initAdminChat() {
         if (replyFeedback) {
           replyFeedback.textContent =
             error?.response?.status === 400
-              ? "Autopilot is enabled. Turn it off to reply manually."
+              ? "Live chat is OFF. Turn it on to reply manually."
               : "Couldn’t send reply. Try again.";
           replyFeedback.classList.add("error");
         }
