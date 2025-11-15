@@ -55,23 +55,25 @@
             Premium, personalised adventures for pups who deserve the royal treatment.
           </p>
         </div>
-        <div class="footer-grid">
-          <div class="footer-brand">
-            <p>
-              Trusted, insured, and always ready for tail-wagging adventures across the city.
-            </p>
-            <div class="footer-chips">
-              <span>Fully Insured</span>
-              <span>DBS Checked</span>
-              <span>24/7 Support</span>
+        <div class="footer-columns">
+          <section class="footer-column footer-column--brand">
+            <div class="footer-brand">
+              <p>
+                Trusted, insured, and always ready for tail-wagging adventures across the city.
+              </p>
+              <div class="footer-chips">
+                <span>Fully Insured</span>
+                <span>DBS Checked</span>
+                <span>24/7 Support</span>
+              </div>
+              <div class="footer-social" aria-label="Social media">
+                <a href="https://instagram.com" target="_blank" rel="noreferrer noopener">Instagram</a>
+                <a href="https://facebook.com" target="_blank" rel="noreferrer noopener">Facebook</a>
+                <a href="https://tiktok.com" target="_blank" rel="noreferrer noopener">TikTok</a>
+              </div>
             </div>
-            <div class="footer-social" aria-label="Social media">
-              <a href="https://instagram.com" target="_blank" rel="noreferrer noopener">Instagram</a>
-              <a href="https://facebook.com" target="_blank" rel="noreferrer noopener">Facebook</a>
-              <a href="https://tiktok.com" target="_blank" rel="noreferrer noopener">TikTok</a>
-            </div>
-          </div>
-          <div>
+          </section>
+          <section class="footer-column">
             <h3>Explore</h3>
             <ul class="footer-links">
               <li><a href="{{ url_for('main.index') }}">Home</a></li>
@@ -81,8 +83,8 @@
               <li><a href="{{ url_for('main.admin') }}">Admin</a></li>
               <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
             </ul>
-          </div>
-          <div>
+          </section>
+          <section class="footer-column">
             <h3>Signature Services</h3>
             <ul class="footer-links">
               <li>Solo Adventure Walks</li>
@@ -91,26 +93,28 @@
               <li>Weekend Hikes</li>
               <li>Pet Taxi & Vet Visits</li>
             </ul>
-          </div>
-          <div class="footer-contact">
+          </section>
+          <section class="footer-column footer-column--contact">
             <h3>Connect</h3>
-            <ul>
+            <ul class="footer-contact">
               <li>Phone: <a href="tel:+441234567890">+44 1234 567890</a></li>
               <li>Email: <a href="mailto:hello@reliablewalks.co.uk">hello@reliablewalks.co.uk</a></li>
               <li>Service area: Greater Manchester & surrounding villages</li>
               <li>Hours: Monday–Sunday, 6am – 9pm</li>
             </ul>
-          </div>
-          <div class="footer-newsletter">
-            <h3>Join the Pack</h3>
-            <p>Monthly tips, route highlights, and priority booking windows.</p>
-            <form class="footer-form" action="{{ url_for('main.contact') }}">
-              <label for="footer-email" class="sr-only">Email address</label>
-              <input id="footer-email" type="email" name="email" placeholder="Email address" required />
-              <button type="submit">Sign me up</button>
-            </form>
-            <small>No spam. Just happy tails.</small>
-          </div>
+          </section>
+          <section class="footer-column footer-column--newsletter">
+            <div class="footer-newsletter">
+              <h3>Join the Pack</h3>
+              <p>Monthly tips, route highlights, and priority booking windows.</p>
+              <form class="footer-form" action="{{ url_for('main.contact') }}">
+                <label for="footer-email" class="sr-only">Email address</label>
+                <input id="footer-email" type="email" name="email" placeholder="Email address" required />
+                <button type="submit">Sign me up</button>
+              </form>
+              <small>No spam. Just happy tails.</small>
+            </div>
+          </section>
         </div>
         <div class="footer-divider"></div>
         <p class="copyright">© {{ current_year }} Reliable Walks. All rights reserved.</p>
