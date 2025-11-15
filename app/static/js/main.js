@@ -214,8 +214,6 @@ function initLiveChatWidget() {
   const form = widget.querySelector("[data-role='chat-form']");
   const input = widget.querySelector("[data-role='chat-input']");
   const thread = widget.querySelector("[data-role='chat-thread']");
-  const statusLabel = widget.querySelector("[data-role='chat-status']");
-  const feedback = widget.querySelector("[data-role='chat-feedback']");
   const submitButton = form?.querySelector("button[type='submit']");
 
   const storedVisitorId = getOrCreateVisitorId();
@@ -233,26 +231,6 @@ function initLiveChatWidget() {
   let isOpen = false;
   let isSending = false;
   let autopilotEnabled = true;
-
-  const setFeedback = (message = "", isError = false) => {
-    if (!feedback) return;
-    feedback.textContent = message;
-    feedback.classList.toggle("error", Boolean(isError));
-    feedback.classList.toggle("is-error", Boolean(isError));
-  };
-
-  const setStatusMessage = (message) => {
-    if (statusLabel) {
-      statusLabel.textContent = message;
-    }
-  };
-
-  const updateModeStatus = () => {
-    const message = autopilotEnabled
-      ? "Instant concierge replies are active — expect a swift response."
-      : "A human concierge is reviewing your message right now.";
-    setStatusMessage(message);
-  };
 
   const autoResize = () => {
     input.style.height = "auto";
@@ -292,9 +270,8 @@ function initLiveChatWidget() {
       autopilotEnabled = Boolean(data.autopilot);
       renderLiveChatMessages(thread, data.messages || []);
       updateLiveChatIndicator(data.waiting_count || 0);
-      updateModeStatus();
       if (!isBackground) {
-        setFeedback(
+        console.info(
           autopilotEnabled
             ? "We're replying in this conversation in real time."
             : "We’ve alerted the team for a live reply."
@@ -302,7 +279,7 @@ function initLiveChatWidget() {
       }
     } catch (error) {
       if (!isBackground) {
-        setFeedback("We couldn’t refresh the chat just now.", true);
+        console.error("We couldn’t refresh the chat just now.", error);
       }
     }
   };
@@ -333,8 +310,6 @@ function initLiveChatWidget() {
     button.setAttribute("aria-label", "Hide live chat window");
     button.setAttribute("aria-hidden", "true");
     button.setAttribute("tabindex", "-1");
-    setFeedback("");
-    updateModeStatus();
     refreshMessages();
     startPolling();
     focusInput();
@@ -367,9 +342,6 @@ function initLiveChatWidget() {
     isSending = true;
     input.disabled = true;
     submitButton?.setAttribute("disabled", "true");
-    setStatusMessage("Sending…");
-    setFeedback("Sending...");
-
     fetchJson("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -381,18 +353,11 @@ function initLiveChatWidget() {
         updateLiveChatIndicator(data.waiting_count || 0);
         input.value = "";
         autoResize();
-        updateModeStatus();
-        setFeedback(
-          autopilotEnabled
-            ? "Message delivered — look for a reply in moments."
-            : "Message delivered — we’ll reply here shortly."
-        );
       })
       .catch(async (error) => {
         const fallback = "Sorry, we couldn’t send that message. Please try again.";
         const messageText = await resolveErrorMessage(error, fallback);
-        setFeedback(messageText, true);
-        updateModeStatus();
+        window.alert(messageText);
       })
       .finally(() => {
         isSending = false;
