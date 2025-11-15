@@ -655,11 +655,17 @@ function renderLiveChatMessages(list, messages, options = {}) {
   const { autopilotEnabled = false } = options;
 
   list.innerHTML = "";
-  const roleLabels = {
-    visitor: "You",
-    ai: "Lila · Autopilot",
-    agent: "Happy Paws Concierge",
-  };
+  const roleLabels = autopilotEnabled
+    ? {
+        visitor: "You",
+        ai: "Lila · Autopilot",
+        agent: "Happy Paws Concierge",
+      }
+    : {
+        visitor: "You",
+        ai: "Happy Paws Concierge",
+        agent: "Happy Paws Concierge",
+      };
 
   const hasMessages = Array.isArray(messages) && messages.length > 0;
   const defaultMessages = autopilotEnabled
