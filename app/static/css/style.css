@@ -23,6 +23,9 @@ body {
   background: radial-gradient(circle at top left, #103329, var(--bg));
   color: var(--text);
   line-height: 1.7;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 a {
@@ -196,6 +199,7 @@ img {
 
 main {
   padding-top: 1.5rem;
+  flex: 1;
 }
 
 .hero { 
