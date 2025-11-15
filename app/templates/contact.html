@@ -91,30 +91,4 @@
   </div>
 </section>
 
-<section class="chat-section">
-  <div class="container narrow">
-    <div class="chat-card" id="visitor-chat" data-role="visitor-chat">
-      <div class="chat-card-header">
-        <h2>Chat with Reliable Walks</h2>
-        <p class="chat-status" data-role="visitor-status" aria-live="polite">
-          Autopilot is active — our AI helper is ready to answer your questions.
-        </p>
-      </div>
-      <div class="chat-window" data-chat-messages></div>
-      <form class="chat-form" data-role="visitor-form">
-        <label class="sr-only" for="visitor-message">Your message</label>
-        <textarea
-          id="visitor-message"
-          rows="3"
-          placeholder="Ask about routes, pricing, availability..."
-          required
-        ></textarea>
-        <div class="form-actions">
-          <button type="submit" class="button secondary">Send</button>
-          <p class="form-feedback" data-role="visitor-feedback" aria-live="polite"></p>
-        </div>
-      </form>
-    </div>
-  </div>
-</section>
 {% endblock %}
