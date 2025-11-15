@@ -1,60 +1,159 @@
 {% extends "base.html" %}
 {% block title %}About | Reliable Walks{% endblock %}
 {% block content %}
-<section class="page-hero">
-  <div class="container narrow">
-    <h1>About Reliable Walks</h1>
-    <p>Dedicated to trustworthy, joyful walks that fit your dog’s personality.</p>
+<section class="about-hero">
+  <div class="hero-overlay">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <p class="eyebrow">Meet Reliable Walks</p>
+        <h1>Luxury-level care for everyday adventures</h1>
+        <p>
+          I combine mindful training, joyful play, and reliable routines so your
+          dog returns home enriched, relaxed, and excited for the next walk.
+        </p>
+        <ul class="floating-badges">
+          <li><span>DBS Checked</span></li>
+          <li><span>First Aid Ready</span></li>
+          <li><span>Fully Insured</span></li>
+        </ul>
+      </div>
+      <div class="hero-gallery" aria-hidden="true">
+        <figure class="gallery-main">
+          <img
+            src="https://images.unsplash.com/photo-1520085601670-ee14aa5fa3e8?auto=format&fit=crop&w=1000&q=80"
+            alt="Dog walker hugging a golden retriever"
+          />
+        </figure>
+        <figure class="gallery-secondary">
+          <img
+            src="https://images.unsplash.com/photo-1525253086316-d0c936c814f8?auto=format&fit=crop&w=800&q=80"
+            alt="Close up of a smiling dog walker"
+          />
+        </figure>
+      </div>
+    </div>
   </div>
 </section>
 
-<section class="about-intro">
-  <div class="container two-column">
-    <div>
-      <h2>Our Story</h2>
+<section class="about-story">
+  <div class="container story-grid">
+    <div class="story-card">
+      <h2>Why Reliable Walks?</h2>
       <p>
-        Reliable Walks began with a simple mission: make everyday adventures easy
-        for busy dog families. We believe every walk should be calm, safe, and
-        filled with positive experiences.
+        I founded Reliable Walks to give pet parents the freedom to focus on
+        work, travel, and family—knowing their dog is experiencing the same level
+        of devotion they give at home.
       </p>
       <p>
-        From the first lead clip to the final treat, we handle each outing with
-        care, communication, and consistency.
+        From gentle puppies to confident seniors, I customise pace, distance, and
+        enrichment to match each personality.
       </p>
     </div>
-    <div class="about-image" role="presentation">
-      <img
-        src="https://images.unsplash.com/photo-1520085601670-ee14aa5fa3e8?auto=format&fit=crop&w=900&q=80"
-        alt="Dog walker smiling with a happy dog"
-      />
+    <div class="story-pillars">
+      <article class="pillar">
+        <h3>Calm &amp; Connected</h3>
+        <p>
+          Scent-led exploration, decompression breaks, and calm hand signals keep
+          walks relaxing and confidence-building.
+        </p>
+      </article>
+      <article class="pillar">
+        <h3>Safety First</h3>
+        <p>
+          GPS-tracked routes, double-clip leads, and emergency plans mean your
+          companion is protected at every step.
+        </p>
+      </article>
+      <article class="pillar">
+        <h3>Transparent Updates</h3>
+        <p>
+          Expect playful photos, detailed summaries, and honest feedback after
+          every session.
+        </p>
+      </article>
     </div>
   </div>
 </section>
 
-<section class="meet-walker">
-  <div class="container two-column">
-    <div>
-      <img
-        src="https://images.unsplash.com/photo-1525253086316-d0c936c814f8?auto=format&fit=crop&w=800&q=80"
-        alt="Portrait of the dog walker"
-      />
+<section class="about-panels">
+  <div class="container panels-grid">
+    <article class="glow-panel">
+      <header>
+        <h2>Meet Sarah</h2>
+        <p class="subtitle">Lead walker &amp; enrichment specialist</p>
+      </header>
+      <p>
+        With six years of professional experience across group and solo walks, I
+        specialise in anxiety-friendly outings, reinforcing recall, and making
+        shy dogs feel celebrated.
+      </p>
+      <p>
+        I champion clear communication, including tailored care notes, so every
+        household feels like part of the adventure.
+      </p>
+      <ul class="detail-list">
+        <li>Member of the (fictional) National Dog Walkers Collective</li>
+        <li>Volunteer for weekend rescue transport teams</li>
+        <li>Dog mum to Willow, my excitable border collie</li>
+      </ul>
+    </article>
+    <aside class="glow-panel spotlight">
+      <h3>Walk styles on offer</h3>
+      <ul>
+        <li>Solo decompression strolls through quiet woodland trails</li>
+        <li>Dynamic urban loops for energetic, social butterflies</li>
+        <li>Adventure hikes with enrichment games and mini training refreshers</li>
+      </ul>
+      <div class="quote-card">
+        <p>
+          “Sarah’s walk summaries feel like love letters to our labrador. We’ve
+          never seen him so content.”
+        </p>
+        <span>— A very grateful (and fictional) client</span>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="certificate-section" aria-labelledby="certificate-heading">
+  <div class="container">
+    <div class="certificate-header">
+      <h2 id="certificate-heading">Showcase certificates</h2>
+      <p>
+        These certificates are illustrative placeholders to demonstrate how your
+        real achievements will shine on the site.
+      </p>
     </div>
-    <div>
-      <h2>Meet the Walker</h2>
-      <p>
-        Hi, I’m Sarah! With over five years of professional dog walking
-        experience and certification in canine first aid, your dog’s wellbeing is
-        always my top priority.
-      </p>
-      <p>
-        I’m DBS checked, fully insured, and passionate about building long-term
-        relationships with the dogs I walk.
-      </p>
-      <p>
-        Let’s build trust step-by-step and make every outing a highlight of your
-        dog’s day.
-      </p>
+    <div class="certificate-grid">
+      <article class="certificate-card">
+        <div class="certificate-ribbon">Sample</div>
+        <h3>Canine Wellness Advocate</h3>
+        <p>(Fictional example) Recognises compassionate enrichment routines.</p>
+        <span class="issuer">Issued by Imaginary Academy · 2022</span>
+      </article>
+      <article class="certificate-card">
+        <div class="certificate-ribbon">Sample</div>
+        <h3>Urban Pack Leadership</h3>
+        <p>(Fictional example) Awarded for excellence in multi-dog city walks.</p>
+        <span class="issuer">Issued by Made-Up Guild · 2021</span>
+      </article>
+      <article class="certificate-card">
+        <div class="certificate-ribbon">Sample</div>
+        <h3>Senior Dog Companion Care</h3>
+        <p>(Fictional example) Celebrates gold-standard senior support plans.</p>
+        <span class="issuer">Issued by Pretend Council · 2020</span>
+      </article>
+      <article class="certificate-card">
+        <div class="certificate-ribbon">Sample</div>
+        <h3>Reactive Dog Hero</h3>
+        <p>(Fictional example) Highlights calm handling and responsive training.</p>
+        <span class="issuer">Issued by Mythical Institute · 2019</span>
+      </article>
     </div>
+    <p class="certificate-disclaimer">
+      Looking to add the real thing? Swap in your official certificates and
+      accomplishments whenever you’re ready.
+    </p>
   </div>
 </section>
 {% endblock %}
