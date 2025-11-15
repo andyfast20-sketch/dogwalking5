@@ -1875,78 +1875,41 @@ textarea {
 }
 
 .admin2-layout {
-  display: grid;
-  grid-template-columns: minmax(280px, 0.95fr) minmax(0, 1.4fr);
-  gap: clamp(1.5rem, 3vw, 3rem);
-  align-items: start;
-}
-
-.admin2-sidebar {
-  position: sticky;
-  top: 6rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: clamp(1.75rem, 4vw, 3rem);
 }
 
-.admin2-briefing {
+.admin2-overview {
   padding: clamp(1.5rem, 3vw, 2.5rem);
-  border-radius: 28px;
+  border-radius: 36px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(5, 18, 15, 0.9);
   box-shadow: 0 30px 65px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 2.5vw, 2rem);
 }
 
-.admin2-briefing h1 {
-  margin: 0.35rem 0 0.6rem;
+.admin2-overview__intro {
+  max-width: 720px;
+}
+
+.admin2-overview__intro h1 {
+  margin: 0.35rem 0 0.5rem;
   font-size: clamp(1.8rem, 4vw, 2.6rem);
 }
 
-.admin2-briefing p {
+.admin2-overview__intro p {
   margin: 0;
   color: rgba(245, 249, 247, 0.85);
 }
 
-.admin2-callout {
-  margin-top: 1.25rem;
-  padding: 1.25rem 1.35rem;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(125, 210, 124, 0.08));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 25px 60px rgba(3, 12, 9, 0.55);
-  position: relative;
-  overflow: hidden;
-}
-
-.admin2-callout::after {
-  content: "";
-  position: absolute;
-  inset: 12px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  pointer-events: none;
-}
-
-.admin2-callout__title {
-  margin: 0 0 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-size: 0.75rem;
-  color: var(--eyebrow);
-}
-
-.admin2-callout__body {
-  margin: 0;
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
-  font-weight: 700;
-  line-height: 1.5;
-  color: #fef8d6;
-}
-
-.admin2-callout__foot {
-  margin: 0.75rem 0 0;
-  font-size: 0.95rem;
-  color: rgba(245, 249, 247, 0.8);
+.admin2-overview__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  align-items: start;
 }
 
 .admin2-metrics {
@@ -2631,12 +2594,8 @@ textarea {
 }
 
 @media (max-width: 900px) {
-  .admin2-layout {
+  .admin2-overview__grid {
     grid-template-columns: 1fr;
-  }
-
-  .admin2-sidebar {
-    position: static;
   }
 
   .admin-grid {
