@@ -2271,7 +2271,8 @@ textarea {
   padding: 1.35rem;
   border-color: rgba(125, 210, 124, 0.45);
   box-shadow: 0 46px 110px rgba(8, 30, 24, 0.55);
-  max-height: min(820px, calc(100vh - 5rem));
+  height: min(900px, calc(100vh - 3rem));
+  max-height: none;
 }
 
 .admin-card.is-expanded .card-body {
@@ -2718,7 +2719,8 @@ textarea {
 }
 
 .conversation-card.is-expanded .card-body {
-  display: block;
+  display: flex;
+  flex-direction: column;
   padding: clamp(1.4rem, 2.6vw, 2rem);
   background:
       radial-gradient(circle at 12% 16%, rgba(133, 247, 193, 0.16), transparent 58%),
@@ -2727,6 +2729,7 @@ textarea {
   border-radius: 26px;
   border: 1px solid rgba(132, 222, 174, 0.22);
   box-shadow: 0 46px 110px rgba(5, 20, 16, 0.55);
+  overflow: hidden;
 }
 
 .live-support-shell {
@@ -2734,18 +2737,10 @@ textarea {
   gap: clamp(1.2rem, 2vw, 1.8rem);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
+.conversation-card.is-expanded .live-support-shell {
+  flex: 1;
+  min-height: 0;
+}
 
 .admin-card.is-expanded .live-support-shell,
 .admin-card.is-expanded .live-support-main {
@@ -2755,6 +2750,20 @@ textarea {
 
 .admin-card.is-expanded .live-support-main {
   align-items: stretch;
+}
+
+.conversation-card.is-expanded .live-support-main {
+  min-height: 0;
+}
+
+.conversation-card.is-expanded .live-support-stage {
+  min-height: 0;
+  height: 100%;
+}
+
+.conversation-card.is-expanded .conversation-layout {
+  height: 100%;
+  min-height: 0;
 }
 
 .admin-card.is-expanded .live-support-stage {
