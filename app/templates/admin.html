@@ -1,98 +1,28 @@
 {% extends "base.html" %}
 {% block title %}Admin | Reliable Walks{% endblock %}
 {% block content %}
-<section class="admin-panel">
-  <div class="admin-hero">
+<section class="admin-panel admin-panel--focused">
+  <div class="admin-body admin-body--focused">
     <div class="container admin-container">
-      <div class="admin-hero__grid">
-        <div class="admin-hero__copy">
-          <p class="eyebrow">Concierge Control Room</p>
-          <h1>Live Experience Command Center</h1>
-          <p class="admin-hero__subtitle">
-            Monitor every visitor, respond instantly, and choreograph bookings without leaving
-            this view. The entire concierge workflow now lives on a single, cinematic canvas.
-          </p>
-          <ul class="admin-hero__chips">
-            <li>Live concierge online</li>
-            <li>Real-time visitor radar</li>
-            <li>Luxury response standard</li>
-          </ul>
+      <div class="admin-console admin-console--focused" id="admin-chat" data-role="admin-chat">
+        <div class="admin-console__actions">
+          <a
+            class="admin-alert"
+            data-role="waiting-alert"
+            aria-live="assertive"
+            href="#live-conversations"
+            hidden
+          >
+            A visitor is waiting for a live reply.
+          </a>
         </div>
-        <dl class="admin-hero__stats">
-          <div class="admin-hero__stat">
-            <dt>Active visitors</dt>
-            <dd data-metric="visitor-total">0</dd>
-            <small>Currently exploring the site</small>
-          </div>
-          <div class="admin-hero__stat">
-            <dt>Returning VIPs</dt>
-            <dd data-metric="visitor-returning">0</dd>
-            <small>Guests with repeat visits</small>
-          </div>
-          <div class="admin-hero__stat">
-            <dt>Confirmed walks</dt>
-            <dd data-metric="bookings">0</dd>
-            <small>Bookings locked in</small>
-          </div>
-          <div class="admin-hero__stat">
-            <dt>Open slots</dt>
-            <dd data-metric="open-slots">0</dd>
-            <small>Premium sessions available</small>
-          </div>
-        </dl>
-      </div>
-    </div>
-  </div>
-  <div class="admin-body">
-    <div class="container admin-container admin-console" id="admin-chat" data-role="admin-chat">
-      <button
-        type="button"
-        class="button ghost admin-back"
-        data-role="admin-back"
-        hidden
-      >
-        <span class="admin-back__icon" aria-hidden="true">&larr;</span>
-        <span>Back to dashboard</span>
-      </button>
-      <div class="admin-grid" data-role="admin-grid">
-        <article
-          class="admin-card conversation-card admin-card--xl"
-          data-card
-          data-card-default
-          id="live-conversations"
-        >
-          <div
-            class="card-preview"
-            data-card-toggle
-            role="button"
-            tabindex="0"
-          aria-expanded="false"
-          aria-controls="conversation-card-body"
-        >
-          <div class="card-preview__header">
-            <div class="card-preview__heading">
-              <span class="eyebrow">Live Support</span>
-              <h2>Live Conversations</h2>
-            </div>
-            <span
-              class="chat-status-indicator is-on"
-              data-role="live-chat-status"
-              role="status"
-              aria-live="polite"
-            >
-              Live chat is ON — reply to visitors right here.
-            </span>
-          </div>
-          <p class="card-summary-line" data-role="conversation-summary"></p>
-          <span class="card-toggle-hint" aria-hidden="true">Open inbox</span>
-        </div>
-        <div class="card-body" id="conversation-card-body" data-card-body hidden>
+        <div class="chat-desk" id="live-conversations">
           <div class="live-support-shell" data-role="conversation-overview">
             <div class="live-support-main">
               <section class="live-support-inbox">
                 <header class="live-support-inbox__header">
                   <h4>Inbox</h4>
-                  <p>Glance at every visitor who is waiting or mid-conversation.</p>
+                  <p>Pick a visitor to view their conversation.</p>
                 </header>
                 <aside
                   class="visitor-list"
@@ -163,34 +93,15 @@
                   >
                     <div class="insights-header">
                       <h4>Conversation insights</h4>
-                      <p class="insights-empty" data-role="insights-empty">
-                        Pick a visitor from the inbox to see their context here.
+                      <p class="insights-description">
+                        Replay the latest back-and-forth without leaving the reply box.
                       </p>
                     </div>
-                    <dl class="insights-list" data-role="insights-list" hidden>
-                      <div class="insights-row">
-                        <dt>Last seen</dt>
-                        <dd data-role="insight-last-seen">—</dd>
-                      </div>
-                      <div class="insights-row">
-                        <dt>Last message</dt>
-                        <dd data-role="insight-last-message">—</dd>
-                      </div>
-                      <div class="insights-row">
-                        <dt>Visits</dt>
-                        <dd data-role="insight-visit-count">—</dd>
-                      </div>
-                      <div class="insights-row">
-                        <dt>Current page</dt>
-                        <dd data-role="insight-last-path">—</dd>
-                      </div>
-                    </dl>
-                    <div class="insights-timeline" data-role="insights-timeline" hidden>
-                      <h5>Recent site activity</h5>
-                      <ol class="timeline-list" data-role="timeline-list"></ol>
-                      <p class="timeline-empty" data-role="timeline-empty">
-                        This visitor hasn’t browsed enough pages yet.
+                    <div class="insights-thread" data-role="insights-thread">
+                      <p class="insights-empty" data-role="insights-empty">
+                        Pick a visitor from the inbox to see their chat timeline.
                       </p>
+                      <ol class="insights-transcript" data-role="insights-transcript" hidden></ol>
                     </div>
                   </aside>
                 </div>
@@ -198,237 +109,6 @@
             </div>
           </div>
         </div>
-      </article>
-        <article class="admin-card visitor-card" data-card data-role="visitor-insights">
-        <div
-          class="card-preview"
-          data-card-toggle
-          role="button"
-          tabindex="0"
-          aria-expanded="false"
-          aria-controls="visitor-card-body"
-        >
-          <div class="card-preview__header">
-            <span class="eyebrow">Visitor Intelligence</span>
-            <h2>Website Visitors</h2>
-            <p class="card-subtitle">Monitor real-time traffic and see who’s waiting.</p>
-          </div>
-          <div class="visitor-card__alert">
-            <a
-              class="admin-alert"
-              data-role="waiting-alert"
-              aria-live="assertive"
-              href="#live-conversations"
-              hidden
-            >
-              A visitor is waiting for a live reply.
-            </a>
-          </div>
-          <dl class="card-glance">
-            <div class="card-glance__item">
-              <dt>Total visitors</dt>
-              <dd class="card-glance__value" data-role="visitor-total">0</dd>
-            </div>
-            <div class="card-glance__item">
-              <dt>Returning</dt>
-              <dd class="card-glance__value" data-role="visitor-returning">0</dd>
-            </div>
-            <div class="card-glance__item">
-              <dt>Visits logged</dt>
-              <dd class="card-glance__value" data-role="visitor-total-visits">0</dd>
-            </div>
-          </dl>
-          <span class="card-toggle-hint" aria-hidden="true">Expand insights</span>
-        </div>
-        <div class="card-body" id="visitor-card-body" data-card-body hidden>
-          <div class="card-body__toolbar">
-            <button type="button" class="button ghost" data-role="visitor-refresh">
-              Refresh
-            </button>
-            <p class="form-feedback" data-role="visitor-feedback"></p>
-          </div>
-          <div class="visitor-table" role="table">
-            <div class="visitor-table__head" role="row">
-              <span role="columnheader">Visitor</span>
-              <span role="columnheader">Insights</span>
-              <span role="columnheader">Timeline</span>
-              <span role="columnheader" class="actions-header">Actions</span>
-            </div>
-            <div class="visitor-table__body" data-role="visitor-table-body"></div>
-            <p class="visitor-empty" data-role="visitor-empty">
-              Visitor activity will appear here the moment someone lands on the site.
-            </p>
-          </div>
-        </div>
-      </article>
-        <article class="admin-card schedule-card" data-card data-role="schedule-manager">
-        <div
-          class="card-preview"
-          data-card-toggle
-          role="button"
-          tabindex="0"
-          aria-expanded="false"
-          aria-controls="schedule-card-body"
-        >
-          <div class="card-preview__header">
-            <span class="eyebrow">Scheduling Studio</span>
-            <h2>Booking Slots</h2>
-            <p class="card-subtitle">Publish availability, track reservations, and confirm walks.</p>
-          </div>
-          <dl class="card-glance">
-            <div class="card-glance__item">
-              <dt>Open slots</dt>
-              <dd class="card-glance__value" data-role="admin-slot-count">0</dd>
-            </div>
-            <div class="card-glance__item">
-              <dt>Bookings</dt>
-              <dd class="card-glance__value" data-role="admin-booking-count">0</dd>
-            </div>
-          </dl>
-          <span class="card-toggle-hint" aria-hidden="true">Manage availability</span>
-        </div>
-        <div class="card-body" id="schedule-card-body" data-card-body hidden>
-          <form id="slot-form" class="slot-form" data-role="slot-form" novalidate>
-            <div class="slot-form-grid">
-              <label>
-                Date
-                <input type="date" name="date" required />
-              </label>
-              <label>
-                Time
-                <select name="time" required>
-                  <option value="" disabled selected>Pick a start time</option>
-                  <option value="07:00">07:00</option>
-                  <option value="08:00">08:00</option>
-                  <option value="09:00">09:00</option>
-                  <option value="10:00">10:00</option>
-                  <option value="11:00">11:00</option>
-                  <option value="12:00">12:00</option>
-                  <option value="13:00">13:00</option>
-                  <option value="14:00">14:00</option>
-                  <option value="15:00">15:00</option>
-                  <option value="16:00">16:00</option>
-                  <option value="17:00">17:00</option>
-                </select>
-              </label>
-              <label>
-                Walk length
-                <select name="duration_minutes" required>
-                  <option value="30">30 minutes</option>
-                  <option value="45">45 minutes</option>
-                  <option value="60">60 minutes</option>
-                  <option value="90">90 minutes</option>
-                </select>
-              </label>
-              <label>
-                Price (£)
-                <input type="number" name="price" min="0" step="0.5" placeholder="20" required />
-              </label>
-            </div>
-            <label class="slot-notes">
-              Highlight (optional)
-              <input type="text" name="notes" placeholder="Sunset stroll, riverside route, etc." />
-            </label>
-            <div class="form-actions">
-              <button type="submit" class="button secondary">Add slot</button>
-              <p class="form-feedback" data-role="schedule-feedback"></p>
-            </div>
-          </form>
-          <div class="schedule-columns">
-            <section class="schedule-column">
-              <div class="schedule-heading">
-                <h3>Upcoming availability</h3>
-                <span class="schedule-count" data-role="admin-slot-count">0</span>
-              </div>
-              <div class="schedule-list" data-role="admin-slot-list" aria-live="polite"></div>
-              <p class="schedule-empty" data-role="admin-slot-empty">
-                No open slots yet. Use the form above to publish your first glowing time slot.
-              </p>
-            </section>
-            <section class="schedule-column">
-              <div class="schedule-heading">
-                <h3>Bookings</h3>
-                <span class="schedule-count" data-role="admin-booking-count">0</span>
-              </div>
-              <div class="schedule-list" data-role="admin-booking-list" aria-live="polite"></div>
-              <p class="schedule-empty" data-role="admin-booking-empty">
-                Once a client reserves a walk, their details appear here for easy confirmations.
-              </p>
-            </section>
-          </div>
-        </div>
-      </article>
-        <article class="admin-card access-card" data-card data-role="ban-manager">
-        <div
-          class="card-preview"
-          data-card-toggle
-          role="button"
-          tabindex="0"
-          aria-expanded="false"
-          aria-controls="access-card-body"
-        >
-          <div class="card-preview__header">
-            <span class="eyebrow">Access Control</span>
-            <h2>Visitor Access Control</h2>
-            <p class="card-subtitle">Block disruptive visitors or reinstate access in seconds.</p>
-          </div>
-          <dl class="card-glance">
-            <div class="card-glance__item">
-              <dt>Active bans</dt>
-              <dd class="card-glance__value" data-role="ban-count">0</dd>
-            </div>
-          </dl>
-          <span class="card-toggle-hint" aria-hidden="true">Manage access</span>
-        </div>
-        <div class="card-body" id="access-card-body" data-card-body hidden>
-          <form id="ban-visitor-form" class="ban-form">
-            <div class="ban-form-grid">
-              <label class="field-label" for="ban-identifier">Visitor identifier</label>
-              <input
-                id="ban-identifier"
-                name="identifier"
-                type="text"
-                placeholder="IP address, email, or reference"
-                autocomplete="off"
-                required
-              />
-              <label class="field-label" for="ban-reason">Reason (optional)</label>
-              <input
-                id="ban-reason"
-                name="reason"
-                type="text"
-                placeholder="Spam messages, abusive language, etc."
-                autocomplete="off"
-              />
-              <button type="submit" class="button danger">Ban visitor</button>
-            </div>
-            <p class="form-feedback" data-role="ban-feedback"></p>
-          </form>
-          <div class="ban-list">
-            <div class="ban-list-header">
-              <h3>Restricted visitors</h3>
-              <span class="status-pill" data-role="ban-count">0</span>
-            </div>
-            <p class="ban-empty" data-role="ban-empty">
-              No visitors are currently banned.
-            </p>
-            <div class="table-wrapper">
-              <table class="ban-table" data-role="ban-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Visitor</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Reason</th>
-                    <th scope="col">Added</th>
-                    <th scope="col" class="actions">Actions</th>
-                  </tr>
-                </thead>
-                <tbody data-role="ban-table-body"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        </article>
       </div>
     </div>
   </div>

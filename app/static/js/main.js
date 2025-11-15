@@ -784,7 +784,8 @@ function initVisitorChat() {
       const data = await fetchJson(
         `/api/chat/messages?visitor_id=${encodeURIComponent(visitorId)}`
       );
-      renderMessages(messageContainer, data.messages || []);
+      const messageList = Array.isArray(data.messages) ? data.messages : [];
+      renderMessages(messageContainer, messageList);
       updateStatus();
       updateLiveChatIndicator(data.waiting_count || 0);
     } catch (error) {
@@ -1883,14 +1884,7 @@ function initAdminChat() {
   const chatModeChip = adminRoot.querySelector("[data-role='chat-mode-chip']");
   const conversationInsights = adminRoot.querySelector("[data-role='conversation-insights']");
   const insightsEmpty = adminRoot.querySelector("[data-role='insights-empty']");
-  const insightsList = adminRoot.querySelector("[data-role='insights-list']");
-  const insightLastSeen = adminRoot.querySelector("[data-role='insight-last-seen']");
-  const insightLastMessage = adminRoot.querySelector("[data-role='insight-last-message']");
-  const insightVisitCount = adminRoot.querySelector("[data-role='insight-visit-count']");
-  const insightLastPath = adminRoot.querySelector("[data-role='insight-last-path']");
-  const insightsTimeline = adminRoot.querySelector("[data-role='insights-timeline']");
-  const timelineList = adminRoot.querySelector("[data-role='timeline-list']");
-  const timelineEmpty = adminRoot.querySelector("[data-role='timeline-empty']");
+  const insightsTranscript = adminRoot.querySelector("[data-role='insights-transcript']");
 
   let selectedVisitorId = "";
   let visitorSummaries = [];
@@ -1899,6 +1893,14 @@ function initAdminChat() {
   let beepTimeoutId = null;
   let audioContext = null;
   let lastBeepCount = 0;
+  const conversationCache = new Map();
+
+  function getCachedMessages(visitorId) {
+    if (!visitorId) {
+      return [];
+    }
+    return conversationCache.get(visitorId) || [];
+  }
 
   function getSelectedSummary() {
     if (!selectedVisitorId) {
@@ -1966,106 +1968,67 @@ function initAdminChat() {
       return;
     }
 
-    const hasSummary = Boolean(summary && selectedVisitorId);
+    const hasSummary = Boolean(selectedVisitorId);
 
     if (!hasSummary) {
       if (insightsEmpty) {
         insightsEmpty.hidden = false;
+        insightsEmpty.textContent = "Pick a visitor from the inbox to see their chat timeline.";
       }
-      if (insightsList) {
-        insightsList.hidden = true;
-      }
-      if (insightsTimeline) {
-        insightsTimeline.hidden = true;
-      }
-      if (timelineList) {
-        timelineList.innerHTML = "";
-      }
-      if (timelineEmpty) {
-        timelineEmpty.hidden = true;
+      if (insightsTranscript) {
+        insightsTranscript.hidden = true;
+        insightsTranscript.innerHTML = "";
       }
       return;
     }
 
+    const visitorId = summary?.visitor_id || selectedVisitorId;
+    const sourceMessages = Array.isArray(conversationData.messages)
+      ? conversationData.messages
+      : getCachedMessages(visitorId);
+    const messages = [...sourceMessages];
+    const recentMessages = messages.slice(-15);
+    const hasMessages = recentMessages.length > 0;
+
     if (insightsEmpty) {
-      insightsEmpty.hidden = true;
-    }
-
-    if (insightsList) {
-      insightsList.hidden = false;
-      if (insightLastSeen) {
-        insightLastSeen.textContent = summary.last_seen
-          ? formatDateTime(summary.last_seen)
-          : "Just now";
-      }
-
-      const messages = Array.isArray(conversationData.messages)
-        ? conversationData.messages
-        : [];
-      const lastMessage =
-        summary.last_message || (messages.length ? messages[messages.length - 1] : null);
-      if (insightLastMessage) {
-        if (lastMessage?.content) {
-          const trimmed =
-            lastMessage.content.length > 140
-              ? `${lastMessage.content.slice(0, 137)}…`
-              : lastMessage.content;
-          const timestampLabel = lastMessage.timestamp
-            ? formatTimestamp(lastMessage.timestamp)
-            : "Just now";
-          insightLastMessage.textContent = `${trimmed} · ${timestampLabel}`;
-        } else {
-          insightLastMessage.textContent = "Visitor hasn’t sent a message yet.";
-        }
-      }
-
-      if (insightVisitCount) {
-        const visitsCount = Number(summary.visit_count) || 0;
-        insightVisitCount.textContent =
-          visitsCount === 1 ? "1 recorded visit" : `${visitsCount} recorded visits`;
-      }
-
-      if (insightLastPath) {
-        insightLastPath.textContent = summary.last_path || "No browsing data yet.";
+      insightsEmpty.hidden = hasMessages;
+      if (!hasMessages) {
+        insightsEmpty.textContent = "This visitor hasn’t sent a message yet.";
       }
     }
 
-    if (insightsTimeline) {
-      insightsTimeline.hidden = false;
-      const visits = Array.isArray(summary.visits) ? [...summary.visits] : [];
-      visits.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
-      const hasVisits = visits.length > 0;
-
-      if (timelineList) {
-        timelineList.innerHTML = "";
-        timelineList.hidden = !hasVisits;
-        if (hasVisits) {
-          visits.forEach((visit) => {
-            const item = document.createElement("li");
-            item.classList.add("timeline-entry");
-
-            const meta = document.createElement("div");
-            meta.classList.add("timeline-entry__meta");
-            const timeSpan = document.createElement("span");
-            timeSpan.textContent = visit.timestamp
-              ? formatDateTime(visit.timestamp)
-              : "Unknown time";
-            meta.appendChild(timeSpan);
-
-            const path = document.createElement("p");
-            path.classList.add("timeline-entry__path");
-            path.textContent = visit.path || "Landing page";
-
-            item.append(meta, path);
-            timelineList.appendChild(item);
-          });
-        }
-      }
-
-      if (timelineEmpty) {
-        timelineEmpty.hidden = hasVisits;
-      }
+    if (!insightsTranscript) {
+      return;
     }
+
+    insightsTranscript.hidden = !hasMessages;
+    insightsTranscript.innerHTML = "";
+
+    recentMessages.forEach((message, index) => {
+      const item = document.createElement("li");
+      item.classList.add("insights-transcript__item");
+
+      const role =
+        message.role === "agent" || message.role === "ai" ? "agent" : "visitor";
+      item.classList.add(`insights-transcript__item--${role}`);
+
+      if (index === recentMessages.length - 1) {
+        item.classList.add("is-latest");
+      }
+
+      const meta = document.createElement("p");
+      meta.classList.add("insights-transcript__meta");
+      const roleLabel = role === "visitor" ? "Visitor" : "You";
+      const timeLabel = message.timestamp ? formatTimestamp(message.timestamp) : "Just now";
+      meta.textContent = `${roleLabel} · ${timeLabel}`;
+
+      const body = document.createElement("p");
+      body.classList.add("insights-transcript__message");
+      body.textContent = message.content || "(No content)";
+
+      item.append(meta, body);
+      insightsTranscript.appendChild(item);
+    });
   }
 
   function stopBeep() {
@@ -2223,7 +2186,8 @@ function initAdminChat() {
     }
     setChatPlaceholder(hasSelection);
     if (hasSelection) {
-      renderConversationInsights(getSelectedSummary());
+      const cachedMessages = getCachedMessages(selectedVisitorId);
+      renderConversationInsights(getSelectedSummary(), { messages: cachedMessages });
     } else {
       renderConversationInsights(null);
     }
@@ -2378,7 +2342,8 @@ function initAdminChat() {
       const data = await fetchJson(
         `/api/chat/messages?visitor_id=${encodeURIComponent(selectedVisitorId)}`
       );
-      renderMessages(messageContainer, data.messages || []);
+      const messageList = Array.isArray(data.messages) ? data.messages : [];
+      renderMessages(messageContainer, messageList);
       setVisitorHeading(data.label || "");
       updateVisitorStatusTag(Boolean(data.is_returning));
       updateLiveChatIndicator(data.waiting_count || 0);
@@ -2393,8 +2358,8 @@ function initAdminChat() {
       updateReplyAvailability();
       const summary = getSelectedSummary();
       if (summary) {
-        if (Array.isArray(data.messages) && data.messages.length) {
-          const latestMessage = data.messages[data.messages.length - 1];
+        if (messageList.length) {
+          const latestMessage = messageList[messageList.length - 1];
           summary.last_message = latestMessage;
           summary.last_seen = latestMessage.timestamp || summary.last_seen;
           summary.waiting = latestMessage?.role === "visitor" ? true : false;
@@ -2402,10 +2367,12 @@ function initAdminChat() {
           summary.waiting = false;
         }
         summary.is_returning = Boolean(data.is_returning);
-        renderConversationInsights(summary, data);
+        conversationCache.set(selectedVisitorId, messageList);
+        renderConversationInsights(summary, { messages: messageList });
         renderVisitorList(visitorSummaries);
       } else {
-        renderConversationInsights(null, data);
+        conversationCache.set(selectedVisitorId, messageList);
+        renderConversationInsights(null, { messages: messageList });
       }
     } catch (error) {
       if (replyFeedback && !replyFeedback.textContent) {
