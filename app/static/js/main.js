@@ -249,8 +249,8 @@ function initLiveChatWidget() {
 
   const updateModeStatus = () => {
     const message = autopilotEnabled
-      ? "Autopilot is online for instant answers."
-      : "Live concierge is on standby — leave us a note.";
+      ? "Instant concierge replies are active — expect a swift response."
+      : "A human concierge is reviewing your message right now.";
     setStatusMessage(message);
   };
 
@@ -296,7 +296,7 @@ function initLiveChatWidget() {
       if (!isBackground) {
         setFeedback(
           autopilotEnabled
-            ? "Autopilot is replying in the conversation."
+            ? "We're replying in this conversation in real time."
             : "We’ve alerted the team for a live reply."
         );
       }
@@ -384,7 +384,7 @@ function initLiveChatWidget() {
         updateModeStatus();
         setFeedback(
           autopilotEnabled
-            ? "Message delivered — Autopilot is replying now."
+            ? "Message delivered — look for a reply in moments."
             : "Message delivered — we’ll reply here shortly."
         );
       })

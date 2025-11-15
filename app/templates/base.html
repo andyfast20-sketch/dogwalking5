@@ -87,7 +87,9 @@
             <span class="live-chat-panel__avatar" aria-hidden="true">🐾</span>
             <div>
               <p class="live-chat-panel__title">Happy Paws Concierge</p>
-              <p class="live-chat-panel__status" data-role="chat-status">We're online right now</p>
+              <p class="live-chat-panel__status" data-role="chat-status">
+                Average reply time · under a minute
+              </p>
             </div>
           </div>
           <button
@@ -99,18 +101,22 @@
             ✕
           </button>
         </header>
-        <div class="live-chat-panel__intro">
-          <p>Hi there! I'm Lila and I'd love to help plan your pup's next adventure.</p>
-        </div>
         <div class="live-chat-panel__body">
           <ul class="live-chat-thread" data-role="chat-thread" role="log" aria-live="polite">
             <li class="live-chat-message live-chat-message--agent">
-              <span class="live-chat-meta">Lila · Live concierge</span>
-              <p>Need weekday walks, puppy visits, or a weekend hike? Ask away!</p>
+              <span class="live-chat-meta">Lila · Concierge</span>
+              <p>Welcome back! Ready to design a fresh adventure for your pup?</p>
+            </li>
+            <li class="live-chat-message live-chat-message--visitor">
+              <span class="live-chat-meta">You</span>
+              <p>Hi Lila! Can you arrange a Saturday trail walk with lots of playtime breaks?</p>
             </li>
             <li class="live-chat-message live-chat-message--agent live-chat-message--glow">
-              <span class="live-chat-meta">Popular question</span>
-              <p>“Can you collect my dog from home?” Absolutely — doorstep pickups are our speciality.</p>
+              <span class="live-chat-meta">Lila · Concierge</span>
+              <p>
+                Absolutely — I have a scenic riverside route perfect for energetic pups. I’ll
+                confirm pick-up at 9am and send the itinerary right after this chat.
+              </p>
             </li>
           </ul>
           <form class="live-chat-form" data-role="chat-form">
@@ -121,7 +127,7 @@
                 class="live-chat-input"
                 name="message"
                 rows="1"
-                placeholder="Type a message..."
+                placeholder="Ask about walks, hikes, or bespoke adventures..."
                 autocomplete="off"
                 data-role="chat-input"
                 required
