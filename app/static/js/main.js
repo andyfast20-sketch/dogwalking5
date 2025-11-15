@@ -784,7 +784,8 @@ function initVisitorChat() {
       const data = await fetchJson(
         `/api/chat/messages?visitor_id=${encodeURIComponent(visitorId)}`
       );
-      renderMessages(messageContainer, data.messages || []);
+      const messageList = Array.isArray(data.messages) ? data.messages : [];
+      renderMessages(messageContainer, messageList);
       updateStatus();
       updateLiveChatIndicator(data.waiting_count || 0);
     } catch (error) {
@@ -1892,6 +1893,14 @@ function initAdminChat() {
   let beepTimeoutId = null;
   let audioContext = null;
   let lastBeepCount = 0;
+  const conversationCache = new Map();
+
+  function getCachedMessages(visitorId) {
+    if (!visitorId) {
+      return [];
+    }
+    return conversationCache.get(visitorId) || [];
+  }
 
   function getSelectedSummary() {
     if (!selectedVisitorId) {
@@ -1959,7 +1968,7 @@ function initAdminChat() {
       return;
     }
 
-    const hasSummary = Boolean(summary && selectedVisitorId);
+    const hasSummary = Boolean(selectedVisitorId);
 
     if (!hasSummary) {
       if (insightsEmpty) {
@@ -1973,9 +1982,11 @@ function initAdminChat() {
       return;
     }
 
-    const messages = Array.isArray(conversationData.messages)
-      ? [...conversationData.messages]
-      : [];
+    const visitorId = summary?.visitor_id || selectedVisitorId;
+    const sourceMessages = Array.isArray(conversationData.messages)
+      ? conversationData.messages
+      : getCachedMessages(visitorId);
+    const messages = [...sourceMessages];
     const recentMessages = messages.slice(-15);
     const hasMessages = recentMessages.length > 0;
 
@@ -2175,7 +2186,8 @@ function initAdminChat() {
     }
     setChatPlaceholder(hasSelection);
     if (hasSelection) {
-      renderConversationInsights(getSelectedSummary());
+      const cachedMessages = getCachedMessages(selectedVisitorId);
+      renderConversationInsights(getSelectedSummary(), { messages: cachedMessages });
     } else {
       renderConversationInsights(null);
     }
@@ -2330,7 +2342,8 @@ function initAdminChat() {
       const data = await fetchJson(
         `/api/chat/messages?visitor_id=${encodeURIComponent(selectedVisitorId)}`
       );
-      renderMessages(messageContainer, data.messages || []);
+      const messageList = Array.isArray(data.messages) ? data.messages : [];
+      renderMessages(messageContainer, messageList);
       setVisitorHeading(data.label || "");
       updateVisitorStatusTag(Boolean(data.is_returning));
       updateLiveChatIndicator(data.waiting_count || 0);
@@ -2345,8 +2358,8 @@ function initAdminChat() {
       updateReplyAvailability();
       const summary = getSelectedSummary();
       if (summary) {
-        if (Array.isArray(data.messages) && data.messages.length) {
-          const latestMessage = data.messages[data.messages.length - 1];
+        if (messageList.length) {
+          const latestMessage = messageList[messageList.length - 1];
           summary.last_message = latestMessage;
           summary.last_seen = latestMessage.timestamp || summary.last_seen;
           summary.waiting = latestMessage?.role === "visitor" ? true : false;
@@ -2354,10 +2367,12 @@ function initAdminChat() {
           summary.waiting = false;
         }
         summary.is_returning = Boolean(data.is_returning);
-        renderConversationInsights(summary, data);
+        conversationCache.set(selectedVisitorId, messageList);
+        renderConversationInsights(summary, { messages: messageList });
         renderVisitorList(visitorSummaries);
       } else {
-        renderConversationInsights(null, data);
+        conversationCache.set(selectedVisitorId, messageList);
+        renderConversationInsights(null, { messages: messageList });
       }
     } catch (error) {
       if (replyFeedback && !replyFeedback.textContent) {

@@ -2283,8 +2283,8 @@ textarea {
 
 .admin-console__actions {
   display: flex;
-  justify-content: flex-end;
-  min-height: 1.25rem;
+  justify-content: flex-start;
+  min-height: 0;
 }
 
 .chat-desk {
