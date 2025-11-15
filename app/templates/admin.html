@@ -21,103 +21,116 @@
           <span class="card-toggle-hint" aria-hidden="true">Open inbox</span>
         </div>
         <div class="card-body" id="conversation-card-body" data-card-body hidden>
-          <div class="conversation-overview" data-role="conversation-overview">
-            <div class="overview-primary">
-              <span class="overview-badge" data-role="autopilot-indicator">Autopilot enabled</span>
-              <h3 class="overview-heading">Stay on top of every live exchange</h3>
-              <p class="overview-description">
-                Track incoming conversations, monitor agent responses, and spotlight chats that
-                need your attention instantly.
-              </p>
-            </div>
-            <dl class="overview-stats">
-              <div class="overview-stat">
-                <dt>Visitors waiting</dt>
-                <dd data-role="waiting-count">0</dd>
-              </div>
-              <div class="overview-stat">
-                <dt>Live conversations</dt>
-                <dd data-role="active-chat-count">0</dd>
-              </div>
-              <div class="overview-stat">
-                <dt>Average reply time</dt>
-                <dd data-role="reply-speed">&mdash;</dd>
-              </div>
-            </dl>
-          </div>
-          <div class="conversation-layout">
-            <aside
-              class="visitor-list"
-              data-role="visitor-list"
-              aria-label="Visitor conversations"
-            ></aside>
-            <div class="conversation-empty" data-role="conversation-empty">
-              <div class="conversation-empty__inner">
-                <h3>Open a live chat</h3>
-                <p>
-                  Pick a visitor from the inbox to preview their messages and start chatting
-                  with them here.
+          <div class="live-support-shell" data-role="conversation-overview">
+            <div class="live-support-hero">
+              <div class="live-support-hero__copy">
+                <span class="live-support-status" data-role="autopilot-indicator"
+                  >Autopilot enabled</span
+                >
+                <h3 class="live-support-heading">Command the flow of every live exchange</h3>
+                <p class="live-support-description">
+                  Prioritize the conversations that need a human touch while Autopilot keeps
+                  visitors engaged in the background.
                 </p>
+                <p class="live-support-summary" data-role="conversation-summary"></p>
               </div>
+              <dl class="live-support-stats">
+                <div class="live-support-stat">
+                  <dt>Visitors waiting</dt>
+                  <dd data-role="waiting-count">0</dd>
+                </div>
+                <div class="live-support-stat">
+                  <dt>Live conversations</dt>
+                  <dd data-role="active-chat-count">0</dd>
+                </div>
+                <div class="live-support-stat">
+                  <dt>Average reply time</dt>
+                  <dd data-role="reply-speed">&mdash;</dd>
+                </div>
+              </dl>
             </div>
-            <div class="conversation-panel" data-role="conversation-panel" hidden>
-              <header class="chat-header">
-                <div>
-                  <h3 class="visitor-heading" data-role="visitor-heading">
-                    No active visitors
-                  </h3>
-                  <span class="visitor-status-tag" data-role="visitor-status"></span>
+            <div class="live-support-main">
+              <section class="live-support-inbox">
+                <header class="live-support-inbox__header">
+                  <h4>Inbox</h4>
+                  <p>Glance at every visitor who is waiting or mid-conversation.</p>
+                </header>
+                <aside
+                  class="visitor-list"
+                  data-role="visitor-list"
+                  aria-label="Visitor conversations"
+                ></aside>
+              </section>
+              <section class="live-support-stage">
+                <div class="conversation-empty" data-role="conversation-empty">
+                  <div class="conversation-empty__inner">
+                    <h3>Open a live chat</h3>
+                    <p>
+                      Select a visitor from the inbox to preview their messages and step in when
+                      it matters most.
+                    </p>
+                  </div>
                 </div>
-                <div class="chat-toolbar">
-                  <span class="chat-toolbar__status" data-role="chat-mode">Autopilot</span>
-                  <span class="chat-toolbar__target">
-                    Response target <strong data-role="response-target">under 2m</strong>
-                  </span>
+                <div class="conversation-panel" data-role="conversation-panel" hidden>
+                  <header class="chat-header">
+                    <div>
+                      <h3 class="visitor-heading" data-role="visitor-heading">
+                        No active visitors
+                      </h3>
+                      <span class="visitor-status-tag" data-role="visitor-status"></span>
+                    </div>
+                    <div class="chat-toolbar">
+                      <span class="chat-toolbar__status" data-role="chat-mode">Autopilot</span>
+                      <span class="chat-toolbar__target">
+                        Response target <strong data-role="response-target">under 2m</strong>
+                      </span>
+                    </div>
+                  </header>
+                  <div class="chat-window" data-chat-messages aria-live="polite"></div>
+                  <p class="chat-hint" data-role="chat-hint">
+                    Autopilot is active. Disable it to respond manually.
+                  </p>
+                  <form id="agent-reply-form" class="reply-form">
+                    <label class="field-label" for="agent-message">Reply to visitor</label>
+                    <textarea
+                      id="agent-message"
+                      rows="4"
+                      placeholder="Type your message to the visitor..."
+                      required
+                    ></textarea>
+                    <div class="form-actions">
+                      <button type="submit" class="button secondary">Send Reply</button>
+                      <p class="form-feedback" data-role="agent-feedback"></p>
+                    </div>
+                  </form>
                 </div>
-              </header>
-              <div class="chat-window" data-chat-messages aria-live="polite"></div>
-              <p class="chat-hint" data-role="chat-hint">
-                Autopilot is active. Disable it to respond manually.
-              </p>
-              <form id="agent-reply-form" class="reply-form">
-                <label class="field-label" for="agent-message">Reply to visitor</label>
-                <textarea
-                  id="agent-message"
-                  rows="4"
-                  placeholder="Type your message to the visitor..."
-                  required
-                ></textarea>
-                <div class="form-actions">
-                  <button type="submit" class="button secondary">Send Reply</button>
-                  <p class="form-feedback" data-role="agent-feedback"></p>
+              </section>
+              <aside
+                class="conversation-insights"
+                data-role="conversation-insights"
+                aria-label="Conversation insights"
+                hidden
+              >
+                <div class="insight-card">
+                  <h4 class="insight-card__title">Live timeline</h4>
+                  <p class="insight-card__hint" data-role="insight-hint">
+                    Follow message-by-message activity without leaving the chat window.
+                  </p>
+                  <ol class="insight-activity" data-role="conversation-activity"></ol>
                 </div>
-              </form>
+                <div class="insight-card">
+                  <h4 class="insight-card__title">Quick notes</h4>
+                  <p class="insight-card__hint">
+                    Capture highlights for teammates or leave yourself a reminder for follow-up.
+                  </p>
+                  <textarea
+                    class="insight-notepad"
+                    rows="6"
+                    placeholder="Type notes to share with other admins..."
+                  ></textarea>
+                </div>
+              </aside>
             </div>
-            <aside
-              class="conversation-insights"
-              data-role="conversation-insights"
-              aria-label="Conversation insights"
-              hidden
-            >
-              <div class="insight-card">
-                <h4 class="insight-card__title">Live timeline</h4>
-                <p class="insight-card__hint" data-role="insight-hint">
-                  The moment a visitor sends a message, the updates will appear here.
-                </p>
-                <ol class="insight-activity" data-role="conversation-activity"></ol>
-              </div>
-              <div class="insight-card">
-                <h4 class="insight-card__title">Quick notes</h4>
-                <p class="insight-card__hint">
-                  Capture talking points or reminders for your team while you chat.
-                </p>
-                <textarea
-                  class="insight-notepad"
-                  rows="6"
-                  placeholder="Type notes to share with other admins..."
-                ></textarea>
-              </div>
-            </aside>
           </div>
         </div>
       </article>
