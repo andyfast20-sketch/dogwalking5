@@ -3,112 +3,46 @@
 {% block content %}
 <section class="admin-panel admin-panel--focused">
   <div class="admin-body admin-body--focused">
-    <div class="container admin-container">
-      <div class="admin-console admin-console--focused" id="admin-chat" data-role="admin-chat">
-        <div class="admin-console__actions">
-          <a
-            class="admin-alert"
-            data-role="waiting-alert"
-            aria-live="assertive"
-            href="#live-conversations"
-            hidden
-          >
-            A visitor is waiting for a live reply.
-          </a>
-        </div>
-        <div class="chat-desk" id="live-conversations">
-          <div class="live-support-shell" data-role="conversation-overview">
-            <div class="live-support-main">
-              <section class="live-support-inbox">
-                <header class="live-support-inbox__header">
-                  <h4>Inbox</h4>
-                  <p>Pick a visitor to view their conversation.</p>
-                </header>
-                <aside
-                  class="visitor-list"
-                  data-role="visitor-list"
-                  aria-label="Visitor conversations"
-                ></aside>
-              </section>
-              <section class="live-support-stage">
-                <div class="conversation-layout">
-                  <div class="conversation-panel" data-role="conversation-panel">
-                    <header class="chat-header">
-                      <div class="chat-presence">
-                        <span
-                          class="presence-indicator"
-                          data-role="presence-indicator"
-                          aria-hidden="true"
-                        ></span>
-                        <div class="chat-presence__content">
-                          <p class="presence-label" data-role="presence-label">
-                            Live concierge ready
-                          </p>
-                          <h3 class="visitor-heading" data-role="visitor-heading">
-                            No active visitors
-                          </h3>
-                          <div class="chat-presence__meta">
-                            <span class="visitor-status-tag" data-role="visitor-status"></span>
-                            <span class="chat-mode-chip" data-role="chat-mode-chip">
-                              Live concierge ready
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="chat-toolbar">
-                        <span class="chat-toolbar__status" data-role="chat-mode">Live concierge</span>
-                        <span class="chat-toolbar__target">
-                          Response target <strong data-role="response-target">under 2m</strong>
-                        </span>
-                      </div>
-                    </header>
-                    <div
-                      class="chat-window"
-                      data-chat-messages
-                      data-placeholder="Select a visitor to view their messages."
-                      aria-live="polite"
-                    ></div>
-                    <p class="chat-hint" data-role="chat-hint">
-                      Live chat is ready. Select a visitor to reply.
-                    </p>
-                    <form id="agent-reply-form" class="reply-form">
-                      <label class="field-label" for="agent-message">Reply to visitor</label>
-                      <textarea
-                        id="agent-message"
-                        rows="4"
-                        placeholder="Type your message to the visitor..."
-                        required
-                      ></textarea>
-                      <div class="form-actions">
-                        <button type="submit" class="button secondary">Send Reply</button>
-                        <p class="form-feedback" data-role="agent-feedback"></p>
-                      </div>
-                    </form>
-                  </div>
-                  <aside
-                    class="conversation-insights"
-                    data-role="conversation-insights"
-                    aria-live="polite"
-                    hidden
-                  >
-                    <div class="insights-header">
-                      <h4>Conversation insights</h4>
-                      <p class="insights-description">
-                        Replay the latest back-and-forth without leaving the reply box.
-                      </p>
-                    </div>
-                    <div class="insights-thread" data-role="insights-thread">
-                      <p class="insights-empty" data-role="insights-empty">
-                        Pick a visitor from the inbox to see their chat timeline.
-                      </p>
-                      <ol class="insights-transcript" data-role="insights-transcript" hidden></ol>
-                    </div>
-                  </aside>
-                </div>
-              </section>
-            </div>
-          </div>
-        </div>
+    <div class="container narrow">
+      <header class="admin-console admin-console--focused">
+        <p class="eyebrow">Operations</p>
+        <h1>Admin tools</h1>
+        <p>
+          The live chat experiment has been retired so we can focus on bookings, enquiries, and
+          our core walking schedule. Use the forms below to stay on top of day-to-day admin.
+        </p>
+      </header>
+      <div class="admin-console admin-console--focused">
+        <article class="side-card">
+          <h2>Booking schedule</h2>
+          <p>
+            Manage availability through the public booking page. Slots that you add via the
+            schedule API instantly appear for customers, and you can continue to confirm or cancel
+            requests from your email notifications.
+          </p>
+          <p>
+            Endpoint: <code>POST /api/admin/slots</code> for new slots and
+            <code>PATCH /api/admin/bookings/&lt;id&gt;/status</code> to confirm visits.
+          </p>
+        </article>
+        <article class="side-card">
+          <h2>Contact enquiries</h2>
+          <p>
+            Every submission from the contact page is logged in memory. Fetch them via
+            <code>GET /api/admin/enquiries</code> and mark enquiries as completed once you have
+            replied so the counts remain accurate.
+          </p>
+        </article>
+        <article class="side-card availability">
+          <h2>Visitor bans</h2>
+          <p>
+            Need to block a repeat spammer? Use the banned visitor endpoints to add, unban, or
+            delete restrictions. The middleware still respects these records even without live chat.
+          </p>
+          <p>
+            Endpoint: <code>POST /api/admin/banned-visitors</code>
+          </p>
+        </article>
       </div>
     </div>
   </div>
