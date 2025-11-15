@@ -1874,14 +1874,16 @@ function initAdminChat() {
   let visitorSummaries = [];
   let currentWaitingCount = 0;
   let waitingAlertAcknowledged = false;
-  let beepIntervalId = null;
+  let beepTimeoutId = null;
   let audioContext = null;
+  let lastBeepCount = 0;
 
   function stopBeep() {
-    if (beepIntervalId) {
-      clearInterval(beepIntervalId);
-      beepIntervalId = null;
+    if (beepTimeoutId) {
+      clearTimeout(beepTimeoutId);
+      beepTimeoutId = null;
     }
+    lastBeepCount = currentWaitingCount;
   }
 
   function playBeep() {
@@ -1911,10 +1913,15 @@ function initAdminChat() {
     }
   }
 
-  function startBeep() {
-    if (beepIntervalId) return;
+  function triggerBeep() {
+    if (beepTimeoutId) {
+      return;
+    }
     playBeep();
-    beepIntervalId = window.setInterval(playBeep, 1800);
+    lastBeepCount = currentWaitingCount;
+    beepTimeoutId = window.setTimeout(() => {
+      beepTimeoutId = null;
+    }, 2000);
   }
 
   function updateWaitingAlert(waitingCount) {
@@ -1926,12 +1933,15 @@ function initAdminChat() {
       waitingAlert.hidden = true;
       waitingAlert.classList.remove("is-active", "is-paused");
       waitingAlertAcknowledged = false;
+      lastBeepCount = 0;
       stopBeep();
       return;
     }
 
     if (currentWaitingCount > previousCount) {
       waitingAlertAcknowledged = false;
+    } else if (currentWaitingCount < previousCount) {
+      lastBeepCount = currentWaitingCount;
     }
 
     const message =
@@ -1950,7 +1960,12 @@ function initAdminChat() {
     } else {
       waitingAlert.classList.add("is-active");
       waitingAlert.classList.remove("is-paused");
-      startBeep();
+      if (
+        (currentWaitingCount > previousCount || currentWaitingCount > lastBeepCount) &&
+        currentWaitingCount > 0
+      ) {
+        triggerBeep();
+      }
     }
   }
 
@@ -2236,22 +2251,45 @@ function initAdminChat() {
     }
   }
 
+  function determineDefaultVisitorId() {
+    if (!visitorSummaries.length) {
+      return "";
+    }
+    const waitingVisitor = visitorSummaries.find((visitor) => visitor.waiting);
+    if (waitingVisitor?.visitor_id) {
+      return waitingVisitor.visitor_id;
+    }
+    return visitorSummaries[0]?.visitor_id || "";
+  }
+
   async function refreshConversations() {
     try {
+      const previousVisitorId = selectedVisitorId;
       const data = await fetchJson("/api/admin/conversations");
       updateModeDescription(Boolean(data.autopilot));
       updateLiveChatIndicator(data.waiting_count || 0);
       updateWaitingAlert(data.waiting_count || 0);
       visitorSummaries = data.visitors || [];
 
-      if (selectedVisitorId && !visitorSummaries.some((v) => v.visitor_id === selectedVisitorId)) {
+      const hasCurrentSelection = visitorSummaries.some(
+        (visitor) => visitor.visitor_id === selectedVisitorId
+      );
+      if (!hasCurrentSelection) {
         selectedVisitorId = "";
+      }
+
+      if (!selectedVisitorId) {
+        selectedVisitorId = determineDefaultVisitorId();
       }
 
       renderVisitorList(visitorSummaries);
       updateConversationSummary();
+      updateConversationVisibility();
 
       if (selectedVisitorId) {
+        if (selectedVisitorId !== previousVisitorId) {
+          acknowledgeWaitingAlert();
+        }
         await refreshMessages();
       } else {
         clearConversation();
