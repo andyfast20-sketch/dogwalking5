@@ -32,14 +32,40 @@ function initAdminCards() {
 
   let expandedCard = null;
 
-  const collapseCard = (card) => {
+  const grid = document.querySelector("[data-role='admin-grid']");
+  const backButton = document.querySelector("[data-role='admin-back']");
+
+  const enterDetailMode = (card) => {
+    if (grid) {
+      grid.classList.add("is-detail");
+    }
+    card.classList.add("is-active");
+    if (backButton) {
+      backButton.hidden = false;
+    }
+  };
+
+  const exitDetailMode = () => {
+    if (grid) {
+      grid.classList.remove("is-detail");
+    }
+    if (backButton) {
+      backButton.hidden = true;
+    }
+  };
+
+  const collapseCard = (card, { keepDetailMode = false } = {}) => {
     if (!card) return;
     const toggle = card.querySelector("[data-card-toggle]");
     const body = card.querySelector("[data-card-body]");
     if (!toggle || !body) return;
     card.classList.remove("is-expanded");
+    card.classList.remove("is-active");
     toggle.setAttribute("aria-expanded", "false");
     body.hidden = true;
+    if (!keepDetailMode) {
+      exitDetailMode();
+    }
   };
 
   const expandCard = (card) => {
@@ -50,6 +76,7 @@ function initAdminCards() {
     card.classList.add("is-expanded");
     toggle.setAttribute("aria-expanded", "true");
     body.hidden = false;
+    enterDetailMode(card);
   };
 
   cards.forEach((card) => {
@@ -72,7 +99,7 @@ function initAdminCards() {
       }
 
       if (expandedCard) {
-        collapseCard(expandedCard);
+        collapseCard(expandedCard, { keepDetailMode: true });
       }
 
       expandCard(card);
@@ -108,6 +135,22 @@ function initAdminCards() {
       }
     }
   });
+
+  if (backButton) {
+    backButton.addEventListener("click", () => {
+      if (expandedCard) {
+        const currentCard = expandedCard;
+        const toggle = currentCard.querySelector("[data-card-toggle]");
+        collapseCard(currentCard);
+        expandedCard = null;
+        if (toggle) {
+          toggle.focus();
+        }
+      } else {
+        exitDetailMode();
+      }
+    });
+  }
 }
 
 const VISITOR_ID_STORAGE_KEY = "reliableWalksVisitorId";

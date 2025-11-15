@@ -2033,6 +2033,17 @@ textarea {
   width: min(1280px, 96vw);
 }
 
+.admin-back {
+  margin-bottom: 1rem;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.admin-back__icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
 .admin-alert {
   display: inline-flex;
   align-items: center;
@@ -2116,6 +2127,18 @@ textarea {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   align-items: stretch;
   grid-auto-flow: dense;
+}
+
+.admin-grid.is-detail {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.admin-grid.is-detail > [data-card] {
+  display: none;
+}
+
+.admin-grid.is-detail > [data-card].is-expanded {
+  display: flex;
 }
 
 .admin-card {
