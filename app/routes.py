@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import os
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List
 
-import requests
-from flask import Blueprint, current_app, g, jsonify, render_template, request
+from flask import Blueprint, g, jsonify, render_template, request
 
 main_bp = Blueprint("main", __name__)
 
@@ -14,21 +12,7 @@ main_bp = Blueprint("main", __name__)
 ChatMessage = Dict[str, str]
 
 
-chat_state: Dict[str, Any] = {
-    "autopilot": True,
-    "business_context": "",
-    "visitors": {},
-}
-
-AI_ASSISTANT_UNAVAILABLE_MESSAGE = (
-    "I’m currently unable to reach our AI assistant. Please leave your message, "
-    "and a team member will get back to you shortly."
-)
-
-AI_ASSISTANT_RETRY_MESSAGE = (
-    "I’m having a little trouble answering right now. Please share your "
-    "details and we’ll follow up personally!"
-)
+chat_state: Dict[str, Any] = {"visitors": {}}
 
 
 def _coerce_bool(value: Any) -> bool:
@@ -111,37 +95,11 @@ def _append_message(visitor: Dict[str, Any], role: str, content: str) -> None:
     visitor["last_seen"] = message["timestamp"]
 
 
-def _prune_autopilot_fallback_messages(
-    messages: List[ChatMessage],
-) -> List[ChatMessage]:
-    autopilot_only_messages = {
-        AI_ASSISTANT_UNAVAILABLE_MESSAGE,
-        AI_ASSISTANT_RETRY_MESSAGE,
-    }
-    return [
-        message
-        for message in messages
-        if not (
-            message.get("role") == "ai"
-            and message.get("content") in autopilot_only_messages
-        )
-    ]
-
-
 def _visitor_messages(visitor: Dict[str, Any]) -> List[ChatMessage]:
-    messages: List[ChatMessage] = visitor.get("messages", [])
-    if chat_state.get("autopilot"):
-        return messages
-
-    filtered_messages = _prune_autopilot_fallback_messages(messages)
-    if len(filtered_messages) != len(messages):
-        visitor["messages"] = filtered_messages
-    return filtered_messages
+    return visitor.get("messages", [])
 
 
 def _visitor_is_waiting(visitor: Dict[str, Any]) -> bool:
-    if chat_state.get("autopilot"):
-        return False
     messages = _visitor_messages(visitor)
     return bool(messages) and messages[-1]["role"] == "visitor"
 
@@ -270,66 +228,6 @@ def _enquiry_summary(enquiries_list: List[EnquiryRecord] | None = None) -> Dict[
         "enquiries": enquiries_data,
         "counts": {"open": open_count, "total": len(enquiries_data)},
     }
-
-
-def _generate_ai_reply(user_message: str) -> str:
-    if not chat_state.get("autopilot"):
-        return ""
-
-    api_key = os.getenv("DEEPSEEK_API_KEY")
-    if not api_key:
-        return AI_ASSISTANT_UNAVAILABLE_MESSAGE
-
-    system_prompt = (
-        "You are a helpful customer support assistant for a dog walking service. "
-        "Use the provided business context to answer clearly and concisely, "
-        "highlighting key services and booking information."
-    )
-    business_context = chat_state.get("business_context", "")
-
-    payload = {
-        "model": "deepseek-chat",
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "system",
-                "content": f"Business context:\n{business_context.strip()}",
-            },
-            {"role": "user", "content": user_message},
-        ],
-        "max_tokens": 400,
-        "temperature": 0.7,
-    }
-
-    try:
-        if not chat_state.get("autopilot"):
-            return ""
-
-        response = requests.post(
-            "https://api.deepseek.com/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            json=payload,
-            timeout=15,
-        )
-        response.raise_for_status()
-        data = response.json()
-        choices = data.get("choices") or []
-        if not choices:
-            raise ValueError("No choices returned from DeepSeek API")
-        message = choices[0]["message"]["content"].strip()
-        if not message:
-            raise ValueError("Empty message from DeepSeek API")
-        if not chat_state.get("autopilot"):
-            return ""
-        return message
-    except Exception:  # pragma: no cover - best effort logging only
-        current_app.logger.exception("DeepSeek chat completion failed")
-        if not chat_state.get("autopilot"):
-            return ""
-        return AI_ASSISTANT_RETRY_MESSAGE
 
 
 def _get_client_ip() -> str:
@@ -533,7 +431,6 @@ def list_conversations():
 
     return jsonify(
         {
-            "autopilot": chat_state["autopilot"],
             "waiting_count": _waiting_count(),
             "visitors": summaries,
         }
@@ -759,7 +656,6 @@ def get_chat_messages():
     return jsonify(
         {
             "messages": messages,
-            "autopilot": chat_state["autopilot"],
             "visitor_id": visitor_id,
             "label": visitor.get("label"),
             "is_returning": bool(visitor.get("is_returning")),
@@ -775,7 +671,6 @@ def get_chat_status():
 
     return jsonify(
         {
-            "autopilot": chat_state["autopilot"],
             "waiting_count": _waiting_count(),
             "active_conversations": active_conversations,
             "visitor_count": len(visitors),
@@ -801,18 +696,12 @@ def post_chat_message():
     if is_returning:
         visitor["is_returning"] = True
 
-    if chat_state["autopilot"]:
-        ai_reply = _generate_ai_reply(message)
-        if chat_state.get("autopilot") and ai_reply:
-            _append_message(visitor, "ai", ai_reply)
-
     response_messages = _visitor_messages(visitor)
 
     return (
         jsonify(
             {
                 "messages": response_messages,
-                "autopilot": chat_state["autopilot"],
                 "visitor_id": visitor_id,
                 "label": visitor.get("label"),
                 "is_returning": bool(visitor.get("is_returning")),
@@ -825,16 +714,6 @@ def post_chat_message():
 
 @main_bp.post("/api/chat/respond")
 def post_agent_response():
-    if chat_state["autopilot"]:
-        return (
-            jsonify(
-                {
-                    "error": "Autopilot is enabled. Disable it to send live replies."
-                }
-            ),
-            400,
-        )
-
     data = request.get_json(silent=True) or {}
     message = (data.get("message") or "").strip()
     visitor_id = (data.get("visitor_id") or "").strip()
@@ -852,38 +731,10 @@ def post_agent_response():
     return jsonify(
         {
             "messages": response_messages,
-            "autopilot": False,
             "visitor_id": visitor_id,
             "label": visitor.get("label"),
             "is_returning": bool(visitor.get("is_returning")),
             "waiting_count": _waiting_count(),
-        }
-    )
-
-
-@main_bp.get("/api/admin/chat-settings")
-def get_chat_settings():
-    return jsonify(
-        {
-            "autopilot": chat_state["autopilot"],
-            "business_context": chat_state["business_context"],
-        }
-    )
-
-
-@main_bp.post("/api/admin/chat-settings")
-def update_chat_settings():
-    data = request.get_json(silent=True) or {}
-    autopilot = _coerce_bool(data.get("autopilot"))
-    business_context = (data.get("business_context") or "").strip()
-
-    chat_state["autopilot"] = autopilot
-    chat_state["business_context"] = business_context
-
-    return jsonify(
-        {
-            "autopilot": chat_state["autopilot"],
-            "business_context": chat_state["business_context"],
         }
     )
 

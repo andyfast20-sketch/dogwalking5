@@ -179,36 +179,25 @@ function getOrCreateVisitorId() {
   }
 }
 
-function updateLiveChatIndicator(waitingCount, options = {}) {
+function updateLiveChatIndicator(waitingCount) {
   const button = document.querySelector("[data-role='live-chat-button']");
   const badge = document.querySelector("[data-role='waiting-count']");
   if (!button || !badge) return;
 
-  const { autopilotActive = null } = options;
   const count = Number(waitingCount) || 0;
 
   if (!button.dataset.originalLabel) {
     button.dataset.originalLabel = button.getAttribute("aria-label") || "Open live chat";
   }
 
-  let modeLabel = button.dataset.modeLabel || button.dataset.originalLabel;
-
-  if (typeof autopilotActive === "boolean") {
-    const isCopilot = !autopilotActive;
-    button.classList.toggle("is-copilot", isCopilot);
-    button.dataset.mode = isCopilot ? "copilot" : "autopilot";
-    modeLabel = autopilotActive ? "Autopilot concierge ready" : "Live concierge online";
-    button.dataset.modeLabel = modeLabel;
-  }
-
-  const statusLabel = modeLabel || button.dataset.originalLabel;
+  const statusLabel = button.dataset.originalLabel || "Open live chat";
 
   if (count > 0) {
     badge.textContent = String(count);
     button.classList.add("has-waiting");
-    const label = `${count} visitor${count === 1 ? "" : "s"} waiting · ${statusLabel}`;
-    button.setAttribute("aria-label", label);
-    button.setAttribute("title", label);
+    const label = `${count} visitor${count === 1 ? "" : "s"} waiting for a reply`;
+    button.setAttribute("aria-label", `${label} · ${statusLabel}`);
+    button.setAttribute("title", `${label} · ${statusLabel}`);
   } else {
     badge.textContent = "";
     button.classList.remove("has-waiting");
@@ -243,7 +232,6 @@ function initLiveChatWidget() {
   let pollIntervalId = null;
   let isOpen = false;
   let isSending = false;
-  let autopilotEnabled = true;
 
   const autoResize = () => {
     input.style.height = "auto";
@@ -280,19 +268,10 @@ function initLiveChatWidget() {
       const data = await fetchJson(
         `/api/chat/messages?visitor_id=${encodeURIComponent(visitorId)}`
       );
-      autopilotEnabled = Boolean(data.autopilot);
-      renderLiveChatMessages(thread, data.messages || [], {
-        autopilotEnabled,
-      });
-      updateLiveChatIndicator(data.waiting_count || 0, {
-        autopilotActive: autopilotEnabled,
-      });
+      renderLiveChatMessages(thread, data.messages || []);
+      updateLiveChatIndicator(data.waiting_count || 0);
       if (!isBackground) {
-        console.info(
-          autopilotEnabled
-            ? "We're replying in this conversation in real time."
-            : "We’ve alerted the team for a live reply."
-        );
+        console.info("Thanks for your message! Our team will reply shortly.");
       }
     } catch (error) {
       if (!isBackground) {
@@ -365,13 +344,8 @@ function initLiveChatWidget() {
       body: JSON.stringify({ message, visitor_id: visitorId }),
     })
       .then((data) => {
-        autopilotEnabled = Boolean(data.autopilot);
-        renderLiveChatMessages(thread, data.messages || [], {
-          autopilotEnabled,
-        });
-        updateLiveChatIndicator(data.waiting_count || 0, {
-          autopilotActive: autopilotEnabled,
-        });
+        renderLiveChatMessages(thread, data.messages || []);
+        updateLiveChatIndicator(data.waiting_count || 0);
         input.value = "";
         autoResize();
       })
@@ -655,8 +629,8 @@ function renderMessages(container, messages) {
   container.classList.toggle("has-messages", hasMessages);
   const roleLabels = {
     visitor: "Visitor",
-    ai: "Autopilot",
-    agent: "Agent",
+    ai: "Team",
+    agent: "Team",
   };
 
   messages.forEach((message) => {
@@ -681,41 +655,25 @@ function renderMessages(container, messages) {
   container.scrollTop = container.scrollHeight;
 }
 
-function renderLiveChatMessages(list, messages, options = {}) {
+function renderLiveChatMessages(list, messages) {
   if (!list) return;
-  const { autopilotEnabled = false } = options;
 
   list.innerHTML = "";
-  const roleLabels = autopilotEnabled
-    ? {
-        visitor: "You",
-        ai: "Lila · Autopilot",
-        agent: "Happy Paws Concierge",
-      }
-    : {
-        visitor: "You",
-        ai: "Happy Paws Concierge",
-        agent: "Happy Paws Concierge",
-      };
+  const roleLabels = {
+    visitor: "You",
+    ai: "Happy Paws Concierge",
+    agent: "Happy Paws Concierge",
+  };
 
   const hasMessages = Array.isArray(messages) && messages.length > 0;
-  const defaultMessages = autopilotEnabled
-    ? [
-        {
-          role: "agent",
-          content: "Hi there! I'm Lila — ask me anything about walks or bookings.",
-          timestamp: new Date().toISOString(),
-          meta_label: "Lila · Autopilot concierge",
-        },
-      ]
-    : [
-        {
-          role: "agent",
-          content: "Thanks for reaching out! Leave a message and we'll reply shortly.",
-          timestamp: new Date().toISOString(),
-          meta_label: "Happy Paws Concierge",
-        },
-      ];
+  const defaultMessages = [
+    {
+      role: "agent",
+      content: "Thanks for reaching out! Leave a message and we'll reply shortly.",
+      timestamp: new Date().toISOString(),
+      meta_label: "Happy Paws Concierge",
+    },
+  ];
 
   const conversation = hasMessages ? messages : defaultMessages;
 
@@ -782,9 +740,7 @@ function initLiveChatIndicator() {
   async function refreshStatus() {
     try {
       const data = await fetchJson("/api/chat/status");
-      updateLiveChatIndicator(data.waiting_count || 0, {
-        autopilotActive: Boolean(data.autopilot),
-      });
+      updateLiveChatIndicator(data.waiting_count || 0);
     } catch (error) {
       // Ignore background refresh errors
     }
@@ -806,11 +762,10 @@ function initVisitorChat() {
   const submitButton = form?.querySelector("button[type='submit']");
   const visitorId = getOrCreateVisitorId();
 
-  function updateStatus(autopilot) {
+  function updateStatus() {
     if (!statusLabel) return;
-    statusLabel.textContent = autopilot
-      ? "Autopilot is active — our AI helper is ready to answer your questions."
-      : "Live chat is on — leave a message and a team member will reply here.";
+    statusLabel.textContent =
+      "Live chat is open — our team will reply as soon as possible.";
   }
 
   async function refreshMessages() {
@@ -820,11 +775,8 @@ function initVisitorChat() {
         `/api/chat/messages?visitor_id=${encodeURIComponent(visitorId)}`
       );
       renderMessages(messageContainer, data.messages || []);
-      const isAutopilot = Boolean(data.autopilot);
-      updateStatus(isAutopilot);
-      updateLiveChatIndicator(data.waiting_count || 0, {
-        autopilotActive: isAutopilot,
-      });
+      updateStatus();
+      updateLiveChatIndicator(data.waiting_count || 0);
     } catch (error) {
       if (feedback) {
         feedback.textContent = "We couldn’t refresh the chat just now.";
@@ -856,15 +808,10 @@ function initVisitorChat() {
         });
         textarea.value = "";
         renderMessages(messageContainer, data.messages || []);
-        const isAutopilot = Boolean(data.autopilot);
-        updateStatus(isAutopilot);
-        updateLiveChatIndicator(data.waiting_count || 0, {
-          autopilotActive: isAutopilot,
-        });
+        updateStatus();
+        updateLiveChatIndicator(data.waiting_count || 0);
         if (feedback) {
-          feedback.textContent = data.autopilot
-            ? "Reply sent instantly by Autopilot."
-            : "Message delivered. A team member will reply here soon.";
+          feedback.textContent = "Message delivered. We'll be in touch shortly.";
         }
       } catch (error) {
         if (feedback) {
@@ -1899,16 +1846,11 @@ function initAdminChat() {
 
   const messageContainer = adminRoot.querySelector("[data-chat-messages]");
   const chatHint = adminRoot.querySelector("[data-role='chat-hint']");
-  const chatModeLabel = adminRoot.querySelector("[data-role='chat-mode']");
+  const chatModeStatus = adminRoot.querySelector("[data-role='chat-mode']");
   const liveChatStatus = adminRoot.querySelector("[data-role='live-chat-status']");
-  const modeDescriptions = adminRoot.querySelectorAll("[data-role='mode-description']");
   const conversationSummaries = adminRoot.querySelectorAll(
     "[data-role='conversation-summary']"
   );
-  const settingsForm = adminRoot.querySelector("#chat-settings-form");
-  const autopilotToggle = adminRoot.querySelector("#autopilot-toggle");
-  const businessContext = adminRoot.querySelector("#business-context");
-  const settingsFeedback = adminRoot.querySelector("[data-role='settings-feedback']");
   const replyForm = adminRoot.querySelector("#agent-reply-form");
   const replyTextarea = adminRoot.querySelector("#agent-message");
   const replyFeedback = adminRoot.querySelector("[data-role='agent-feedback']");
@@ -1924,7 +1866,6 @@ function initAdminChat() {
   const presenceIndicator = adminRoot.querySelector("[data-role='presence-indicator']");
   const presenceLabel = adminRoot.querySelector("[data-role='presence-label']");
   const chatModeChip = adminRoot.querySelector("[data-role='chat-mode-chip']");
-  const chatModeStatus = adminRoot.querySelector("[data-role='chat-mode']");
   const conversationInsights = adminRoot.querySelector("[data-role='conversation-insights']");
   const insightsEmpty = adminRoot.querySelector("[data-role='insights-empty']");
   const insightsList = adminRoot.querySelector("[data-role='insights-list']");
@@ -1936,7 +1877,6 @@ function initAdminChat() {
   const timelineList = adminRoot.querySelector("[data-role='timeline-list']");
   const timelineEmpty = adminRoot.querySelector("[data-role='timeline-empty']");
 
-  let autopilotEnabled = false;
   let selectedVisitorId = "";
   let visitorSummaries = [];
   let currentWaitingCount = 0;
@@ -1955,48 +1895,54 @@ function initAdminChat() {
   }
 
   function syncChatModeDisplay() {
-    const isCopilot = !autopilotEnabled;
     const hasSelection = Boolean(selectedVisitorId);
-    const showAlert = isCopilot && currentWaitingCount > 0;
+    const showAlert = currentWaitingCount > 0;
 
     if (presenceIndicator) {
-      presenceIndicator.classList.toggle("is-live", isCopilot);
+      presenceIndicator.classList.add("is-live");
       presenceIndicator.classList.toggle("is-alert", showAlert);
     }
 
     if (presenceLabel) {
-      const baseLabel = isCopilot ? "Live concierge online" : "Autopilot concierge";
-      const activeLabel = hasSelection
-        ? isCopilot
-          ? "Live concierge replying"
-          : "Autopilot is replying"
-        : showAlert
-        ? "Visitors waiting for reply"
-        : baseLabel;
-      presenceLabel.textContent = activeLabel;
-      presenceLabel.classList.toggle("is-live", isCopilot);
+      let label = "Live concierge ready";
+      if (hasSelection) {
+        label = "Live concierge replying";
+      } else if (showAlert) {
+        label = currentWaitingCount === 1 ? "1 visitor waiting" : `${currentWaitingCount} visitors waiting`;
+      }
+      presenceLabel.textContent = label;
+      presenceLabel.classList.add("is-live");
       presenceLabel.classList.toggle("is-alert", showAlert);
     }
 
     if (chatModeChip) {
-      const chipLabel = isCopilot
-        ? hasSelection
-          ? "Live concierge replying"
-          : showAlert
-          ? "Visitors waiting"
-          : "Live concierge ready"
-        : hasSelection
-        ? "AI assistant is replying"
-        : "Autopilot concierge";
+      let chipLabel = "Live concierge ready";
+      if (hasSelection) {
+        chipLabel = "Live concierge replying";
+      } else if (showAlert) {
+        chipLabel = currentWaitingCount === 1 ? "1 visitor waiting" : `${currentWaitingCount} visitors waiting`;
+      }
       chatModeChip.textContent = chipLabel;
-      chatModeChip.classList.toggle("is-live", isCopilot);
+      chatModeChip.classList.add("is-live");
       chatModeChip.classList.toggle("is-alert", showAlert);
     }
 
     if (chatModeStatus) {
-      chatModeStatus.textContent = isCopilot ? "Live concierge" : "Autopilot";
-      chatModeStatus.classList.toggle("is-live", isCopilot);
+      chatModeStatus.textContent = showAlert ? "Visitors waiting" : "Live concierge";
+      chatModeStatus.classList.add("is-live");
       chatModeStatus.classList.toggle("is-alert", showAlert);
+    }
+
+    if (liveChatStatus) {
+      const statusText = showAlert
+        ? currentWaitingCount === 1
+          ? "Live chat is ON — 1 visitor waiting for a reply."
+          : `Live chat is ON — ${currentWaitingCount} visitors waiting for replies.`
+        : "Live chat is ON — reply to visitors right here.";
+      liveChatStatus.textContent = statusText;
+      liveChatStatus.classList.toggle("is-alert", showAlert);
+      liveChatStatus.classList.add("is-on");
+      liveChatStatus.classList.remove("is-off");
     }
   }
 
@@ -2161,7 +2107,7 @@ function initAdminChat() {
       return;
     }
 
-    if (autopilotEnabled || currentWaitingCount <= 0) {
+    if (currentWaitingCount <= 0) {
       waitingAlert.hidden = true;
       waitingAlert.classList.remove("is-active", "is-paused");
       waitingAlertAcknowledged = false;
@@ -2270,7 +2216,7 @@ function initAdminChat() {
   }
 
   function updateReplyAvailability() {
-    const disableInput = autopilotEnabled || !selectedVisitorId;
+    const disableInput = !selectedVisitorId;
     if (replyTextarea) {
       replyTextarea.disabled = disableInput;
     }
@@ -2295,36 +2241,6 @@ function initAdminChat() {
     conversationSummaries.forEach((element) => {
       element.textContent = summaryText;
     });
-  }
-
-  function updateModeDescription(isAutopilot) {
-    autopilotEnabled = Boolean(isAutopilot);
-    const liveChatOn = !autopilotEnabled;
-    const descriptionText = liveChatOn
-      ? "Live chat is ON — visitors wait for a live reply from you."
-      : "Live chat is OFF — visitors chat with the AI assistant.";
-    modeDescriptions.forEach((element) => {
-      element.textContent = descriptionText;
-    });
-    if (chatModeLabel) {
-      chatModeLabel.textContent = liveChatOn ? "Live chat ON" : "Live chat OFF";
-    }
-    if (liveChatStatus) {
-      liveChatStatus.textContent = liveChatOn
-        ? "Live chat is ON — you need to reply to visitors."
-        : "Live chat is OFF — Autopilot replies instantly.";
-      liveChatStatus.classList.toggle("is-on", liveChatOn);
-      liveChatStatus.classList.toggle("is-off", !liveChatOn);
-    }
-    if (!selectedVisitorId && chatHint) {
-      chatHint.textContent = liveChatOn
-        ? "Live chat is ON. Select a visitor to reply."
-        : "Live chat is OFF. Turn it on to respond manually.";
-    }
-    syncChatModeDisplay();
-    updateLiveChatIndicator(currentWaitingCount, { autopilotActive: autopilotEnabled });
-    updateReplyAvailability();
-    updateWaitingAlert(currentWaitingCount);
   }
 
   function updateVisitorStatusTag(isReturning) {
@@ -2356,42 +2272,10 @@ function initAdminChat() {
     setVisitorHeading("");
     updateVisitorStatusTag(false);
     if (chatHint) {
-      chatHint.textContent = autopilotEnabled
-        ? "Live chat is OFF. Turn it on to respond manually."
-        : "Live chat is ON. No visitors are waiting right now.";
+      chatHint.textContent = "Live chat is ready. Select a visitor to reply.";
     }
     updateReplyAvailability();
     updateConversationSummary();
-  }
-
-  async function loadSettings() {
-    try {
-      const data = await fetchJson("/api/admin/chat-settings");
-      if (autopilotToggle) {
-        autopilotToggle.checked = Boolean(data.autopilot);
-      }
-      if (businessContext) {
-        businessContext.value = data.business_context || "";
-      }
-      updateModeDescription(Boolean(data.autopilot));
-    } catch (error) {
-      if (settingsFeedback) {
-        settingsFeedback.textContent = "Couldn’t load settings. Refresh the page.";
-        settingsFeedback.classList.add("error");
-      }
-    }
-  }
-
-  async function saveSettings(autopilot, context) {
-    const payload = {
-      autopilot,
-      business_context: context,
-    };
-    return fetchJson("/api/admin/chat-settings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
   }
 
   function renderVisitorList(summaries) {
@@ -2479,26 +2363,16 @@ function initAdminChat() {
       const data = await fetchJson(
         `/api/chat/messages?visitor_id=${encodeURIComponent(selectedVisitorId)}`
       );
-      const isAutopilot = Boolean(data.autopilot);
-      if (autopilotEnabled !== isAutopilot) {
-        updateModeDescription(isAutopilot);
-      }
       renderMessages(messageContainer, data.messages || []);
       setVisitorHeading(data.label || "");
       updateVisitorStatusTag(Boolean(data.is_returning));
-      updateLiveChatIndicator(data.waiting_count || 0, {
-        autopilotActive: isAutopilot,
-      });
+      updateLiveChatIndicator(data.waiting_count || 0);
       updateWaitingAlert(data.waiting_count ?? currentWaitingCount);
       if (chatHint) {
         if (!data.messages || data.messages.length === 0) {
-          chatHint.textContent = autopilotEnabled
-            ? "Live chat is OFF. Turn it on to respond manually."
-            : "No messages from this visitor yet.";
+          chatHint.textContent = "No messages from this visitor yet.";
         } else {
-          chatHint.textContent = autopilotEnabled
-            ? "Live chat is OFF. Turn it on to respond manually."
-            : "Live chat is ON. New visitor messages will appear here.";
+          chatHint.textContent = "Live chat is ON. New visitor messages will appear here.";
         }
       }
       updateReplyAvailability();
@@ -2508,8 +2382,7 @@ function initAdminChat() {
           const latestMessage = data.messages[data.messages.length - 1];
           summary.last_message = latestMessage;
           summary.last_seen = latestMessage.timestamp || summary.last_seen;
-          summary.waiting =
-            !autopilotEnabled && latestMessage?.role === "visitor" ? true : false;
+          summary.waiting = latestMessage?.role === "visitor" ? true : false;
         } else {
           summary.waiting = false;
         }
@@ -2542,10 +2415,7 @@ function initAdminChat() {
     try {
       const previousVisitorId = selectedVisitorId;
       const data = await fetchJson("/api/admin/conversations");
-      updateModeDescription(Boolean(data.autopilot));
-      updateLiveChatIndicator(data.waiting_count || 0, {
-        autopilotActive: Boolean(data.autopilot),
-      });
+      updateLiveChatIndicator(data.waiting_count || 0);
       updateWaitingAlert(data.waiting_count || 0);
       visitorSummaries = data.visitors || [];
 
@@ -2573,10 +2443,7 @@ function initAdminChat() {
         clearConversation();
       }
     } catch (error) {
-      if (settingsFeedback && !settingsFeedback.textContent) {
-        settingsFeedback.textContent = "Couldn’t load conversations. Refresh the page.";
-        settingsFeedback.classList.add("error");
-      }
+      console.error("Couldn’t load conversations.", error);
     }
   }
 
@@ -2586,34 +2453,7 @@ function initAdminChat() {
     });
   }
 
-  if (settingsForm && autopilotToggle && businessContext) {
-    settingsForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      if (settingsFeedback) {
-        settingsFeedback.textContent = "Saving...";
-        settingsFeedback.classList.remove("error");
-      }
-      try {
-        const data = await saveSettings(
-          autopilotToggle.checked,
-          businessContext.value.trim()
-        );
-        updateModeDescription(Boolean(data.autopilot));
-        if (settingsFeedback) {
-          settingsFeedback.textContent = "Settings saved.";
-        }
-      } catch (error) {
-        if (settingsFeedback) {
-          settingsFeedback.textContent = "Couldn’t save settings. Try again.";
-          settingsFeedback.classList.add("error");
-        }
-      }
-    });
-
-    autopilotToggle.addEventListener("change", () => {
-      updateModeDescription(autopilotToggle.checked);
-    });
-  }
+  // Settings card removed in live chat only mode
 
   if (replyForm && replyTextarea && replyButton) {
     replyForm.addEventListener("submit", async (event) => {
@@ -2647,19 +2487,14 @@ function initAdminChat() {
         replyTextarea.value = "";
         renderMessages(messageContainer, data.messages || []);
         updateVisitorStatusTag(Boolean(data.is_returning));
-        updateLiveChatIndicator(data.waiting_count || 0, {
-          autopilotActive: Boolean(data.autopilot),
-        });
+        updateLiveChatIndicator(data.waiting_count || 0);
         if (replyFeedback) {
           replyFeedback.textContent = "Reply sent.";
         }
         await refreshConversations();
       } catch (error) {
         if (replyFeedback) {
-          replyFeedback.textContent =
-            error?.response?.status === 400
-              ? "Live chat is OFF. Turn it on to reply manually."
-              : "Couldn’t send reply. Try again.";
+          replyFeedback.textContent = "Couldn’t send reply. Try again.";
           replyFeedback.classList.add("error");
         }
       } finally {
@@ -2668,7 +2503,6 @@ function initAdminChat() {
     });
   }
 
-  loadSettings();
   refreshConversations();
   setInterval(refreshConversations, 7000);
   setInterval(refreshMessages, 6000);

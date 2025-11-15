@@ -28,12 +28,12 @@
               <h2>Live Conversations</h2>
             </div>
             <span
-              class="chat-status-indicator is-off"
+              class="chat-status-indicator is-on"
               data-role="live-chat-status"
               role="status"
               aria-live="polite"
             >
-              Live chat is OFF — Autopilot replies instantly.
+              Live chat is ON — reply to visitors right here.
             </span>
           </div>
           <p class="card-summary-line" data-role="conversation-summary"></p>
@@ -65,7 +65,7 @@
                         ></span>
                         <div class="chat-presence__content">
                           <p class="presence-label" data-role="presence-label">
-                            Autopilot concierge
+                            Live concierge ready
                           </p>
                           <h3 class="visitor-heading" data-role="visitor-heading">
                             No active visitors
@@ -73,13 +73,13 @@
                           <div class="chat-presence__meta">
                             <span class="visitor-status-tag" data-role="visitor-status"></span>
                             <span class="chat-mode-chip" data-role="chat-mode-chip">
-                              AI assistant is replying
+                              Live concierge ready
                             </span>
                           </div>
                         </div>
                       </div>
                       <div class="chat-toolbar">
-                        <span class="chat-toolbar__status" data-role="chat-mode">Autopilot</span>
+                        <span class="chat-toolbar__status" data-role="chat-mode">Live concierge</span>
                         <span class="chat-toolbar__target">
                           Response target <strong data-role="response-target">under 2m</strong>
                         </span>
@@ -92,7 +92,7 @@
                       aria-live="polite"
                     ></div>
                     <p class="chat-hint" data-role="chat-hint">
-                      Autopilot is active. Disable it to respond manually.
+                      Live chat is ready. Select a visitor to reply.
                     </p>
                     <form id="agent-reply-form" class="reply-form">
                       <label class="field-label" for="agent-message">Reply to visitor</label>
@@ -309,53 +309,6 @@
               </p>
             </section>
           </div>
-        </div>
-      </article>
-      <article class="admin-card settings-card" data-card>
-        <div
-          class="card-preview"
-          data-card-toggle
-          role="button"
-          tabindex="0"
-          aria-expanded="false"
-          aria-controls="settings-card-body"
-        >
-          <div class="card-preview__header">
-            <span class="eyebrow">Chat Mode</span>
-            <h2>Chat Mode &amp; Business Context</h2>
-            <p class="card-subtitle">Toggle Autopilot and keep your business details current.</p>
-          </div>
-          <p class="card-summary-line" data-role="mode-description">
-            Live chat is OFF — visitors chat with the AI assistant.
-          </p>
-          <span class="card-toggle-hint" aria-hidden="true">Update assistant</span>
-        </div>
-        <div class="card-body" id="settings-card-body" data-card-body hidden>
-          <form id="chat-settings-form" class="settings-form">
-            <div class="toggle-row">
-              <label class="toggle">
-                <input type="checkbox" id="autopilot-toggle" />
-                <span class="toggle-track" aria-hidden="true"></span>
-                <span class="toggle-label">Autopilot</span>
-              </label>
-              <p class="toggle-description" data-role="mode-description">
-                Live chat is OFF — visitors chat with the AI assistant.
-              </p>
-            </div>
-            <label class="field-label" for="business-context">Business Knowledge</label>
-            <p class="field-help">
-              Add bullet points, FAQs, pricing, or any notes you want the AI to use in its replies.
-            </p>
-            <textarea
-              id="business-context"
-              rows="8"
-              placeholder="Opening hours, pricing, service areas, booking steps, etc."
-            ></textarea>
-            <div class="form-actions">
-              <button type="submit" class="button primary">Save Settings</button>
-              <p class="form-feedback" data-role="settings-feedback"></p>
-            </div>
-          </form>
         </div>
       </article>
       <article class="admin-card access-card" data-card data-role="ban-manager">
