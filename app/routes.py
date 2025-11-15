@@ -4,15 +4,9 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List
 
-from flask import Blueprint, g, jsonify, render_template, request
+from flask import Blueprint, jsonify, render_template, request
 
 main_bp = Blueprint("main", __name__)
-
-
-ChatMessage = Dict[str, str]
-
-
-chat_state: Dict[str, Any] = {"visitors": {}}
 
 
 def _coerce_bool(value: Any) -> bool:
@@ -51,100 +45,8 @@ booking_slots: Dict[str, SlotRecord] = {}
 booking_records: Dict[str, BookingRecord] = {}
 
 
-VISITOR_COOKIE_NAME = "dogwalking_visitor_id"
-
-
 def _iso_now() -> str:
     return datetime.utcnow().isoformat() + "Z"
-
-
-def _visitors() -> Dict[str, Dict[str, Any]]:
-    visitors = chat_state.setdefault("visitors", {})
-    return visitors
-
-
-def _get_or_create_visitor(visitor_id: str) -> Dict[str, Any]:
-    visitors = _visitors()
-    visitor = visitors.get(visitor_id)
-    if visitor:
-        return visitor
-
-    now_iso = _iso_now()
-    visitor = {
-        "id": visitor_id,
-        "first_seen": now_iso,
-        "last_seen": now_iso,
-        "visit_count": 0,
-        "visits": [],
-        "last_path": "",
-    }
-    visitors[visitor_id] = visitor
-    return visitor
-
-
-def _append_message(visitor: Dict[str, Any], role: str, content: str) -> None:
-    message: ChatMessage = {
-        "role": role,
-        "content": content,
-        "timestamp": _iso_now(),
-    }
-    messages: List[ChatMessage] = visitor.setdefault("messages", [])
-    messages.append(message)
-    if len(messages) > 200:
-        del messages[:-200]
-    visitor["last_seen"] = message["timestamp"]
-
-
-def _visitor_messages(visitor: Dict[str, Any]) -> List[ChatMessage]:
-    return visitor.get("messages", [])
-
-
-def _visitor_is_waiting(visitor: Dict[str, Any]) -> bool:
-    messages = _visitor_messages(visitor)
-    return bool(messages) and messages[-1]["role"] == "visitor"
-
-
-def _waiting_count() -> int:
-    return sum(1 for visitor in _visitors().values() if _visitor_is_waiting(visitor))
-
-
-def _serialize_conversation(visitor: Dict[str, Any]) -> Dict[str, Any]:
-    messages = _visitor_messages(visitor)
-    last_message = messages[-1] if messages else None
-    visits = list(visitor.get("visits", []))
-    recent_visits = visits[-5:]
-    return {
-        "visitor_id": visitor.get("id"),
-        "label": visitor.get("label"),
-        "is_returning": bool(visitor.get("is_returning")),
-        "waiting": _visitor_is_waiting(visitor),
-        "last_seen": visitor.get("last_seen"),
-        "last_message": last_message,
-        "visit_count": int(visitor.get("visit_count") or 0),
-        "last_path": visitor.get("last_path"),
-        "visits": recent_visits,
-        "first_seen": visitor.get("first_seen"),
-        "ip_address": visitor.get("ip_address"),
-    }
-
-
-def _serialize_visitor_record(visitor: Dict[str, Any]) -> Dict[str, Any]:
-    messages = _visitor_messages(visitor)
-    last_message = messages[-1] if messages else None
-    visits = list(visitor.get("visits", []))
-    recent_visits = visits[-5:]
-    return {
-        "visitor_id": visitor.get("id"),
-        "label": visitor.get("label"),
-        "is_returning": bool(visitor.get("is_returning")),
-        "visit_count": int(visitor.get("visit_count") or 0),
-        "last_seen": visitor.get("last_seen"),
-        "last_path": visitor.get("last_path"),
-        "ip_address": visitor.get("ip_address"),
-        "waiting": _visitor_is_waiting(visitor),
-        "last_message": last_message,
-        "visits": recent_visits,
-    }
 
 
 def _parse_slot_datetime(date_value: str, time_value: str) -> datetime:
@@ -230,83 +132,6 @@ def _enquiry_summary(enquiries_list: List[EnquiryRecord] | None = None) -> Dict[
     }
 
 
-def _get_client_ip() -> str:
-    forwarded_for = request.headers.get("X-Forwarded-For", "")
-    if forwarded_for:
-        return forwarded_for.split(",")[0].strip()
-    return request.remote_addr or "Unknown"
-
-
-def _should_track_request() -> bool:
-    if request.method != "GET":
-        return False
-    if request.path.startswith("/static"):
-        return False
-    if request.path.startswith("/api"):
-        return False
-    # Only track routes served by this blueprint
-    if request.blueprint and request.blueprint != main_bp.name:
-        return False
-    return True
-
-
-@main_bp.before_app_request
-def track_visitors() -> None:
-    if not _should_track_request():
-        return
-
-    now_iso = _iso_now()
-    visitor_id = request.cookies.get(VISITOR_COOKIE_NAME)
-    visitors = _visitors()
-    is_new_visitor = visitor_id not in visitors if visitor_id else True
-
-    if not visitor_id or is_new_visitor:
-        visitor_id = visitor_id or uuid.uuid4().hex
-        visitors[visitor_id] = {
-            "id": visitor_id,
-            "first_seen": now_iso,
-            "last_seen": now_iso,
-            "visit_count": 0,
-            "ip_address": _get_client_ip(),
-            "last_path": request.path,
-            "visits": [],
-        }
-    entry = visitors[visitor_id]
-
-    entry["visit_count"] += 1
-    entry["last_seen"] = now_iso
-    entry["ip_address"] = _get_client_ip()
-    entry["last_path"] = request.path
-    entry_visits: List[Dict[str, str]] = entry.setdefault("visits", [])
-    entry_visits.append({"timestamp": now_iso, "path": request.path})
-    if len(entry_visits) > 10:
-        del entry_visits[:-10]
-
-    if is_new_visitor and len(visitors) > 500:
-        oldest_id = min(
-            visitors.items(), key=lambda item: item[1].get("first_seen", "")
-        )[0]
-        if oldest_id != visitor_id:
-            visitors.pop(oldest_id, None)
-
-    g.visitor_cookie_id = visitor_id
-
-
-@main_bp.after_app_request
-def persist_visitor_cookie(response):
-    visitor_id = getattr(g, "visitor_cookie_id", None)
-    if visitor_id:
-        response.set_cookie(
-            VISITOR_COOKIE_NAME,
-            visitor_id,
-            max_age=60 * 60 * 24 * 365,
-            secure=False,
-            httponly=False,
-            samesite="Lax",
-        )
-    return response
-
-
 @main_bp.app_context_processor
 def inject_globals():
     return {"current_year": datetime.now().year}
@@ -382,59 +207,6 @@ def amin():
     """Render the dedicated page for Amin team members."""
 
     return render_template("amin.html")
-
-
-@main_bp.get("/api/admin/visitors")
-def list_visitor_overview():
-    visitors = list(_visitors().values())
-    total_visitors = len(visitors)
-    returning_visitors = sum(1 for visitor in visitors if visitor.get("is_returning"))
-    total_visits = sum(int(visitor.get("visit_count") or 0) for visitor in visitors)
-
-    serialized = [_serialize_visitor_record(visitor) for visitor in visitors]
-    serialized.sort(
-        key=lambda item: (
-            item.get("last_seen") or "",
-            item.get("visitor_id") or "",
-        ),
-        reverse=True,
-    )
-
-    return jsonify(
-        {
-            "total": total_visitors,
-            "returning": returning_visitors,
-            "total_visits": total_visits,
-            "waiting_count": _waiting_count(),
-            "visitors": serialized,
-        }
-    )
-
-
-@main_bp.get("/api/admin/conversations")
-def list_conversations():
-    visitors = list(_visitors().values())
-    summaries: List[Dict[str, Any]] = []
-    for visitor in visitors:
-        messages = _visitor_messages(visitor)
-        if messages or _visitor_is_waiting(visitor):
-            summaries.append(_serialize_conversation(visitor))
-
-    summaries = sorted(
-        summaries,
-        key=lambda item: (
-            item.get("waiting", False),
-            item.get("last_seen") or "",
-        ),
-        reverse=True,
-    )
-
-    return jsonify(
-        {
-            "waiting_count": _waiting_count(),
-            "visitors": summaries,
-        }
-    )
 
 
 @main_bp.get("/api/slots")
@@ -642,101 +414,6 @@ def update_booking_status(booking_id: str):
         "booking": _serialize_booking(booking),
         "bookings": _sorted_bookings(),
     })
-
-
-@main_bp.get("/api/chat/messages")
-def get_chat_messages():
-    visitor_id = (request.args.get("visitor_id") or "").strip()
-    if not visitor_id:
-        return jsonify({"error": "Visitor ID is required."}), 400
-
-    visitor = _get_or_create_visitor(visitor_id)
-    messages = _visitor_messages(visitor)
-
-    return jsonify(
-        {
-            "messages": messages,
-            "visitor_id": visitor_id,
-            "label": visitor.get("label"),
-            "is_returning": bool(visitor.get("is_returning")),
-            "waiting_count": _waiting_count(),
-        }
-    )
-
-
-@main_bp.get("/api/chat/status")
-def get_chat_status():
-    visitors = list(_visitors().values())
-    active_conversations = sum(1 for visitor in visitors if _visitor_messages(visitor))
-
-    return jsonify(
-        {
-            "waiting_count": _waiting_count(),
-            "active_conversations": active_conversations,
-            "visitor_count": len(visitors),
-        }
-    )
-
-
-@main_bp.post("/api/chat")
-def post_chat_message():
-    data = request.get_json(silent=True) or {}
-    message = (data.get("message") or "").strip()
-    visitor_id = (data.get("visitor_id") or "").strip()
-    if not message:
-        return jsonify({"error": "Message is required."}), 400
-
-    if not visitor_id:
-        return jsonify({"error": "Visitor ID is required."}), 400
-
-    visitor = _get_or_create_visitor(visitor_id)
-    is_returning = bool(_visitor_messages(visitor))
-
-    _append_message(visitor, "visitor", message)
-    if is_returning:
-        visitor["is_returning"] = True
-
-    response_messages = _visitor_messages(visitor)
-
-    return (
-        jsonify(
-            {
-                "messages": response_messages,
-                "visitor_id": visitor_id,
-                "label": visitor.get("label"),
-                "is_returning": bool(visitor.get("is_returning")),
-                "waiting_count": _waiting_count(),
-            }
-        ),
-        201,
-    )
-
-
-@main_bp.post("/api/chat/respond")
-def post_agent_response():
-    data = request.get_json(silent=True) or {}
-    message = (data.get("message") or "").strip()
-    visitor_id = (data.get("visitor_id") or "").strip()
-    if not message:
-        return jsonify({"error": "Message is required."}), 400
-
-    if not visitor_id:
-        return jsonify({"error": "Visitor ID is required."}), 400
-
-    visitor = _get_or_create_visitor(visitor_id)
-    _append_message(visitor, "agent", message)
-
-    response_messages = _visitor_messages(visitor)
-
-    return jsonify(
-        {
-            "messages": response_messages,
-            "visitor_id": visitor_id,
-            "label": visitor.get("label"),
-            "is_returning": bool(visitor.get("is_returning")),
-            "waiting_count": _waiting_count(),
-        }
-    )
 
 
 def _serialize_banned_visitors() -> List[Dict[str, Any]]:
