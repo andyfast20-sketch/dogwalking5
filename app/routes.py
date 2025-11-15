@@ -115,6 +115,7 @@ def _serialize_visitor_record(visitor: Dict[str, Any]) -> Dict[str, Any]:
         "visit_count": int(visitor.get("visit_count") or 0),
         "last_seen": visitor.get("last_seen"),
         "last_path": visitor.get("last_path"),
+        "ip_address": visitor.get("ip_address"),
         "waiting": _visitor_is_waiting(visitor),
         "last_message": last_message,
         "visits": recent_visits,

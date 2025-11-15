@@ -1599,6 +1599,12 @@ function initVisitorInsights() {
         : "No visits recorded yet.";
       identity.append(title, meta);
 
+      if (visitor?.ip_address) {
+        const ipMeta = document.createElement("small");
+        ipMeta.textContent = `IP: ${visitor.ip_address}`;
+        identity.appendChild(ipMeta);
+      }
+
       identityCell.append(avatar, identity);
       row.appendChild(identityCell);
 
