@@ -21,6 +21,29 @@ chat_state: Dict[str, Any] = {
 }
 
 
+def _coerce_bool(value: Any) -> bool:
+    """Convert different truthy representations into a boolean.
+
+    Accepts strings such as "true"/"false", integers like 1/0, and already-boolean
+    values. Any falsy input (including the string "false") resolves to ``False``.
+    """
+
+    if isinstance(value, bool):
+        return value
+
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "1", "yes", "on"}:
+            return True
+        if normalized in {"false", "0", "no", "off", ""}:
+            return False
+
+    if isinstance(value, (int, float)):
+        return bool(value)
+
+    return bool(value)
+
+
 EnquiryRecord = Dict[str, Any]
 
 
@@ -632,7 +655,7 @@ def update_enquiry(enquiry_id: str):
     updated = False
 
     if "completed" in data:
-        completed = bool(data.get("completed"))
+        completed = _coerce_bool(data.get("completed"))
         enquiry["completed"] = completed
         enquiry["updated_at"] = _iso_now()
         enquiry["completed_at"] = enquiry["updated_at"] if completed else None
@@ -659,7 +682,7 @@ def update_booking_status(booking_id: str):
         return jsonify({"error": "Booking not found."}), 404
 
     data = request.get_json(silent=True) or {}
-    confirmed = bool(data.get("confirmed"))
+    confirmed = _coerce_bool(data.get("confirmed"))
     booking["confirmed"] = confirmed
     booking["updated_at"] = _iso_now()
 
@@ -790,7 +813,7 @@ def get_chat_settings():
 @main_bp.post("/api/admin/chat-settings")
 def update_chat_settings():
     data = request.get_json(silent=True) or {}
-    autopilot = bool(data.get("autopilot"))
+    autopilot = _coerce_bool(data.get("autopilot"))
     business_context = (data.get("business_context") or "").strip()
 
     chat_state["autopilot"] = autopilot
