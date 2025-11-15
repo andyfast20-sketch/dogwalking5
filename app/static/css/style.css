@@ -2116,6 +2116,16 @@ textarea {
   pointer-events: none;
 }
 
+.admin-panel--focused {
+  padding-top: clamp(2rem, 5vw, 3.5rem);
+}
+
+.admin-panel--focused .admin-body {
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
 .admin-container {
   width: min(1760px, 96vw);
   margin: 0 auto;
@@ -2230,6 +2240,67 @@ textarea {
   padding: clamp(1.5rem, 4vw, 2.5rem);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 50px 120px rgba(2, 10, 8, 0.65);
+}
+
+.admin-console--focused {
+  min-height: min(920px, calc(100vh - 120px));
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+}
+
+.admin-console__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.admin-console__heading {
+  flex: 1 1 320px;
+  max-width: 720px;
+}
+
+.admin-console__heading h1 {
+  margin: 0.35rem 0 0.25rem;
+  font-size: clamp(1.85rem, 4vw, 2.8rem);
+}
+
+.admin-console__summary {
+  margin: 0;
+  color: rgba(245, 249, 247, 0.75);
+  font-size: 0.95rem;
+}
+
+.admin-console__status {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.admin-console__actions {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 1.25rem;
+}
+
+.chat-desk {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.chat-desk .live-support-shell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-desk .live-support-main {
+  flex: 1;
+  min-height: 0;
 }
 
 .admin-back {
@@ -2363,7 +2434,13 @@ textarea {
 
 .admin-card--xl {
   grid-column: span 2;
-  min-height: clamp(620px, 78vh, 860px);
+  min-height: min(960px, calc(100vh - 120px));
+}
+
+@media (min-width: 1200px) {
+  .admin-card--xl {
+    grid-column: 1 / -1;
+  }
 }
 
 .admin-card--xl .card-body {
@@ -2375,15 +2452,17 @@ textarea {
   flex-direction: column;
   gap: clamp(1.2rem, 2vw, 1.8rem);
   min-height: 0;
+  height: 100%;
 }
 
 .admin-card--xl .live-support-main {
   display: grid;
   gap: clamp(1.2rem, 2.4vw, 2rem);
-  grid-template-columns: minmax(300px, 0.65fr) minmax(0, 1.35fr);
+  grid-template-columns: minmax(300px, 0.6fr) minmax(0, 1.4fr);
   grid-template-areas: "inbox stage";
   align-items: stretch;
-  min-height: clamp(560px, 74vh, 860px);
+  min-height: 0;
+  height: 100%;
 }
 
 .admin-card--xl .live-support-inbox {
@@ -2406,15 +2485,17 @@ textarea {
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 40px 80px rgba(3, 12, 10, 0.55);
   padding: clamp(1.2rem, 2.2vw, 1.8rem);
-  min-height: clamp(540px, 72vh, 880px);
+  min-height: 0;
+  height: 100%;
 }
 
 .admin-card--xl .conversation-layout {
   display: grid;
   gap: clamp(1rem, 2vw, 1.6rem);
-  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.8fr);
   align-items: stretch;
   min-height: 0;
+  height: 100%;
 }
 
 .admin-card--xl .conversation-panel {
@@ -2422,12 +2503,14 @@ textarea {
   flex-direction: column;
   gap: 1.25rem;
   min-height: 0;
+  height: 100%;
 }
 
 .admin-card--xl .conversation-panel .chat-window {
   flex: 1;
   min-height: 0;
   border-radius: 24px;
+  overflow-y: auto;
 }
 
 .admin-card--xl .conversation-panel .reply-form {
@@ -2443,6 +2526,9 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .conversation-card:not(.is-expanded) {
