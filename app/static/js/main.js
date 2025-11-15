@@ -20,6 +20,16 @@ function initNavigation() {
 
 let adminCardsInitialized = false;
 
+function updateDashboardMetric(metric, value) {
+  if (!metric) return;
+  const safeValue = typeof value === "number" ? value : Number(value) || 0;
+  document
+    .querySelectorAll(`[data-metric='${metric}']`)
+    .forEach((element) => {
+      element.textContent = String(safeValue);
+    });
+}
+
 function initAdminCards() {
   if (adminCardsInitialized) return;
 
@@ -1109,6 +1119,8 @@ function initAdminSchedule() {
     bookingCountElements.forEach((element) => {
       element.textContent = bookings.length;
     });
+    updateDashboardMetric("open-slots", availableCount);
+    updateDashboardMetric("bookings", bookings.length);
   }
 
   function renderSlotList() {
@@ -1664,6 +1676,9 @@ function initVisitorInsights() {
     if (visitLabel) {
       visitLabel.textContent = String(totalVisits);
     }
+    updateDashboardMetric("visitor-total", total);
+    updateDashboardMetric("visitor-returning", returning);
+    updateDashboardMetric("visitor-visits", totalVisits);
   }
 
   function setFeedback(message, isError = false) {
