@@ -44,16 +44,7 @@
                 ></aside>
               </section>
               <section class="live-support-stage">
-                <div class="conversation-empty" data-role="conversation-empty">
-                  <div class="conversation-empty__inner">
-                    <h3>Open a live chat</h3>
-                    <p>
-                      Select a visitor from the inbox to preview their messages and step in when
-                      it matters most.
-                    </p>
-                  </div>
-                </div>
-                <div class="conversation-panel" data-role="conversation-panel" hidden>
+                <div class="conversation-panel" data-role="conversation-panel">
                   <header class="chat-header">
                     <div>
                       <h3 class="visitor-heading" data-role="visitor-heading">
@@ -68,7 +59,12 @@
                       </span>
                     </div>
                   </header>
-                  <div class="chat-window" data-chat-messages aria-live="polite"></div>
+                  <div
+                    class="chat-window"
+                    data-chat-messages
+                    data-placeholder="Select a visitor to view their messages."
+                    aria-live="polite"
+                  ></div>
                   <p class="chat-hint" data-role="chat-hint">
                     Autopilot is active. Disable it to respond manually.
                   </p>
