@@ -651,6 +651,8 @@ function formatTimestamp(isoString) {
 function renderMessages(container, messages) {
   if (!container) return;
   container.innerHTML = "";
+  const hasMessages = Array.isArray(messages) && messages.length > 0;
+  container.classList.toggle("has-messages", hasMessages);
   const roleLabels = {
     visitor: "Visitor",
     ai: "Autopilot",
@@ -1901,7 +1903,6 @@ function initAdminChat() {
   );
   const conversationPanel = adminRoot.querySelector("[data-role='conversation-panel']");
   const conversationInsights = adminRoot.querySelector("[data-role='conversation-insights']");
-  const conversationEmpty = adminRoot.querySelector("[data-role='conversation-empty']");
 
   let autopilotEnabled = false;
   let selectedVisitorId = "";
@@ -2025,17 +2026,27 @@ function initAdminChat() {
     });
   }
 
+  function setChatPlaceholder(hasSelection) {
+    if (!messageContainer) return;
+    const placeholder = hasSelection
+      ? "No messages yet. Messages from the visitor will appear here."
+      : "Select a visitor to view their messages.";
+    messageContainer.dataset.placeholder = placeholder;
+    if (!hasSelection) {
+      messageContainer.classList.remove("has-messages");
+    }
+  }
+
   function updateConversationVisibility() {
     const hasSelection = Boolean(selectedVisitorId);
     if (conversationPanel) {
-      conversationPanel.hidden = !hasSelection;
+      conversationPanel.hidden = false;
+      conversationPanel.classList.toggle("is-inactive", !hasSelection);
     }
     if (conversationInsights) {
       conversationInsights.hidden = !hasSelection;
     }
-    if (conversationEmpty) {
-      conversationEmpty.hidden = hasSelection;
-    }
+    setChatPlaceholder(hasSelection);
   }
 
   function updateReplyAvailability() {
