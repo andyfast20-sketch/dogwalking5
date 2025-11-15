@@ -431,6 +431,13 @@ def admin():
     return render_template("admin.html")
 
 
+@main_bp.get("/amin")
+def amin():
+    """Render the dedicated page for Amin team members."""
+
+    return render_template("amin.html")
+
+
 @main_bp.get("/api/admin/visitors")
 def list_visitor_overview():
     visitors = list(_visitors().values())
