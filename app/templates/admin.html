@@ -23,8 +23,18 @@
           aria-controls="conversation-card-body"
         >
           <div class="card-preview__header">
-            <span class="eyebrow">Live Support</span>
-            <h2>Live Conversations</h2>
+            <div class="card-preview__heading">
+              <span class="eyebrow">Live Support</span>
+              <h2>Live Conversations</h2>
+            </div>
+            <span
+              class="chat-status-indicator is-off"
+              data-role="live-chat-status"
+              role="status"
+              aria-live="polite"
+            >
+              Live chat is OFF — Autopilot replies instantly.
+            </span>
           </div>
           <p class="card-summary-line" data-role="conversation-summary"></p>
           <span class="card-toggle-hint" aria-hidden="true">Open inbox</span>
@@ -53,7 +63,9 @@
                       <span class="visitor-status-tag" data-role="visitor-status"></span>
                     </div>
                     <div class="chat-toolbar">
-                      <span class="chat-toolbar__status" data-role="chat-mode">Autopilot</span>
+                      <span class="chat-toolbar__status" data-role="chat-mode"
+                        >Live chat OFF</span
+                      >
                       <span class="chat-toolbar__target">
                         Response target <strong data-role="response-target">under 2m</strong>
                       </span>
@@ -66,7 +78,7 @@
                     aria-live="polite"
                   ></div>
                   <p class="chat-hint" data-role="chat-hint">
-                    Autopilot is active. Disable it to respond manually.
+                    Live chat is OFF. Turn it on to respond manually.
                   </p>
                   <form id="agent-reply-form" class="reply-form">
                     <label class="field-label" for="agent-message">Reply to visitor</label>
@@ -261,7 +273,7 @@
             <p class="card-subtitle">Toggle Autopilot and keep your business details current.</p>
           </div>
           <p class="card-summary-line" data-role="mode-description">
-            Visitors chat with the AI assistant.
+            Live chat is OFF — visitors chat with the AI assistant.
           </p>
           <span class="card-toggle-hint" aria-hidden="true">Update assistant</span>
         </div>
@@ -274,7 +286,7 @@
                 <span class="toggle-label">Autopilot</span>
               </label>
               <p class="toggle-description" data-role="mode-description">
-                Visitors chat with the AI assistant.
+                Live chat is OFF — visitors chat with the AI assistant.
               </p>
             </div>
             <label class="field-label" for="business-context">Business Knowledge</label>
