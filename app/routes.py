@@ -214,6 +214,13 @@ def admin():
     return render_template("admin.html")
 
 
+@main_bp.get("/admin2")
+def admin2():
+    """Render an alternate administrative view focused on field operations."""
+
+    return render_template("admin2.html")
+
+
 @main_bp.get("/amin")
 def amin():
     """Render the dedicated page for Amin team members."""
