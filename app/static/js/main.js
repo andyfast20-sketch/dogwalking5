@@ -179,28 +179,41 @@ function getOrCreateVisitorId() {
   }
 }
 
-function updateLiveChatIndicator(waitingCount) {
+function updateLiveChatIndicator(waitingCount, options = {}) {
   const button = document.querySelector("[data-role='live-chat-button']");
   const badge = document.querySelector("[data-role='waiting-count']");
   if (!button || !badge) return;
 
+  const { autopilotActive = null } = options;
   const count = Number(waitingCount) || 0;
-  const originalLabel =
-    button.dataset.originalLabel || button.getAttribute("aria-label") || "Open live chat";
 
   if (!button.dataset.originalLabel) {
-    button.dataset.originalLabel = originalLabel;
+    button.dataset.originalLabel = button.getAttribute("aria-label") || "Open live chat";
   }
+
+  let modeLabel = button.dataset.modeLabel || button.dataset.originalLabel;
+
+  if (typeof autopilotActive === "boolean") {
+    const isCopilot = !autopilotActive;
+    button.classList.toggle("is-copilot", isCopilot);
+    button.dataset.mode = isCopilot ? "copilot" : "autopilot";
+    modeLabel = autopilotActive ? "Autopilot concierge ready" : "Live concierge online";
+    button.dataset.modeLabel = modeLabel;
+  }
+
+  const statusLabel = modeLabel || button.dataset.originalLabel;
 
   if (count > 0) {
     badge.textContent = String(count);
     button.classList.add("has-waiting");
-    const label = `${count} visitor${count === 1 ? "" : "s"} waiting to chat`;
+    const label = `${count} visitor${count === 1 ? "" : "s"} waiting · ${statusLabel}`;
     button.setAttribute("aria-label", label);
+    button.setAttribute("title", label);
   } else {
     badge.textContent = "";
     button.classList.remove("has-waiting");
-    button.setAttribute("aria-label", originalLabel);
+    button.setAttribute("aria-label", statusLabel);
+    button.setAttribute("title", statusLabel);
   }
 }
 
@@ -271,7 +284,9 @@ function initLiveChatWidget() {
       renderLiveChatMessages(thread, data.messages || [], {
         autopilotEnabled,
       });
-      updateLiveChatIndicator(data.waiting_count || 0);
+      updateLiveChatIndicator(data.waiting_count || 0, {
+        autopilotActive: autopilotEnabled,
+      });
       if (!isBackground) {
         console.info(
           autopilotEnabled
@@ -354,7 +369,9 @@ function initLiveChatWidget() {
         renderLiveChatMessages(thread, data.messages || [], {
           autopilotEnabled,
         });
-        updateLiveChatIndicator(data.waiting_count || 0);
+        updateLiveChatIndicator(data.waiting_count || 0, {
+          autopilotActive: autopilotEnabled,
+        });
         input.value = "";
         autoResize();
       })
@@ -751,7 +768,9 @@ function initLiveChatIndicator() {
   async function refreshStatus() {
     try {
       const data = await fetchJson("/api/chat/status");
-      updateLiveChatIndicator(data.waiting_count || 0);
+      updateLiveChatIndicator(data.waiting_count || 0, {
+        autopilotActive: Boolean(data.autopilot),
+      });
     } catch (error) {
       // Ignore background refresh errors
     }
@@ -787,8 +806,11 @@ function initVisitorChat() {
         `/api/chat/messages?visitor_id=${encodeURIComponent(visitorId)}`
       );
       renderMessages(messageContainer, data.messages || []);
-      updateStatus(Boolean(data.autopilot));
-      updateLiveChatIndicator(data.waiting_count || 0);
+      const isAutopilot = Boolean(data.autopilot);
+      updateStatus(isAutopilot);
+      updateLiveChatIndicator(data.waiting_count || 0, {
+        autopilotActive: isAutopilot,
+      });
     } catch (error) {
       if (feedback) {
         feedback.textContent = "We couldn’t refresh the chat just now.";
@@ -820,8 +842,11 @@ function initVisitorChat() {
         });
         textarea.value = "";
         renderMessages(messageContainer, data.messages || []);
-        updateStatus(Boolean(data.autopilot));
-        updateLiveChatIndicator(data.waiting_count || 0);
+        const isAutopilot = Boolean(data.autopilot);
+        updateStatus(isAutopilot);
+        updateLiveChatIndicator(data.waiting_count || 0, {
+          autopilotActive: isAutopilot,
+        });
         if (feedback) {
           feedback.textContent = data.autopilot
             ? "Reply sent instantly by Autopilot."
@@ -1880,7 +1905,20 @@ function initAdminChat() {
     "[data-card-toggle][aria-controls='conversation-card-body']"
   );
   const conversationPanel = adminRoot.querySelector("[data-role='conversation-panel']");
+  const presenceIndicator = adminRoot.querySelector("[data-role='presence-indicator']");
+  const presenceLabel = adminRoot.querySelector("[data-role='presence-label']");
+  const chatModeChip = adminRoot.querySelector("[data-role='chat-mode-chip']");
+  const chatModeStatus = adminRoot.querySelector("[data-role='chat-mode']");
   const conversationInsights = adminRoot.querySelector("[data-role='conversation-insights']");
+  const insightsEmpty = adminRoot.querySelector("[data-role='insights-empty']");
+  const insightsList = adminRoot.querySelector("[data-role='insights-list']");
+  const insightLastSeen = adminRoot.querySelector("[data-role='insight-last-seen']");
+  const insightLastMessage = adminRoot.querySelector("[data-role='insight-last-message']");
+  const insightVisitCount = adminRoot.querySelector("[data-role='insight-visit-count']");
+  const insightLastPath = adminRoot.querySelector("[data-role='insight-last-path']");
+  const insightsTimeline = adminRoot.querySelector("[data-role='insights-timeline']");
+  const timelineList = adminRoot.querySelector("[data-role='timeline-list']");
+  const timelineEmpty = adminRoot.querySelector("[data-role='timeline-empty']");
 
   let autopilotEnabled = false;
   let selectedVisitorId = "";
@@ -1890,6 +1928,168 @@ function initAdminChat() {
   let beepTimeoutId = null;
   let audioContext = null;
   let lastBeepCount = 0;
+
+  function getSelectedSummary() {
+    if (!selectedVisitorId) {
+      return null;
+    }
+    return (
+      visitorSummaries.find((visitor) => visitor.visitor_id === selectedVisitorId) || null
+    );
+  }
+
+  function syncChatModeDisplay() {
+    const isCopilot = !autopilotEnabled;
+    const hasSelection = Boolean(selectedVisitorId);
+    const showAlert = isCopilot && currentWaitingCount > 0;
+
+    if (presenceIndicator) {
+      presenceIndicator.classList.toggle("is-live", isCopilot);
+      presenceIndicator.classList.toggle("is-alert", showAlert);
+    }
+
+    if (presenceLabel) {
+      const baseLabel = isCopilot ? "Live concierge online" : "Autopilot concierge";
+      const activeLabel = hasSelection
+        ? isCopilot
+          ? "Live concierge replying"
+          : "Autopilot is replying"
+        : showAlert
+        ? "Visitors waiting for reply"
+        : baseLabel;
+      presenceLabel.textContent = activeLabel;
+      presenceLabel.classList.toggle("is-live", isCopilot);
+      presenceLabel.classList.toggle("is-alert", showAlert);
+    }
+
+    if (chatModeChip) {
+      const chipLabel = isCopilot
+        ? hasSelection
+          ? "Live concierge replying"
+          : showAlert
+          ? "Visitors waiting"
+          : "Live concierge ready"
+        : hasSelection
+        ? "AI assistant is replying"
+        : "Autopilot concierge";
+      chatModeChip.textContent = chipLabel;
+      chatModeChip.classList.toggle("is-live", isCopilot);
+      chatModeChip.classList.toggle("is-alert", showAlert);
+    }
+
+    if (chatModeStatus) {
+      chatModeStatus.textContent = isCopilot ? "Live concierge" : "Autopilot";
+      chatModeStatus.classList.toggle("is-live", isCopilot);
+      chatModeStatus.classList.toggle("is-alert", showAlert);
+    }
+  }
+
+  function renderConversationInsights(summary, conversationData = {}) {
+    if (!conversationInsights) {
+      return;
+    }
+
+    const hasSummary = Boolean(summary && selectedVisitorId);
+
+    if (!hasSummary) {
+      if (insightsEmpty) {
+        insightsEmpty.hidden = false;
+      }
+      if (insightsList) {
+        insightsList.hidden = true;
+      }
+      if (insightsTimeline) {
+        insightsTimeline.hidden = true;
+      }
+      if (timelineList) {
+        timelineList.innerHTML = "";
+      }
+      if (timelineEmpty) {
+        timelineEmpty.hidden = true;
+      }
+      return;
+    }
+
+    if (insightsEmpty) {
+      insightsEmpty.hidden = true;
+    }
+
+    if (insightsList) {
+      insightsList.hidden = false;
+      if (insightLastSeen) {
+        insightLastSeen.textContent = summary.last_seen
+          ? formatDateTime(summary.last_seen)
+          : "Just now";
+      }
+
+      const messages = Array.isArray(conversationData.messages)
+        ? conversationData.messages
+        : [];
+      const lastMessage =
+        summary.last_message || (messages.length ? messages[messages.length - 1] : null);
+      if (insightLastMessage) {
+        if (lastMessage?.content) {
+          const trimmed =
+            lastMessage.content.length > 140
+              ? `${lastMessage.content.slice(0, 137)}…`
+              : lastMessage.content;
+          const timestampLabel = lastMessage.timestamp
+            ? formatTimestamp(lastMessage.timestamp)
+            : "Just now";
+          insightLastMessage.textContent = `${trimmed} · ${timestampLabel}`;
+        } else {
+          insightLastMessage.textContent = "Visitor hasn’t sent a message yet.";
+        }
+      }
+
+      if (insightVisitCount) {
+        const visitsCount = Number(summary.visit_count) || 0;
+        insightVisitCount.textContent =
+          visitsCount === 1 ? "1 recorded visit" : `${visitsCount} recorded visits`;
+      }
+
+      if (insightLastPath) {
+        insightLastPath.textContent = summary.last_path || "No browsing data yet.";
+      }
+    }
+
+    if (insightsTimeline) {
+      insightsTimeline.hidden = false;
+      const visits = Array.isArray(summary.visits) ? [...summary.visits] : [];
+      visits.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
+      const hasVisits = visits.length > 0;
+
+      if (timelineList) {
+        timelineList.innerHTML = "";
+        timelineList.hidden = !hasVisits;
+        if (hasVisits) {
+          visits.forEach((visit) => {
+            const item = document.createElement("li");
+            item.classList.add("timeline-entry");
+
+            const meta = document.createElement("div");
+            meta.classList.add("timeline-entry__meta");
+            const timeSpan = document.createElement("span");
+            timeSpan.textContent = visit.timestamp
+              ? formatDateTime(visit.timestamp)
+              : "Unknown time";
+            meta.appendChild(timeSpan);
+
+            const path = document.createElement("p");
+            path.classList.add("timeline-entry__path");
+            path.textContent = visit.path || "Landing page";
+
+            item.append(meta, path);
+            timelineList.appendChild(item);
+          });
+        }
+      }
+
+      if (timelineEmpty) {
+        timelineEmpty.hidden = hasVisits;
+      }
+    }
+  }
 
   function stopBeep() {
     if (beepTimeoutId) {
@@ -1940,7 +2140,10 @@ function initAdminChat() {
   function updateWaitingAlert(waitingCount) {
     const previousCount = currentWaitingCount;
     currentWaitingCount = Number(waitingCount) || 0;
-    if (!waitingAlert) return;
+    if (!waitingAlert) {
+      syncChatModeDisplay();
+      return;
+    }
 
     if (autopilotEnabled || currentWaitingCount <= 0) {
       waitingAlert.hidden = true;
@@ -1948,6 +2151,7 @@ function initAdminChat() {
       waitingAlertAcknowledged = false;
       lastBeepCount = 0;
       stopBeep();
+      syncChatModeDisplay();
       return;
     }
 
@@ -1980,6 +2184,7 @@ function initAdminChat() {
         triggerBeep();
       }
     }
+    syncChatModeDisplay();
   }
 
   function acknowledgeWaitingAlert() {
@@ -2040,6 +2245,12 @@ function initAdminChat() {
       conversationInsights.hidden = !hasSelection;
     }
     setChatPlaceholder(hasSelection);
+    if (hasSelection) {
+      renderConversationInsights(getSelectedSummary());
+    } else {
+      renderConversationInsights(null);
+    }
+    syncChatModeDisplay();
   }
 
   function updateReplyAvailability() {
@@ -2083,6 +2294,8 @@ function initAdminChat() {
         ? "Autopilot is active. Disable it to respond manually."
         : "Select a visitor to view their messages and reply.";
     }
+    syncChatModeDisplay();
+    updateLiveChatIndicator(currentWaitingCount, { autopilotActive: autopilotEnabled });
     updateReplyAvailability();
     updateWaitingAlert(currentWaitingCount);
   }
@@ -2239,10 +2452,16 @@ function initAdminChat() {
       const data = await fetchJson(
         `/api/chat/messages?visitor_id=${encodeURIComponent(selectedVisitorId)}`
       );
+      const isAutopilot = Boolean(data.autopilot);
+      if (autopilotEnabled !== isAutopilot) {
+        updateModeDescription(isAutopilot);
+      }
       renderMessages(messageContainer, data.messages || []);
       setVisitorHeading(data.label || "");
       updateVisitorStatusTag(Boolean(data.is_returning));
-      updateLiveChatIndicator(data.waiting_count || 0);
+      updateLiveChatIndicator(data.waiting_count || 0, {
+        autopilotActive: isAutopilot,
+      });
       updateWaitingAlert(data.waiting_count ?? currentWaitingCount);
       if (chatHint) {
         if (!data.messages || data.messages.length === 0) {
@@ -2256,6 +2475,23 @@ function initAdminChat() {
         }
       }
       updateReplyAvailability();
+      const summary = getSelectedSummary();
+      if (summary) {
+        if (Array.isArray(data.messages) && data.messages.length) {
+          const latestMessage = data.messages[data.messages.length - 1];
+          summary.last_message = latestMessage;
+          summary.last_seen = latestMessage.timestamp || summary.last_seen;
+          summary.waiting =
+            !autopilotEnabled && latestMessage?.role === "visitor" ? true : false;
+        } else {
+          summary.waiting = false;
+        }
+        summary.is_returning = Boolean(data.is_returning);
+        renderConversationInsights(summary, data);
+        renderVisitorList(visitorSummaries);
+      } else {
+        renderConversationInsights(null, data);
+      }
     } catch (error) {
       if (replyFeedback && !replyFeedback.textContent) {
         replyFeedback.textContent = "Unable to refresh messages.";
@@ -2280,7 +2516,9 @@ function initAdminChat() {
       const previousVisitorId = selectedVisitorId;
       const data = await fetchJson("/api/admin/conversations");
       updateModeDescription(Boolean(data.autopilot));
-      updateLiveChatIndicator(data.waiting_count || 0);
+      updateLiveChatIndicator(data.waiting_count || 0, {
+        autopilotActive: Boolean(data.autopilot),
+      });
       updateWaitingAlert(data.waiting_count || 0);
       visitorSummaries = data.visitors || [];
 
@@ -2382,7 +2620,9 @@ function initAdminChat() {
         replyTextarea.value = "";
         renderMessages(messageContainer, data.messages || []);
         updateVisitorStatusTag(Boolean(data.is_returning));
-        updateLiveChatIndicator(data.waiting_count || 0);
+        updateLiveChatIndicator(data.waiting_count || 0, {
+          autopilotActive: Boolean(data.autopilot),
+        });
         if (replyFeedback) {
           replyFeedback.textContent = "Reply sent.";
         }

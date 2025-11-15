@@ -153,6 +153,8 @@ def _waiting_count() -> int:
 def _serialize_conversation(visitor: Dict[str, Any]) -> Dict[str, Any]:
     messages = _visitor_messages(visitor)
     last_message = messages[-1] if messages else None
+    visits = list(visitor.get("visits", []))
+    recent_visits = visits[-5:]
     return {
         "visitor_id": visitor.get("id"),
         "label": visitor.get("label"),
@@ -161,6 +163,10 @@ def _serialize_conversation(visitor: Dict[str, Any]) -> Dict[str, Any]:
         "last_seen": visitor.get("last_seen"),
         "last_message": last_message,
         "visit_count": int(visitor.get("visit_count") or 0),
+        "last_path": visitor.get("last_path"),
+        "visits": recent_visits,
+        "first_seen": visitor.get("first_seen"),
+        "ip_address": visitor.get("ip_address"),
     }
 
 

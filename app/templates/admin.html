@@ -44,43 +44,98 @@
                 ></aside>
               </section>
               <section class="live-support-stage">
-                <div class="conversation-panel" data-role="conversation-panel">
-                  <header class="chat-header">
-                    <div>
-                      <h3 class="visitor-heading" data-role="visitor-heading">
-                        No active visitors
-                      </h3>
-                      <span class="visitor-status-tag" data-role="visitor-status"></span>
-                    </div>
-                    <div class="chat-toolbar">
-                      <span class="chat-toolbar__status" data-role="chat-mode">Autopilot</span>
-                      <span class="chat-toolbar__target">
-                        Response target <strong data-role="response-target">under 2m</strong>
-                      </span>
-                    </div>
-                  </header>
-                  <div
-                    class="chat-window"
-                    data-chat-messages
-                    data-placeholder="Select a visitor to view their messages."
+                <div class="conversation-layout">
+                  <div class="conversation-panel" data-role="conversation-panel">
+                    <header class="chat-header">
+                      <div class="chat-presence">
+                        <span
+                          class="presence-indicator"
+                          data-role="presence-indicator"
+                          aria-hidden="true"
+                        ></span>
+                        <div class="chat-presence__content">
+                          <p class="presence-label" data-role="presence-label">
+                            Autopilot concierge
+                          </p>
+                          <h3 class="visitor-heading" data-role="visitor-heading">
+                            No active visitors
+                          </h3>
+                          <div class="chat-presence__meta">
+                            <span class="visitor-status-tag" data-role="visitor-status"></span>
+                            <span class="chat-mode-chip" data-role="chat-mode-chip">
+                              AI assistant is replying
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="chat-toolbar">
+                        <span class="chat-toolbar__status" data-role="chat-mode">Autopilot</span>
+                        <span class="chat-toolbar__target">
+                          Response target <strong data-role="response-target">under 2m</strong>
+                        </span>
+                      </div>
+                    </header>
+                    <div
+                      class="chat-window"
+                      data-chat-messages
+                      data-placeholder="Select a visitor to view their messages."
+                      aria-live="polite"
+                    ></div>
+                    <p class="chat-hint" data-role="chat-hint">
+                      Autopilot is active. Disable it to respond manually.
+                    </p>
+                    <form id="agent-reply-form" class="reply-form">
+                      <label class="field-label" for="agent-message">Reply to visitor</label>
+                      <textarea
+                        id="agent-message"
+                        rows="4"
+                        placeholder="Type your message to the visitor..."
+                        required
+                      ></textarea>
+                      <div class="form-actions">
+                        <button type="submit" class="button secondary">Send Reply</button>
+                        <p class="form-feedback" data-role="agent-feedback"></p>
+                      </div>
+                    </form>
+                  </div>
+                  <aside
+                    class="conversation-insights"
+                    data-role="conversation-insights"
                     aria-live="polite"
-                  ></div>
-                  <p class="chat-hint" data-role="chat-hint">
-                    Autopilot is active. Disable it to respond manually.
-                  </p>
-                  <form id="agent-reply-form" class="reply-form">
-                    <label class="field-label" for="agent-message">Reply to visitor</label>
-                    <textarea
-                      id="agent-message"
-                      rows="4"
-                      placeholder="Type your message to the visitor..."
-                      required
-                    ></textarea>
-                    <div class="form-actions">
-                      <button type="submit" class="button secondary">Send Reply</button>
-                      <p class="form-feedback" data-role="agent-feedback"></p>
+                    hidden
+                  >
+                    <div class="insights-header">
+                      <h4>Conversation insights</h4>
+                      <p class="insights-empty" data-role="insights-empty">
+                        Pick a visitor from the inbox to see their context here.
+                      </p>
                     </div>
-                  </form>
+                    <dl class="insights-list" data-role="insights-list" hidden>
+                      <div class="insights-row">
+                        <dt>Last seen</dt>
+                        <dd data-role="insight-last-seen">—</dd>
+                      </div>
+                      <div class="insights-row">
+                        <dt>Last message</dt>
+                        <dd data-role="insight-last-message">—</dd>
+                      </div>
+                      <div class="insights-row">
+                        <dt>Visits</dt>
+                        <dd data-role="insight-visit-count">—</dd>
+                      </div>
+                      <div class="insights-row">
+                        <dt>Current page</dt>
+                        <dd data-role="insight-last-path">—</dd>
+                      </div>
+                    </dl>
+                    <div class="insights-timeline" data-role="insights-timeline" hidden>
+                      <h5>Recent site activity</h5>
+                      <ol class="timeline-list" data-role="timeline-list"></ol>
+                      <p class="timeline-empty" data-role="timeline-empty">
+                        This visitor hasn’t browsed enough pages yet.
+                      </p>
+                    </div>
+                  </aside>
                 </div>
               </section>
             </div>
