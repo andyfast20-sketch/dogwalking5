@@ -411,8 +411,10 @@ function initChatSurprise() {
   if (!button) return;
 
   const highlightClass = "is-flickering";
-  const highlightDuration = 5000;
+  const highlightDuration = 2600;
   let highlightTimeoutId = null;
+  let scheduledHighlightId = null;
+  let hasTriggeredHighlight = false;
 
   const clearHighlight = () => {
     if (highlightTimeoutId) {
@@ -423,27 +425,39 @@ function initChatSurprise() {
   };
 
   const activateHighlight = () => {
-    button.classList.add(highlightClass);
-    if (highlightTimeoutId) {
-      window.clearTimeout(highlightTimeoutId);
+    if (hasTriggeredHighlight || document.visibilityState === "hidden") {
+      return;
     }
+
+    hasTriggeredHighlight = true;
+    button.classList.add(highlightClass);
     highlightTimeoutId = window.setTimeout(() => {
-      button.classList.remove(highlightClass);
-      highlightTimeoutId = null;
+      clearHighlight();
     }, highlightDuration);
   };
 
-  const maybeHighlight = () => {
-    const roll = Math.floor(Math.random() * 5) + 1;
-    if (roll === 3) {
-      activateHighlight();
-    } else if (!highlightTimeoutId) {
-      clearHighlight();
+  const cancelScheduledHighlight = () => {
+    if (scheduledHighlightId) {
+      window.clearTimeout(scheduledHighlightId);
+      scheduledHighlightId = null;
     }
+    if (!hasTriggeredHighlight) {
+      hasTriggeredHighlight = true;
+    }
+    clearHighlight();
   };
 
-  window.setTimeout(maybeHighlight, 1200);
-  window.setInterval(maybeHighlight, 10000);
+  scheduledHighlightId = window.setTimeout(activateHighlight, 1400);
+
+  ["focus", "mouseenter", "click"].forEach((eventName) => {
+    button.addEventListener(eventName, cancelScheduledHighlight);
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      cancelScheduledHighlight();
+    }
+  });
 }
 
 function formatDateTime(value) {
