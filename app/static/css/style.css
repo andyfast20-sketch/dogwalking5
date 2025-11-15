@@ -1930,6 +1930,7 @@ textarea {
 
 .conversation-panel .chat-window {
   height: 100%;
+  flex: 1;
   min-height: 0;
   max-height: none;
   padding: clamp(1.1rem, 2.4vw, 1.6rem);
@@ -2074,6 +2075,7 @@ textarea {
   resize: vertical;
   font-size: 0.82rem;
   line-height: 1.45;
+  min-height: 96px;
 }
 
 .reply-form textarea:focus {
@@ -2243,7 +2245,7 @@ textarea {
 }
 
 .admin-console--focused {
-  min-height: min(920px, calc(100vh - 120px));
+  min-height: min(820px, calc(100vh - 80px));
   display: flex;
   flex-direction: column;
   gap: clamp(1.25rem, 3vw, 2.25rem);
@@ -3147,7 +3149,7 @@ textarea {
 
 .live-support-stage {
   position: relative;
-  min-height: clamp(360px, 52vh, 560px);
+  min-height: clamp(320px, 50vh, 520px);
   display: grid;
   grid-area: stage;
   align-self: stretch;
@@ -3160,11 +3162,11 @@ textarea {
 
 
 .conversation-panel {
-  display: grid;
-  gap: 1rem;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
   min-height: 0;
-  padding: clamp(1.15rem, 2.2vw, 1.6rem);
+  padding: clamp(1rem, 2vw, 1.45rem);
   background: rgba(5, 18, 15, 0.85);
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -3174,9 +3176,10 @@ textarea {
 }
 
 .conversation-insights {
-  display: grid;
-  gap: 1.1rem;
-  padding: clamp(1.1rem, 2.3vw, 1.6rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: clamp(1rem, 2.2vw, 1.5rem);
   background: rgba(6, 22, 18, 0.82);
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -3201,109 +3204,84 @@ textarea {
   color: rgba(245, 249, 247, 0.75);
 }
 
-.insights-empty {
+.insights-description {
   margin: 0;
   color: rgba(245, 249, 247, 0.65);
   font-size: 0.75rem;
   line-height: 1.45;
 }
 
-.insights-list {
-  display: grid;
-  gap: 0.65rem;
-  margin: 0;
-}
-
-.insights-list[hidden] {
-  display: none;
-}
-
-.insights-row {
-  display: grid;
-  gap: 0.25rem;
-  padding: 0.75rem 0.9rem;
-  border-radius: 16px;
-  background: rgba(5, 18, 15, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
-}
-
-.insights-row dt {
-  margin: 0;
-  font-size: 0.68rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(245, 249, 247, 0.6);
-}
-
-.insights-row dd {
-  margin: 0;
-  color: rgba(245, 249, 247, 0.85);
-  font-size: 0.78rem;
-  line-height: 1.45;
-}
-
-.insights-timeline {
-  display: grid;
-  gap: 0.6rem;
-}
-
-.insights-timeline[hidden] {
-  display: none;
-}
-
-.insights-timeline h5 {
-  margin: 0;
-  font-size: 0.75rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(245, 249, 247, 0.65);
-}
-
-.timeline-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.5rem;
-}
-
-.timeline-entry {
-  display: grid;
-  gap: 0.2rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.timeline-entry__meta {
+.insights-thread {
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(245, 249, 247, 0.55);
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
 }
 
-.timeline-entry__path {
-  margin: 0;
-  font-size: 0.78rem;
-  color: rgba(245, 249, 247, 0.85);
-  word-break: break-word;
-}
-
-.timeline-empty {
+.insights-empty {
   margin: 0;
   color: rgba(245, 249, 247, 0.6);
   font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.insights-transcript {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-height: clamp(220px, 48vh, 420px);
+  overflow-y: auto;
+}
+
+.insights-transcript[hidden] {
+  display: none;
+}
+
+.insights-transcript__item {
+  padding: 0.75rem 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(5, 18, 15, 0.7);
+  display: grid;
+  gap: 0.35rem;
+}
+
+.insights-transcript__item--visitor {
+  background: linear-gradient(135deg, rgba(245, 180, 0, 0.18), rgba(255, 222, 122, 0.14));
+  border-color: rgba(245, 180, 0, 0.35);
+}
+
+.insights-transcript__item--agent {
+  background: rgba(125, 210, 124, 0.12);
+  border-color: rgba(125, 210, 124, 0.3);
+}
+
+.insights-transcript__item.is-latest {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.insights-transcript__meta {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 249, 247, 0.65);
+}
+
+.insights-transcript__message {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: rgba(245, 249, 247, 0.92);
 }
 
 .conversation-layout {
   display: grid;
   gap: clamp(1rem, 2.2vw, 1.8rem);
-  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.85fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.85fr);
   align-items: stretch;
 }
 
