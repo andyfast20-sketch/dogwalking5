@@ -1103,15 +1103,6 @@ function initAdminEnquiries() {
       const actions = document.createElement("div");
       actions.classList.add("enquiry-actions");
 
-      const editButton = document.createElement("button");
-      editButton.type = "button";
-      editButton.classList.add("button", "ghost");
-      editButton.dataset.action = "edit-enquiry";
-      editButton.dataset.id = enquiry.id;
-      editButton.setAttribute("aria-expanded", activeEditorId === enquiry.id ? "true" : "false");
-      editButton.textContent = activeEditorId === enquiry.id ? "Close editor" : "Edit details";
-      actions.appendChild(editButton);
-
       const statusActions = [];
       if (status !== "in_progress") {
         statusActions.push({ status: "in_progress", label: "Mark in progress" });
@@ -1123,30 +1114,69 @@ function initAdminEnquiries() {
         statusActions.push({ status: "new", label: "Reopen" });
       }
 
+      const actionMenu = document.createElement("label");
+      actionMenu.classList.add("enquiry-action-menu");
+      const menuText = document.createElement("span");
+      menuText.classList.add("sr-only");
+      menuText.textContent = "Quick actions";
+      actionMenu.appendChild(menuText);
+
+      const actionSelect = document.createElement("select");
+      actionSelect.classList.add("enquiry-action-menu__select");
+      actionSelect.dataset.role = "action-menu";
+      actionSelect.dataset.id = enquiry.id;
+
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "Actions";
+      placeholder.selected = true;
+      placeholder.disabled = true;
+      actionSelect.appendChild(placeholder);
+
+      const editOption = document.createElement("option");
+      editOption.dataset.action = "toggle-editor";
+      const isEditing = activeEditorId === enquiry.id;
+      editOption.value = isEditing ? "close-editor" : "edit";
+      editOption.textContent = isEditing ? "Close editor" : "Edit details";
+      actionSelect.appendChild(editOption);
+
       statusActions.forEach((action) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.classList.add("button", action.status === "complete" ? "secondary" : "ghost");
-        button.dataset.action = "set-status";
-        button.dataset.status = action.status;
-        button.dataset.id = enquiry.id;
-        button.textContent = action.label;
-        actions.appendChild(button);
+        const option = document.createElement("option");
+        option.value = `status:${action.status}`;
+        option.textContent = action.label;
+        actionSelect.appendChild(option);
       });
+
+      actionMenu.appendChild(actionSelect);
+      actions.appendChild(actionMenu);
 
       const deleteButton = document.createElement("button");
       deleteButton.type = "button";
-      deleteButton.classList.add("button", "danger");
+      deleteButton.classList.add("button", "danger", "enquiry-icon-button");
       deleteButton.dataset.action = "delete-enquiry";
       deleteButton.dataset.id = enquiry.id;
-      deleteButton.textContent = "Delete";
+      deleteButton.title = "Delete enquiry";
+      const deleteIcon = document.createElement("span");
+      deleteIcon.setAttribute("aria-hidden", "true");
+      deleteIcon.textContent = "🗑️";
+      const deleteLabel = document.createElement("span");
+      deleteLabel.classList.add("sr-only");
+      deleteLabel.textContent = "Delete enquiry";
+      deleteButton.append(deleteIcon, deleteLabel);
       actions.appendChild(deleteButton);
 
       if (enquiry.email) {
         const replyLink = document.createElement("a");
-        replyLink.classList.add("button", "ghost");
+        replyLink.classList.add("button", "ghost", "enquiry-icon-button");
         replyLink.href = `mailto:${enquiry.email}`;
-        replyLink.textContent = "Email reply";
+        replyLink.title = "Email reply";
+        const replyIcon = document.createElement("span");
+        replyIcon.setAttribute("aria-hidden", "true");
+        replyIcon.textContent = "✉️";
+        const replyLabel = document.createElement("span");
+        replyLabel.classList.add("sr-only");
+        replyLabel.textContent = "Email reply";
+        replyLink.append(replyIcon, replyLabel);
         replyLink.setAttribute("role", "button");
         actions.appendChild(replyLink);
       }
@@ -1290,13 +1320,17 @@ function initAdminEnquiries() {
   function closeEditor(item) {
     if (!item) return;
     const editor = item.querySelector("[data-role='enquiry-editor']");
-    const toggle = item.querySelector("[data-action='edit-enquiry']");
+    const actionMenu = item.querySelector("[data-role='action-menu']");
+    const toggleOption = actionMenu?.querySelector("option[data-action='toggle-editor']");
     if (editor) {
       editor.hidden = true;
     }
-    if (toggle) {
-      toggle.textContent = "Edit details";
-      toggle.setAttribute("aria-expanded", "false");
+    if (toggleOption) {
+      toggleOption.textContent = "Edit details";
+      toggleOption.value = "edit";
+    }
+    if (actionMenu) {
+      actionMenu.selectedIndex = 0;
     }
     item.classList.remove("is-editing");
     if (item.dataset.id === activeEditorId) {
@@ -1307,7 +1341,8 @@ function initAdminEnquiries() {
   function openEditor(item) {
     if (!item) return;
     const editor = item.querySelector("[data-role='enquiry-editor']");
-    const toggle = item.querySelector("[data-action='edit-enquiry']");
+    const actionMenu = item.querySelector("[data-role='action-menu']");
+    const toggleOption = actionMenu?.querySelector("option[data-action='toggle-editor']");
     if (editor) {
       editor.hidden = false;
       const firstField = editor.querySelector("input, textarea");
@@ -1315,9 +1350,12 @@ function initAdminEnquiries() {
         firstField.focus();
       }
     }
-    if (toggle) {
-      toggle.textContent = "Close editor";
-      toggle.setAttribute("aria-expanded", "true");
+    if (toggleOption) {
+      toggleOption.textContent = "Close editor";
+      toggleOption.value = "close-editor";
+    }
+    if (actionMenu) {
+      actionMenu.selectedIndex = 0;
     }
     item.classList.add("is-editing");
     activeEditorId = item.dataset.id || null;
@@ -1382,13 +1420,6 @@ function initAdminEnquiries() {
 
   if (list) {
     list.addEventListener("click", (event) => {
-      const statusButton = event.target.closest("[data-action='set-status']");
-      if (statusButton) {
-        const { id, status } = statusButton.dataset;
-        setEnquiryStatus(id, status);
-        return;
-      }
-
       const deleteButton = event.target.closest("[data-action='delete-enquiry']");
       if (deleteButton) {
         const { id } = deleteButton.dataset;
@@ -1402,12 +1433,24 @@ function initAdminEnquiries() {
         closeEditor(item);
         return;
       }
+    });
 
-      const editButton = event.target.closest("[data-action='edit-enquiry']");
-      if (editButton) {
-        const item = editButton.closest(".enquiry-item");
+    list.addEventListener("change", (event) => {
+      const actionSelect = event.target.closest("[data-role='action-menu']");
+      if (!actionSelect) return;
+      const { id } = actionSelect.dataset;
+      const value = actionSelect.value;
+      if (!id || !value) return;
+      const item = actionSelect.closest(".enquiry-item");
+      if (value === "edit") {
         toggleEditor(item);
+      } else if (value === "close-editor") {
+        closeEditor(item);
+      } else if (value.startsWith("status:")) {
+        const [, status] = value.split(":");
+        setEnquiryStatus(id, status);
       }
+      actionSelect.selectedIndex = 0;
     });
 
     list.addEventListener("submit", (event) => {
