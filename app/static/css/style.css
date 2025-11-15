@@ -2839,6 +2839,8 @@ textarea {
   min-height: clamp(360px, 52vh, 560px);
   display: grid;
   grid-area: stage;
+  align-self: stretch;
+  height: 100%;
 }
 
 .live-support-stage > * {
