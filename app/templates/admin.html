@@ -2,23 +2,70 @@
 {% block title %}Admin | Reliable Walks{% endblock %}
 {% block content %}
 <section class="admin-panel">
-  <div class="container admin-container" id="admin-chat" data-role="admin-chat">
-    <button
-      type="button"
-      class="button ghost admin-back"
-      data-role="admin-back"
-      hidden
-    >
-      <span class="admin-back__icon" aria-hidden="true">&larr;</span>
-      <span>Back to dashboard</span>
-    </button>
-    <div class="admin-grid" data-role="admin-grid">
-      <article class="admin-card conversation-card" data-card id="live-conversations">
-        <div
-          class="card-preview"
-          data-card-toggle
-          role="button"
-          tabindex="0"
+  <div class="admin-hero">
+    <div class="container admin-container">
+      <div class="admin-hero__grid">
+        <div class="admin-hero__copy">
+          <p class="eyebrow">Concierge Control Room</p>
+          <h1>Live Experience Command Center</h1>
+          <p class="admin-hero__subtitle">
+            Monitor every visitor, respond instantly, and choreograph bookings without leaving
+            this view. The entire concierge workflow now lives on a single, cinematic canvas.
+          </p>
+          <ul class="admin-hero__chips">
+            <li>Live concierge online</li>
+            <li>Real-time visitor radar</li>
+            <li>Luxury response standard</li>
+          </ul>
+        </div>
+        <dl class="admin-hero__stats">
+          <div class="admin-hero__stat">
+            <dt>Active visitors</dt>
+            <dd data-metric="visitor-total">0</dd>
+            <small>Currently exploring the site</small>
+          </div>
+          <div class="admin-hero__stat">
+            <dt>Returning VIPs</dt>
+            <dd data-metric="visitor-returning">0</dd>
+            <small>Guests with repeat visits</small>
+          </div>
+          <div class="admin-hero__stat">
+            <dt>Confirmed walks</dt>
+            <dd data-metric="bookings">0</dd>
+            <small>Bookings locked in</small>
+          </div>
+          <div class="admin-hero__stat">
+            <dt>Open slots</dt>
+            <dd data-metric="open-slots">0</dd>
+            <small>Premium sessions available</small>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="admin-body">
+    <div class="container admin-container admin-console" id="admin-chat" data-role="admin-chat">
+      <button
+        type="button"
+        class="button ghost admin-back"
+        data-role="admin-back"
+        hidden
+      >
+        <span class="admin-back__icon" aria-hidden="true">&larr;</span>
+        <span>Back to dashboard</span>
+      </button>
+      <div class="admin-grid" data-role="admin-grid">
+        <article
+          class="admin-card conversation-card admin-card--xl"
+          data-card
+          data-card-default
+          id="live-conversations"
+        >
+          <div
+            class="card-preview"
+            data-card-toggle
+            role="button"
+            tabindex="0"
           aria-expanded="false"
           aria-controls="conversation-card-body"
         >
@@ -152,7 +199,7 @@
           </div>
         </div>
       </article>
-      <article class="admin-card visitor-card" data-card data-role="visitor-insights">
+        <article class="admin-card visitor-card" data-card data-role="visitor-insights">
         <div
           class="card-preview"
           data-card-toggle
@@ -214,7 +261,7 @@
           </div>
         </div>
       </article>
-      <article class="admin-card schedule-card" data-card data-role="schedule-manager">
+        <article class="admin-card schedule-card" data-card data-role="schedule-manager">
         <div
           class="card-preview"
           data-card-toggle
@@ -311,7 +358,7 @@
           </div>
         </div>
       </article>
-      <article class="admin-card access-card" data-card data-role="ban-manager">
+        <article class="admin-card access-card" data-card data-role="ban-manager">
         <div
           class="card-preview"
           data-card-toggle
@@ -381,7 +428,8 @@
             </div>
           </div>
         </div>
-      </article>
+        </article>
+      </div>
     </div>
   </div>
 </section>
