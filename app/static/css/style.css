@@ -1411,11 +1411,41 @@ textarea {
   color: rgba(255, 255, 255, 0.75);
 }
 
-.footer-grid {
+.footer-columns {
   display: grid;
   gap: 2.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   align-items: start;
+}
+
+@media (min-width: 900px) {
+  .footer-columns {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3rem;
+  }
+
+  .footer-column--brand {
+    grid-column: span 2;
+  }
+}
+
+.footer-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footer-column h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.footer-column--contact,
+.footer-column--newsletter {
+  gap: 1.25rem;
 }
 
 .footer-brand {
@@ -1469,7 +1499,7 @@ textarea {
   color: rgba(255, 255, 255, 0.78);
 }
 
-.footer-contact ul {
+.footer-contact {
   list-style: none;
   padding: 0;
   margin: 0;
