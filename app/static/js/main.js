@@ -253,7 +253,7 @@ function initLiveChatWidget() {
     if (pollIntervalId) return;
     pollIntervalId = window.setInterval(() => {
       refreshMessages(true);
-    }, 6000);
+    }, 3500);
   };
 
   const stopPolling = () => {
@@ -268,7 +268,9 @@ function initLiveChatWidget() {
         `/api/chat/messages?visitor_id=${encodeURIComponent(visitorId)}`
       );
       autopilotEnabled = Boolean(data.autopilot);
-      renderLiveChatMessages(thread, data.messages || []);
+      renderLiveChatMessages(thread, data.messages || [], {
+        autopilotEnabled,
+      });
       updateLiveChatIndicator(data.waiting_count || 0);
       if (!isBackground) {
         console.info(
@@ -349,7 +351,9 @@ function initLiveChatWidget() {
     })
       .then((data) => {
         autopilotEnabled = Boolean(data.autopilot);
-        renderLiveChatMessages(thread, data.messages || []);
+        renderLiveChatMessages(thread, data.messages || [], {
+          autopilotEnabled,
+        });
         updateLiveChatIndicator(data.waiting_count || 0);
         input.value = "";
         autoResize();
@@ -646,42 +650,45 @@ function renderMessages(container, messages) {
   container.scrollTop = container.scrollHeight;
 }
 
-function renderLiveChatMessages(list, messages) {
+function renderLiveChatMessages(list, messages, options = {}) {
   if (!list) return;
+  const { autopilotEnabled = false } = options;
+
   list.innerHTML = "";
   const roleLabels = {
     visitor: "You",
     ai: "Lila · Autopilot",
     agent: "Happy Paws Concierge",
   };
-  const defaultMessages = [
-    {
-      role: "agent",
-      content: "Need weekday walks, puppy visits, or a weekend hike? Ask away!",
-      timestamp: new Date().toISOString(),
-      meta_label: "Lila · Live concierge",
-    },
-    {
-      role: "agent",
-      content:
-        "Can you collect my dog from home? Absolutely — doorstep pickups are our speciality.",
-      timestamp: new Date().toISOString(),
-      meta_label: "Popular question",
-    },
-  ];
-  const conversation = Array.isArray(messages) && messages.length ? messages : defaultMessages;
 
-  const useDefaults = !Array.isArray(messages) || messages.length === 0;
-  conversation.forEach((message, index) => {
+  const hasMessages = Array.isArray(messages) && messages.length > 0;
+  const defaultMessages = autopilotEnabled
+    ? [
+        {
+          role: "agent",
+          content: "Hi there! I'm Lila — ask me anything about walks or bookings.",
+          timestamp: new Date().toISOString(),
+          meta_label: "Lila · Autopilot concierge",
+        },
+      ]
+    : [
+        {
+          role: "agent",
+          content: "Thanks for reaching out! Leave a message and we'll reply shortly.",
+          timestamp: new Date().toISOString(),
+          meta_label: "Happy Paws Concierge",
+        },
+      ];
+
+  const conversation = hasMessages ? messages : defaultMessages;
+
+  conversation.forEach((message) => {
     const item = document.createElement("li");
     item.classList.add("live-chat-message");
     if (message.role) {
       item.classList.add(
         message.role === "visitor" ? "live-chat-message--visitor" : "live-chat-message--agent"
       );
-    }
-    if (useDefaults && index === 1) {
-      item.classList.add("live-chat-message--glow");
     }
 
     const meta = document.createElement("span");
@@ -745,7 +752,7 @@ function initLiveChatIndicator() {
   }
 
   refreshStatus();
-  setInterval(refreshStatus, 7000);
+  setInterval(refreshStatus, 5000);
 }
 
 function initVisitorChat() {
@@ -826,7 +833,7 @@ function initVisitorChat() {
   }
 
   refreshMessages();
-  setInterval(refreshMessages, 8000);
+  setInterval(refreshMessages, 3500);
 }
 
 function initBookingSchedule() {
