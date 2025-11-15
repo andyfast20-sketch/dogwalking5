@@ -4204,9 +4204,78 @@ body.modal-open {
   gap: 0.75rem;
 }
 
+
 .schedule-actions .button {
   padding: 0.55rem 1.3rem;
   font-size: 0.9rem;
+}
+
+.amin-hero {
+  padding: 5rem 0 6rem;
+  background: radial-gradient(circle at top right, rgba(125, 210, 124, 0.16), transparent),
+    radial-gradient(circle at bottom left, rgba(245, 180, 0, 0.15), transparent);
+}
+
+.amin-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.amin-header {
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.amin-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.85rem;
+  color: var(--eyebrow);
+}
+
+.amin-grid {
+  display: grid;
+  gap: 1.75rem;
+}
+
+.amin-card {
+  background: rgba(16, 40, 33, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 25px 45px rgba(0, 0, 0, 0.35);
+}
+
+.amin-card h2 {
+  margin-top: 0;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.amin-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.amin-card a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.amin-card a:hover,
+.amin-card a:focus {
+  color: var(--accent-dark);
+}
+
+@media (min-width: 720px) {
+  .amin-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (min-width: 720px) {
