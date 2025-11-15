@@ -944,9 +944,10 @@ function initAdminEnquiries() {
   const emptyState = root.querySelector("[data-role='enquiry-empty']");
   const feedback = root.querySelector("[data-role='enquiry-feedback']");
   const refreshButton = root.querySelector("[data-role='enquiry-refresh']");
-  const openCountLabels = root.querySelectorAll("[data-role='enquiry-open-count']");
-  const totalCountLabels = root.querySelectorAll("[data-role='enquiry-total-count']");
-  const summaryLabel = root.querySelector("[data-role='enquiry-summary']");
+  const openCountLabels = document.querySelectorAll("[data-role='enquiry-open-count']");
+  const totalCountLabels = document.querySelectorAll("[data-role='enquiry-total-count']");
+  const summaryLabels = document.querySelectorAll("[data-role='enquiry-summary']");
+  const refreshLabels = document.querySelectorAll("[data-role='lab-refresh']");
   const cardToggle = root.querySelector("[data-card-toggle]");
 
   let enquiries = [];
@@ -1011,22 +1012,30 @@ function initAdminEnquiries() {
       element.textContent = String(totalCount);
     });
 
-    if (summaryLabel) {
+    summaryLabels.forEach((element) => {
       if (totalCount === 0) {
-        summaryLabel.textContent = "No enquiries yet.";
+        element.textContent = "No enquiries yet.";
       } else if (openCount === 0) {
-        summaryLabel.textContent = "All enquiries handled.";
+        element.textContent = "All enquiries handled.";
       } else {
         const label = openCount === 1 ? "enquiry" : "enquiries";
-        summaryLabel.textContent = `${openCount} open ${label}`;
+        element.textContent = `${openCount} open ${label}`;
       }
-    }
+    });
   }
 
   function renderList(counts) {
     if (!list || !emptyState) return;
 
     updateCounts(counts);
+    if (refreshLabels.length) {
+      const now = new Date();
+      const formatted = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      refreshLabels.forEach((element) => {
+        element.textContent = formatted;
+        element.dataset.timestamp = now.toISOString();
+      });
+    }
     list.innerHTML = "";
 
     if (!enquiries.length) {
@@ -1441,7 +1450,7 @@ function initBanManager() {
   const emptyState = root.querySelector("[data-role='ban-empty']");
   const table = root.querySelector("[data-role='ban-table']");
   const tableWrapper = table?.closest(".table-wrapper");
-  const countPills = root.querySelectorAll("[data-role='ban-count']");
+  const countPills = document.querySelectorAll("[data-role='ban-count']");
 
   let visitors = [];
 

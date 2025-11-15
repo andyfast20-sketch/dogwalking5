@@ -2,43 +2,59 @@
 {% block title %}Admin 2 | Reliable Walks{% endblock %}
 {% block content %}
 <section class="admin-panel admin-panel--lab">
-  <div class="admin-container">
-    <header class="admin-hero admin-hero--lab">
-      <div class="admin-hero__grid">
-        <div class="admin-hero__copy">
-          <p class="eyebrow">Field command lab</p>
-          <h1>Keep walkers, clients, and pups in sync</h1>
-          <p class="admin-hero__subtitle">
-            Admin 2 is a calmer space for operators who want a high-signal overview of live
-            enquiries, safety alerts, and the booking queue.
-          </p>
-          <ul class="admin-hero__chips">
-            <li>Desk-friendly layout</li>
-            <li>Shared metrics</li>
-            <li>Ban + booking alerts</li>
-          </ul>
-        </div>
-        <dl class="admin-hero__stats">
-          <div class="admin-hero__stat">
-            <dt>Open enquiries</dt>
-            <dd data-role="enquiry-open-count">0</dd>
-            <small>Needs a reply</small>
-          </div>
-          <div class="admin-hero__stat">
-            <dt>Inbox volume</dt>
-            <dd data-role="enquiry-total-count">0</dd>
-            <small>Total threads</small>
-          </div>
-          <div class="admin-hero__stat">
-            <dt>Ban watch</dt>
-            <dd data-role="ban-count">0</dd>
-            <small>Active restrictions</small>
-          </div>
-        </dl>
+  <div class="admin-container admin2-layout">
+    <aside class="admin2-sidebar">
+      <div class="admin2-briefing">
+        <p class="eyebrow">Field command lab</p>
+        <h1>Keep walkers, clients, and pups in sync</h1>
+        <p>
+          Admin 2 trades hero banners for a crisp operator brief. Glance at the vitals, pick a lane,
+          and stay focused while enquiries, bans, and bookings update in real time.
+        </p>
+        <ul class="admin2-highlights">
+          <li>Desk-friendly overview</li>
+          <li>Shared metrics between teams</li>
+          <li>Immediate ban + booking alerts</li>
+        </ul>
       </div>
-    </header>
 
-    <div class="admin-body admin-body--lab">
+      <div class="admin2-metrics">
+        <article class="admin2-metric-card">
+          <p>Open enquiries</p>
+          <strong data-role="enquiry-open-count">0</strong>
+          <small>Needing attention</small>
+        </article>
+        <article class="admin2-metric-card">
+          <p>Inbox volume</p>
+          <strong data-role="enquiry-total-count">0</strong>
+          <small>Total threads</small>
+        </article>
+        <article class="admin2-metric-card">
+          <p>Ban watch</p>
+          <strong data-role="ban-count">0</strong>
+          <small>Active restrictions</small>
+        </article>
+      </div>
+
+      <div class="admin2-snapshot">
+        <div>
+          <h2>Live signal</h2>
+          <p data-role="enquiry-summary">Loading status...</p>
+        </div>
+        <ul>
+          <li>
+            <span>Last refresh</span>
+            <strong data-role="lab-refresh">Just now</strong>
+          </li>
+          <li>
+            <span>Watch list</span>
+            <strong data-role="ban-count">0</strong>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <div class="admin2-main">
       <div class="admin-console admin-console--lab">
         <div class="admin-console__heading">
           <p class="eyebrow">Mission control</p>
