@@ -1360,48 +1360,187 @@ textarea {
 }
 
 .site-footer {
-  background: #06130f;
-  color: #d6e4df;
-  padding: 3rem 0 2rem;
-  margin-top: 4rem;
+  position: relative;
+  margin-top: 5rem;
+  padding: 4.5rem 0 2.75rem;
+  background: radial-gradient(circle at 20% 20%, rgba(29, 96, 74, 0.55), transparent 55%),
+    radial-gradient(circle at 80% 0%, rgba(125, 210, 124, 0.35), transparent 50%),
+    linear-gradient(160deg, #04110d, #091b14 45%, #030806);
+  color: #d7f5eb;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.site-footer .container {
+  position: relative;
+  z-index: 2;
+}
+
+.footer-aurora {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 140% at 50% 0%, rgba(80, 255, 194, 0.2), transparent),
+    radial-gradient(80% 100% at 15% 20%, rgba(255, 196, 95, 0.2), transparent 70%),
+    radial-gradient(80% 100% at 85% 20%, rgba(82, 120, 255, 0.15), transparent 70%);
+  filter: blur(30px);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.footer-top {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.footer-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.75rem;
+}
+
+.footer-top h2 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+}
+
+.footer-lede {
+  margin: 0.75rem auto 0;
+  max-width: 540px;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .footer-grid {
   display: grid;
-  gap: 2rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  align-items: start;
+}
+
+.footer-brand {
+  background: rgba(8, 35, 24, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+
+.footer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.footer-chips span {
+  font-size: 0.85rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.footer-social {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .site-footer a {
   color: inherit;
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 .site-footer a:hover,
 .site-footer a:focus {
-  color: #ffce3d;
+  color: #ffe27d;
+  opacity: 1;
 }
 
-.site-footer ul {
+.footer-links {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
+  gap: 0.4rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.footer-contact ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.footer-newsletter {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.75rem;
+}
+
+.footer-form {
+  display: flex;
   gap: 0.5rem;
+  margin: 1rem 0 0.5rem;
 }
 
-.site-footer h3 {
-  margin-top: 0;
+.footer-form input {
+  flex: 1;
+  border-radius: 999px;
+  border: 0;
+  padding: 0.65rem 1rem;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
 }
 
-.site-footer p {
-  margin: 0.5rem 0 0;
+.footer-form input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.footer-form button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.65rem 1.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), #ffd44d);
+  color: #1f1c0a;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(245, 180, 0, 0.35);
+}
+
+.footer-newsletter small {
+  display: block;
+  margin-top: 0.5rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.footer-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  margin: 3rem 0 1.5rem;
 }
 
 .site-footer .copyright {
   text-align: center;
-  margin-top: 2rem;
   font-size: 0.85rem;
-  opacity: 0.8;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+@media (max-width: 640px) {
+  .footer-form {
+    flex-direction: column;
+  }
+
+  .footer-form button {
+    width: 100%;
+  }
 }
 @keyframes dogBop {
   0%,

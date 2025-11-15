@@ -46,29 +46,75 @@
     </header>
     <main>{% block content %}{% endblock %}</main>
     <footer class="site-footer">
-      <div class="container footer-grid">
-        <div>
-          <h3>Quick Links</h3>
-          <ul>
-            <li><a href="{{ url_for('main.index') }}">Home</a></li>
-            <li><a href="{{ url_for('main.services') }}">Services</a></li>
-            <li><a href="{{ url_for('main.about') }}">About</a></li>
-            <li><a href="{{ url_for('main.booking') }}">Book a Walk</a></li>
-            <li><a href="{{ url_for('main.admin') }}">Admin</a></li>
-            <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
-          </ul>
+      <div class="footer-aurora" aria-hidden="true"></div>
+      <div class="container">
+        <div class="footer-top">
+          <p class="footer-eyebrow">Your dog's favourite part of the day</p>
+          <h2>Reliable Walks</h2>
+          <p class="footer-lede">
+            Premium, personalised adventures for pups who deserve the royal treatment.
+          </p>
         </div>
-        <div>
-          <h3>Get in Touch</h3>
-          <p>Phone: <a href="tel:+441234567890">+44 1234 567890</a></p>
-          <p>Email: <a href="mailto:hello@reliablewalks.co.uk">hello@reliablewalks.co.uk</a></p>
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <p>
+              Trusted, insured, and always ready for tail-wagging adventures across the city.
+            </p>
+            <div class="footer-chips">
+              <span>Fully Insured</span>
+              <span>DBS Checked</span>
+              <span>24/7 Support</span>
+            </div>
+            <div class="footer-social" aria-label="Social media">
+              <a href="https://instagram.com" target="_blank" rel="noreferrer noopener">Instagram</a>
+              <a href="https://facebook.com" target="_blank" rel="noreferrer noopener">Facebook</a>
+              <a href="https://tiktok.com" target="_blank" rel="noreferrer noopener">TikTok</a>
+            </div>
+          </div>
+          <div>
+            <h3>Explore</h3>
+            <ul class="footer-links">
+              <li><a href="{{ url_for('main.index') }}">Home</a></li>
+              <li><a href="{{ url_for('main.services') }}">Services</a></li>
+              <li><a href="{{ url_for('main.about') }}">About</a></li>
+              <li><a href="{{ url_for('main.booking') }}">Book a Walk</a></li>
+              <li><a href="{{ url_for('main.admin') }}">Admin</a></li>
+              <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Signature Services</h3>
+            <ul class="footer-links">
+              <li>Solo Adventure Walks</li>
+              <li>Puppy Social Sessions</li>
+              <li>Senior Paw Strolls</li>
+              <li>Weekend Hikes</li>
+              <li>Pet Taxi & Vet Visits</li>
+            </ul>
+          </div>
+          <div class="footer-contact">
+            <h3>Connect</h3>
+            <ul>
+              <li>Phone: <a href="tel:+441234567890">+44 1234 567890</a></li>
+              <li>Email: <a href="mailto:hello@reliablewalks.co.uk">hello@reliablewalks.co.uk</a></li>
+              <li>Service area: Greater Manchester & surrounding villages</li>
+              <li>Hours: Monday–Sunday, 6am – 9pm</li>
+            </ul>
+          </div>
+          <div class="footer-newsletter">
+            <h3>Join the Pack</h3>
+            <p>Monthly tips, route highlights, and priority booking windows.</p>
+            <form class="footer-form" action="{{ url_for('main.contact') }}">
+              <label for="footer-email" class="sr-only">Email address</label>
+              <input id="footer-email" type="email" name="email" placeholder="Email address" required />
+              <button type="submit">Sign me up</button>
+            </form>
+            <small>No spam. Just happy tails.</small>
+          </div>
         </div>
-        <div>
-          <h3>Reliable Walks</h3>
-          <p>Trusted, insured, and ready for tail-wagging adventures.</p>
-        </div>
+        <div class="footer-divider"></div>
+        <p class="copyright">© {{ current_year }} Reliable Walks. All rights reserved.</p>
       </div>
-      <p class="copyright">© {{ current_year }} Reliable Walks. All rights reserved.</p>
     </footer>
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
   </body>
