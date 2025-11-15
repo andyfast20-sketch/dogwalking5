@@ -4101,6 +4101,55 @@ textarea {
   font-size: 0.85rem;
 }
 
+.enquiry-action-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 150px;
+}
+
+.enquiry-action-menu::after {
+  content: "⌄";
+  position: absolute;
+  right: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(244, 248, 246, 0.65);
+  pointer-events: none;
+  font-size: 0.85rem;
+}
+
+.enquiry-action-menu__select {
+  appearance: none;
+  background: rgba(6, 29, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  color: #f4f8f6;
+  font-size: 0.85rem;
+  padding: 0.45rem 2.2rem 0.45rem 0.95rem;
+  cursor: pointer;
+  min-width: 100%;
+}
+
+.enquiry-action-menu__select:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 1px;
+}
+
+.enquiry-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  font-size: 1.1rem;
+}
+
+.enquiry-icon-button span[aria-hidden="true"] {
+  line-height: 1;
+}
+
 .booking-hero {
   background: linear-gradient(140deg, rgba(17, 59, 46, 0.8), rgba(5, 19, 14, 0.9));
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
