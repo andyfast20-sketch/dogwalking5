@@ -45,6 +45,7 @@ BookingRecord = Dict[str, Any]
 
 booking_slots: Dict[str, SlotRecord] = {}
 booking_records: Dict[str, BookingRecord] = {}
+VALID_BOOKING_STATUSES = {"new", "in_progress", "complete"}
 
 
 def _iso_now() -> str:
@@ -88,6 +89,10 @@ def _sorted_slots(include_booked: bool | None = None) -> List[SlotRecord]:
 
 def _serialize_booking(booking: BookingRecord) -> BookingRecord:
     data = dict(booking)
+    status = (data.get("status") or "").strip().lower().replace("-", "_")
+    if status not in VALID_BOOKING_STATUSES:
+        status = "new"
+    data["status"] = status
     slot = booking_slots.get(booking.get("slot_id"))
     if slot:
         data["slot"] = _serialize_slot(slot)
@@ -338,6 +343,8 @@ def create_booking():
         "notes": notes,
         "created_at": _iso_now(),
         "confirmed": False,
+        "status": "new",
+        "updated_at": _iso_now(),
     }
 
     slot["is_booked"] = True
@@ -459,9 +466,28 @@ def update_booking_status(booking_id: str):
         return jsonify({"error": "Booking not found."}), 404
 
     data = request.get_json(silent=True) or {}
-    confirmed = _coerce_bool(data.get("confirmed"))
-    booking["confirmed"] = confirmed
-    booking["updated_at"] = _iso_now()
+    updated = False
+    now_iso = _iso_now()
+
+    if "confirmed" in data:
+        confirmed = _coerce_bool(data.get("confirmed"))
+        booking["confirmed"] = confirmed
+        booking["updated_at"] = now_iso
+        updated = True
+
+    if "status" in data:
+        status_value = (data.get("status") or "").strip().lower().replace("-", "_")
+        if status_value not in VALID_BOOKING_STATUSES:
+            return (
+                jsonify({"error": "Status must be new, in_progress, or complete."}),
+                400,
+            )
+        booking["status"] = status_value
+        booking["updated_at"] = now_iso
+        updated = True
+
+    if not updated:
+        return jsonify({"error": "No changes supplied."}), 400
 
     return jsonify({
         "booking": _serialize_booking(booking),

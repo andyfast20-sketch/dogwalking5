@@ -94,14 +94,121 @@
             </div>
           </article>
 
-          <article class="admin-card schedule-card">
-            <div class="card-preview">
-              <p class="card-summary-line">Bookings</p>
-              <h2>Schedule API</h2>
-              <p>
-                Slots added via <code>POST /api/admin/slots</code> appear on the booking page
-                instantly. Confirm visits with <code>PATCH /api/admin/bookings/&lt;id&gt;/status</code>.
-              </p>
+          <article class="admin-card schedule-card" data-card data-role="schedule-manager">
+            <button class="card-preview" data-card-toggle>
+              <div class="card-preview__header">
+                <p class="card-summary-line">Capacity planning</p>
+                <h2>Slots & bookings</h2>
+              </div>
+              <dl class="card-glance">
+                <div class="card-glance__item">
+                  <dt>Open slots</dt>
+                  <dd class="card-glance__value" data-role="admin-slot-count">0</dd>
+                </div>
+                <div class="card-glance__item">
+                  <dt>Booked</dt>
+                  <dd class="card-glance__value" data-role="admin-booking-count">0</dd>
+                </div>
+              </dl>
+              <p class="card-toggle-hint">Tap to add walks and triage bookings</p>
+            </button>
+            <div class="card-body" data-card-body>
+              <div class="schedule-console">
+                <form class="schedule-form slot-form" data-role="slot-form">
+                  <header>
+                    <div>
+                      <p class="eyebrow">Add a walk</p>
+                      <h3>Publish a new slot</h3>
+                      <p>
+                        Pick a date from the calendar, tap a time, and add any quick notes. The slot
+                        appears for visitors instantly.
+                      </p>
+                    </div>
+                    <p class="form-feedback" data-role="schedule-feedback" aria-live="polite"></p>
+                  </header>
+                  <div class="slot-form-grid">
+                    <label>
+                      Date
+                      <input type="date" name="date" required />
+                    </label>
+                    <label>
+                      Time
+                      <input type="time" name="time" required step="900" />
+                    </label>
+                    <label>
+                      Duration (minutes)
+                      <input type="number" name="duration_minutes" min="15" step="15" value="60" required />
+                    </label>
+                    <label>
+                      Price (£)
+                      <input type="number" name="price" min="0" step="1" value="18" required />
+                    </label>
+                  </div>
+                  <div class="time-picker" aria-label="Quick time picker">
+                    <p>Quick times</p>
+                    <div class="time-picker-grid" data-role="time-picker">
+                      {% for time_value in [
+                        "07:00",
+                        "08:00",
+                        "09:00",
+                        "10:00",
+                        "12:00",
+                        "14:00",
+                        "16:00",
+                        "18:00",
+                        "20:00",
+                      ] %}
+                      <button type="button" data-time="{{ time_value }}">{{ time_value }}</button>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <label class="slot-notes">
+                    Notes
+                    <textarea
+                      name="notes"
+                      rows="3"
+                      placeholder="Any special instructions or neighbourhood focus"
+                    ></textarea>
+                  </label>
+                  <div class="schedule-form__actions">
+                    <button class="button primary" type="submit">Publish slot</button>
+                    <p>
+                      Slots publish via <code>POST /api/admin/slots</code> and can be removed below if
+                      plans change.
+                    </p>
+                  </div>
+                </form>
+
+                <div class="schedule-columns">
+                  <section aria-live="polite">
+                    <div class="schedule-heading">
+                      <div>
+                        <p class="eyebrow">Open for booking</p>
+                        <h3>Available slots</h3>
+                      </div>
+                      <span class="schedule-count" data-role="admin-slot-count">0</span>
+                    </div>
+                    <div class="schedule-list" data-role="admin-slot-list"></div>
+                    <p class="schedule-empty" data-role="admin-slot-empty">
+                      No open walks at the moment. Add times above to populate the booking page.
+                    </p>
+                  </section>
+                  <section aria-live="polite">
+                    <div class="schedule-heading">
+                      <div>
+                        <p class="eyebrow">Incoming</p>
+                        <h3>Booked slots</h3>
+                      </div>
+                      <span class="schedule-count" data-role="admin-booking-count">0</span>
+                    </div>
+                    <div class="schedule-list" data-role="admin-booking-list"></div>
+                    <p class="schedule-empty" data-role="admin-booking-empty">
+                      Bookings appear here the moment a visitor requests a slot. Track status and
+                      confirmation without refreshing.
+                    </p>
+                  </section>
+                </div>
+              </div>
             </div>
           </article>
 

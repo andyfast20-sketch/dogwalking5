@@ -654,6 +654,15 @@ function initAdminSchedule() {
   const bookingList = root.querySelector("[data-role='admin-booking-list']");
   const bookingEmpty = root.querySelector("[data-role='admin-booking-empty']");
   const bookingCountElements = root.querySelectorAll("[data-role='admin-booking-count']");
+  const timePicker = root.querySelector("[data-role='time-picker']");
+  const timeInput = slotForm?.querySelector("input[name='time']");
+
+  const BOOKING_STATUS_LABELS = {
+    new: "New",
+    in_progress: "In progress",
+    complete: "Dealt with",
+  };
+  const BOOKING_STATUS_ORDER = ["new", "in_progress", "complete"];
 
   let slots = [];
   let bookings = [];
@@ -763,6 +772,10 @@ function initAdminSchedule() {
       item.classList.add("schedule-item");
       item.dataset.id = booking.id;
 
+      const statusValue = (booking.status || "new").toLowerCase();
+      const statusKey = BOOKING_STATUS_ORDER.includes(statusValue) ? statusValue : "new";
+      const statusLabel = BOOKING_STATUS_LABELS[statusKey] || BOOKING_STATUS_LABELS.new;
+
       const header = document.createElement("header");
       const title = document.createElement("h4");
       const dogName = booking.dog_name ? `${booking.dog_name}` : "Booking";
@@ -770,14 +783,16 @@ function initAdminSchedule() {
       const badges = document.createElement("div");
       badges.classList.add("schedule-badges");
       const statusBadge = document.createElement("span");
-      statusBadge.classList.add("schedule-badge");
-      if (!booking.confirmed) {
-        statusBadge.classList.add("pending");
-        statusBadge.textContent = "Awaiting confirmation";
-      } else {
-        statusBadge.textContent = "Confirmed";
-      }
+      statusBadge.classList.add("schedule-badge", "booking-status-badge", `status-${statusKey.replace("_", "-")}`);
+      statusBadge.textContent = statusLabel;
       badges.appendChild(statusBadge);
+      const confirmBadge = document.createElement("span");
+      confirmBadge.classList.add("schedule-badge");
+      if (!booking.confirmed) {
+        confirmBadge.classList.add("pending");
+      }
+      confirmBadge.textContent = booking.confirmed ? "Confirmed" : "Awaiting confirmation";
+      badges.appendChild(confirmBadge);
       if (slot) {
         const priceBadge = document.createElement("span");
         priceBadge.classList.add("schedule-badge");
@@ -813,6 +828,23 @@ function initAdminSchedule() {
 
       const actions = document.createElement("div");
       actions.classList.add("schedule-actions");
+
+      const statusControl = document.createElement("label");
+      statusControl.classList.add("booking-status-picker");
+      statusControl.textContent = "Status";
+      const statusSelect = document.createElement("select");
+      statusSelect.dataset.action = "set-booking-status";
+      statusSelect.dataset.id = booking.id;
+      BOOKING_STATUS_ORDER.forEach((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = BOOKING_STATUS_LABELS[value];
+        statusSelect.appendChild(option);
+      });
+      statusSelect.value = statusKey;
+      statusControl.appendChild(statusSelect);
+      actions.appendChild(statusControl);
+
       const toggleButton = document.createElement("button");
       toggleButton.type = "button";
       toggleButton.classList.add("button", booking.confirmed ? "ghost" : "primary");
@@ -882,6 +914,7 @@ function initAdminSchedule() {
         renderSlotList();
         setFeedback("Slot added to your availability.");
         slotForm.reset();
+        setSelectedTimeButton("");
       } catch (error) {
         const message = await resolveErrorMessage(
           error,
@@ -894,6 +927,34 @@ function initAdminSchedule() {
         }
       }
     });
+  }
+
+  function setSelectedTimeButton(value) {
+    if (!timePicker) return;
+    const normalized = value?.slice(0, 5) || "";
+    const buttons = timePicker.querySelectorAll("button[data-time]");
+    buttons.forEach((button) => {
+      const isActive = button.dataset.time === normalized;
+      button.classList.toggle("is-selected", isActive);
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+  }
+
+  if (timePicker && timeInput) {
+    timePicker.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-time]");
+      if (!button) return;
+      timeInput.value = button.dataset.time;
+      setSelectedTimeButton(button.dataset.time);
+      timeInput.dispatchEvent(new Event("input", { bubbles: true }));
+      timeInput.focus();
+    });
+
+    timeInput.addEventListener("input", () => {
+      setSelectedTimeButton(timeInput.value);
+    });
+
+    setSelectedTimeButton(timeInput.value);
   }
 
   if (slotList) {
@@ -953,6 +1014,36 @@ function initAdminSchedule() {
         setFeedback(message, true);
       } finally {
         button.disabled = false;
+      }
+    });
+
+    bookingList.addEventListener("change", async (event) => {
+      const select = event.target.closest("[data-action='set-booking-status']");
+      if (!select) return;
+      const { id } = select.dataset;
+      if (!id || !select.value) return;
+
+      select.disabled = true;
+      setFeedback("Updating booking status...");
+
+      try {
+        const data = await fetchJson(`/api/admin/bookings/${encodeURIComponent(id)}/status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: select.value }),
+        });
+        bookings = data.bookings ?? bookings;
+        renderBookingList();
+        const label = BOOKING_STATUS_LABELS[select.value] || select.value;
+        setFeedback(`Booking marked as ${label.toLowerCase()}.`);
+      } catch (error) {
+        const message = await resolveErrorMessage(
+          error,
+          "We couldn’t update that booking."
+        );
+        setFeedback(message, true);
+      } finally {
+        select.disabled = false;
       }
     });
   }
