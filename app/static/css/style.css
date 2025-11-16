@@ -4457,6 +4457,23 @@ body.modal-open {
   gap: 1.25rem;
 }
 
+.schedule-form header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.schedule-form header p {
+  margin: 0;
+  color: rgba(245, 249, 247, 0.75);
+}
+
+.schedule-form__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
 .slot-form-grid {
   display: grid;
   gap: 1rem;
@@ -4478,6 +4495,36 @@ body.modal-open {
   background: rgba(7, 21, 16, 0.8);
   color: var(--text);
   font-size: 1rem;
+}
+
+.time-picker {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.time-picker-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.time-picker-grid button {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.4rem 0.9rem;
+  background: rgba(6, 20, 15, 0.8);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.time-picker-grid button.is-selected,
+.time-picker-grid button:focus-visible {
+  background: rgba(125, 210, 124, 0.25);
+  border-color: rgba(125, 210, 124, 0.6);
+  color: var(--eyebrow);
+  outline: none;
 }
 
 .schedule-columns {
@@ -4555,6 +4602,21 @@ body.modal-open {
   color: var(--accent);
 }
 
+.booking-status-badge.status-new {
+  background: rgba(125, 210, 124, 0.25);
+  color: var(--eyebrow);
+}
+
+.booking-status-badge.status-in-progress {
+  background: rgba(245, 180, 0, 0.25);
+  color: var(--accent);
+}
+
+.booking-status-badge.status-complete {
+  background: rgba(90, 195, 255, 0.25);
+  color: #7cd5ff;
+}
+
 .schedule-details {
   color: rgba(245, 249, 247, 0.7);
   display: grid;
@@ -4571,6 +4633,22 @@ body.modal-open {
 .schedule-actions .button {
   padding: 0.55rem 1.3rem;
   font-size: 0.9rem;
+}
+
+.booking-status-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.booking-status-picker select {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 0.4rem 0.9rem;
+  background: rgba(7, 21, 16, 0.85);
+  color: var(--text);
+  min-width: 160px;
 }
 
 .amin-hero {
