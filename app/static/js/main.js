@@ -390,6 +390,8 @@ function initBookingSchedule() {
 
   let slots = [];
   let selectedSlot = null;
+  let isLoadingSlots = false;
+  let refreshTimerId = null;
 
   function updateCount(value) {
     if (!countLabel) return;
@@ -498,6 +500,9 @@ function initBookingSchedule() {
   }
 
   async function loadSlots() {
+    if (isLoadingSlots) return;
+    isLoadingSlots = true;
+
     try {
       const data = await fetchJson("/api/slots");
       slots = data.slots ?? [];
@@ -516,7 +521,20 @@ function initBookingSchedule() {
         slotList.hidden = true;
       }
       updateCount(0);
+    } finally {
+      isLoadingSlots = false;
     }
+  }
+
+  function startAutoRefresh() {
+    if (refreshTimerId) {
+      window.clearInterval(refreshTimerId);
+    }
+    refreshTimerId = window.setInterval(() => {
+      if (!document.hidden) {
+        loadSlots();
+      }
+    }, 20000);
   }
 
   if (filterInput) {
@@ -614,7 +632,14 @@ function initBookingSchedule() {
     });
   }
 
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      loadSlots();
+    }
+  });
+
   loadSlots();
+  startAutoRefresh();
 }
 
 function initAdminSchedule() {
